@@ -1,0 +1,154 @@
+{
+  "verified_utc": "2026-10-12T12:51:17.559525+00:00",
+  "study_sha256": "ead614f0f5fbf25e8a743790539b68e4749e037c689bfdb845f72616e029543f",
+  "parent_study_sha256": "fa71ffcba4fc309a38f7b538081772e02c35217de7e413278a0a40adbf239a4d",
+  "measured_files_verified": 18,
+  "candidate_files_verified": 9,
+  "candidate_sha256": {
+    "runs/20261012T121210Z-silu_mul-selector-feedback/candidate-1.py": "4082ca1a62e17629c76f09a42396d6b838f0d165e5933b110b9502d218fa1313",
+    "runs/20261012T121210Z-silu_mul-selector-feedback/candidate-2.py": "640d750202fc5209a7e8381b9e523d08b6ed7d05e34036428271b777cebf56ab",
+    "runs/20261012T121210Z-silu_mul-selector-feedback/candidate-3.py": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+    "runs/20261012T121210Z-rmsnorm-selector-feedback/candidate-1.py": "e49e9eea4f76067f9b9582551f993cac2f899e00bd0355d99504e29c8c376e64",
+    "runs/20261012T121210Z-rmsnorm-selector-feedback/candidate-2.py": "a7601c3c9fe94766b3f6346896aaec70986c03ece6724975fdd1018ed2c6dd72",
+    "runs/20261012T121210Z-rmsnorm-selector-feedback/candidate-3.py": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+    "runs/20261012T121210Z-row_sum-selector-feedback/candidate-1.py": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+    "runs/20261012T121210Z-row_sum-selector-feedback/candidate-2.py": "5b4a5507a406d7f1dd3571ead80d658c9e7748c5ede7bba427c86027d22fc663",
+    "runs/20261012T121210Z-row_sum-selector-feedback/candidate-3.py": "e92ea00a0f7a344a7a55e2bcb73d042da7a9d47e1e5c31d83b7739cea8d79567"
+  },
+  "selection_audit": [
+    {
+      "task": "silu_mul",
+      "selected_sha256": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+      "correct": true,
+      "promoted": true,
+      "ranking_matches": true,
+      "geomean_selected_sha256": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+      "ranking_diverged": false,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "4082ca1a62e17629c76f09a42396d6b838f0d165e5933b110b9502d218fa1313",
+          "gate_first": "4082ca1a62e17629c76f09a42396d6b838f0d165e5933b110b9502d218fa1313",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "4082ca1a62e17629c76f09a42396d6b838f0d165e5933b110b9502d218fa1313",
+          "gate_first": "640d750202fc5209a7e8381b9e523d08b6ed7d05e34036428271b777cebf56ab",
+          "diverged": true
+        },
+        {
+          "iteration": 3,
+          "best": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+          "gate_first": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+          "diverged": false
+        }
+      ],
+      "prefix_ranking_diverged": true
+    },
+    {
+      "task": "rmsnorm",
+      "selected_sha256": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+      "correct": true,
+      "promoted": true,
+      "ranking_matches": true,
+      "geomean_selected_sha256": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+      "ranking_diverged": false,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "e49e9eea4f76067f9b9582551f993cac2f899e00bd0355d99504e29c8c376e64",
+          "gate_first": "e49e9eea4f76067f9b9582551f993cac2f899e00bd0355d99504e29c8c376e64",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "a7601c3c9fe94766b3f6346896aaec70986c03ece6724975fdd1018ed2c6dd72",
+          "gate_first": "a7601c3c9fe94766b3f6346896aaec70986c03ece6724975fdd1018ed2c6dd72",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+          "gate_first": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+          "diverged": false
+        }
+      ],
+      "prefix_ranking_diverged": false
+    },
+    {
+      "task": "row_sum",
+      "selected_sha256": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+      "correct": true,
+      "promoted": false,
+      "ranking_matches": true,
+      "geomean_selected_sha256": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+      "ranking_diverged": false,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "gate_first": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "gate_first": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "gate_first": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "diverged": false
+        }
+      ],
+      "prefix_ranking_diverged": false
+    }
+  ],
+  "conditions": [
+    {
+      "policy": "feedback",
+      "planned_runs": 3,
+      "completed_runs": 3,
+      "final_correct": 3,
+      "final_promoted": 2,
+      "prospective_correct": 0,
+      "prospective_completed": 0,
+      "selection_audit": {
+        "first": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "last": {
+          "correct": 3,
+          "promoted": 2
+        },
+        "best": {
+          "correct": 3,
+          "promoted": 2
+        },
+        "gate_first": {
+          "correct": 3,
+          "promoted": 2
+        }
+      }
+    }
+  ],
+  "request_audit": {
+    "proposer": 9,
+    "background": 9,
+    "base_model_only": true,
+    "seed": 20261012,
+    "tools_removed_for_proposer": true,
+    "line_schema": true
+  },
+  "scope": "fresh integration replication on prior task families; changed inference runtime; search-only rule audits share candidate sources, no matched causal comparison",
+  "analysis_source_sha256": {
+    "scripts/summarize_strategy.py": "563337f9778a9c8ce0d387d42826365a46c56cea9999a2905e78751bfa199b6e",
+    "scripts/audit_selector_validation.py": "f62150c1780679b5049f6eb7d3dde81bcd9a2ccf049da51d38215b413125757e",
+    "scripts/build_report.py": "a4a612d1d84b207421d656e760ff2d03bb99064a253f4b50ed18e7fa570841f7",
+    "reports/template.html": "051a4f6051b9a278ebeb50ffacbd2f2b03a8a589ba9517d5c5d04ea209a303d9"
+  }
+}

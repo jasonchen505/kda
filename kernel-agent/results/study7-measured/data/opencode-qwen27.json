@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "enabled_providers": [
+    "kernel-local"
+  ],
+  "model": "kernel-local/kernel-qwen-local-27b",
+  "small_model": "kernel-local/kernel-qwen-local-27b",
+  "autoupdate": false,
+  "share": "disabled",
+  "provider": {
+    "kernel-local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Existing local Qwen",
+      "options": {
+        "baseURL": "http://127.0.0.1:18116/v1",
+        "apiKey": "local-not-a-secret"
+      },
+      "models": {
+        "kernel-qwen-local-27b": {
+          "name": "Cached local Qwen 27B FP8 (config: qwen3_5)",
+          "limit": {
+            "context": 16384,
+            "output": 4096
+          },
+          "cost": {
+            "input": 0,
+            "output": 0
+          }
+        }
+      }
+    }
+  },
+  "agent": {
+    "build": {
+      "temperature": 0,
+      "steps": 4,
+      "prompt": "You are a GPU kernel source-code proposer. Your only work product is a JSON response containing draft, plan and complete Python/Triton code. The controller writes that proposal to disk and runs tests. Printing source code as text is allowed even when filesystem tools are disabled. You are not being asked to modify a file or execute commands. Do not call tools and do not refuse because tools are unavailable. Follow the task contract and supplied Triton reference notes. Use real Triton APIs, a normal Python run wrapper, tensor arguments for kernel pointers and vector offsets for memory operations. Return syntactically valid multi-line code encoded as a JSON string. Do not invent APIs. On failure, repair the actual code, not merely its explanation."
+    }
+  },
+  "permission": {
+    "*": "deny"
+  }
+}

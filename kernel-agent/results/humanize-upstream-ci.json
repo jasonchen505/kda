@@ -1,0 +1,184 @@
+{
+  "checked_utc": "2026-10-12T14:08:26.241950+00:00",
+  "commit": "d7f732e935100047d0faa5fc7c4d6b03ce350fc7",
+  "check_runs": {
+    "humanfia/humanize": [
+      {
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026415/job/114824873178"
+      },
+      {
+        "name": "ci-ok",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026341/job/114820855876"
+      },
+      {
+        "name": "web (${{ matrix.os }})",
+        "status": "completed",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026341/job/114820550676"
+      },
+      {
+        "name": "desktop",
+        "status": "completed",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026341/job/114820549951"
+      },
+      {
+        "name": "tests (macos-latest)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026341/job/114820548776"
+      },
+      {
+        "name": "tests (ubuntu-latest)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026341/job/114820548659"
+      },
+      {
+        "name": "Analyze (python)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026591/job/114820504534"
+      },
+      {
+        "name": "Analyze (rust)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026591/job/114820504362"
+      },
+      {
+        "name": "Analyze (javascript-typescript)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026591/job/114820504256"
+      },
+      {
+        "name": "Analyze (actions)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026591/job/114820504046"
+      },
+      {
+        "name": "static",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026341/job/114820499320"
+      },
+      {
+        "name": "changes",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026341/job/114820499023"
+      },
+      {
+        "name": "build",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38252026415/job/114820498460"
+      },
+      {
+        "name": "ci-ok",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256851/job/114820283166"
+      },
+      {
+        "name": "desktop",
+        "status": "completed",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256851/job/114817914731"
+      },
+      {
+        "name": "web (ubuntu-latest)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256851/job/114817912698"
+      },
+      {
+        "name": "tests (ubuntu-latest)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256851/job/114817912550"
+      },
+      {
+        "name": "tests (macos-latest)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256851/job/114817912462"
+      },
+      {
+        "name": "web (macos-latest)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256851/job/114817912446"
+      },
+      {
+        "name": "title",
+        "status": "completed",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256963/job/114817857035"
+      },
+      {
+        "name": "changes",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256851/job/114817855281"
+      },
+      {
+        "name": "static",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/humanfia/humanize/actions/runs/38251256851/job/114817854704"
+      }
+    ],
+    "jasonchen505/humanize": [
+      {
+        "name": "ci-ok",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/jasonchen505/humanize/actions/runs/38258759036/job/114845902235"
+      },
+      {
+        "name": "web (${{ matrix.os }})",
+        "status": "completed",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/jasonchen505/humanize/actions/runs/38258759036/job/114843602160"
+      },
+      {
+        "name": "tests (macos-latest)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/jasonchen505/humanize/actions/runs/38258759036/job/114843599773"
+      },
+      {
+        "name": "tests (ubuntu-latest)",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/jasonchen505/humanize/actions/runs/38258759036/job/114843599568"
+      },
+      {
+        "name": "desktop",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/jasonchen505/humanize/actions/runs/38258759036/job/114843599557"
+      },
+      {
+        "name": "changes",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/jasonchen505/humanize/actions/runs/38258759036/job/114843544176"
+      },
+      {
+        "name": "static",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/jasonchen505/humanize/actions/runs/38258759036/job/114843543867"
+      }
+    ]
+  }
+}

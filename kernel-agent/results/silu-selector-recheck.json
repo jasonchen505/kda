@@ -1,0 +1,719 @@
+{
+  "schema_version": 1,
+  "study_kind": "fixed_candidate_recheck",
+  "executed_utc": "2026-10-12T11:26:46.245080+00:00",
+  "task_id": "silu_mul",
+  "repeat": 3,
+  "cuda_visible_devices": "6",
+  "scope": "fresh evaluator processes for fixed existing sources; no model generation, no candidate reselection, and no replacement of the original campaign",
+  "candidates": [
+    {
+      "candidate": "runs/20261011T193132Z-silu_mul-strategy-feedback/candidate-1.py",
+      "source_sha256": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+      "evaluations": [
+        {
+          "status": "correct",
+          "source_sha256": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "checks_passed": 28,
+          "timings": [
+            {
+              "shape": [
+                513
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 0.9284231928177178,
+              "candidate_us": 1.1575969401746988,
+              "samples_us": {
+                "compiled": [
+                  0.9424383752048016,
+                  0.9253727039322257,
+                  0.9284231928177178
+                ],
+                "candidate": [
+                  1.1605594772845507,
+                  1.1575969401746988,
+                  1.1558388359844685
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                131071
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 1.4057524967938662,
+              "candidate_us": 1.3960739597678185,
+              "samples_us": {
+                "compiled": [
+                  1.4097682433202863,
+                  1.4057524967938662,
+                  1.4048388693481684
+                ],
+                "candidate": [
+                  1.3960739597678185,
+                  1.396467094309628,
+                  1.3945772079750896
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "candidate",
+                  "compiled"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1000003
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 6.704927887767553,
+              "candidate_us": 6.822255905717611,
+              "samples_us": {
+                "compiled": [
+                  6.709125824272633,
+                  6.704927887767553,
+                  6.3239410519599915
+                ],
+                "candidate": [
+                  6.844817660748959,
+                  6.822255905717611,
+                  6.392735987901688
+                ]
+              },
+              "orders": [
+                [
+                  "candidate",
+                  "compiled"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            }
+          ],
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.6.0+cu124"
+        },
+        {
+          "status": "correct",
+          "source_sha256": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "checks_passed": 28,
+          "timings": [
+            {
+              "shape": [
+                513
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 0.9390882332809269,
+              "candidate_us": 1.1690041283145547,
+              "samples_us": {
+                "compiled": [
+                  0.9639675845392048,
+                  0.9390882332809269,
+                  0.9297047508880496
+                ],
+                "candidate": [
+                  1.1690041283145547,
+                  1.1748721590265632,
+                  1.1605428298935294
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                131071
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 1.4066888252273202,
+              "candidate_us": 1.3965863035991788,
+              "samples_us": {
+                "compiled": [
+                  1.4063778799027205,
+                  1.411141362041235,
+                  1.4066888252273202
+                ],
+                "candidate": [
+                  1.3951669679954648,
+                  1.40384363476187,
+                  1.3965863035991788
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "candidate",
+                  "compiled"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1000003
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 6.34669978171587,
+              "candidate_us": 6.4411587081849575,
+              "samples_us": {
+                "compiled": [
+                  6.344358436763287,
+                  6.34669978171587,
+                  6.35455921292305
+                ],
+                "candidate": [
+                  6.880849599838257,
+                  6.4097074791789055,
+                  6.4411587081849575
+                ]
+              },
+              "orders": [
+                [
+                  "candidate",
+                  "compiled"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            }
+          ],
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.6.0+cu124"
+        },
+        {
+          "status": "correct",
+          "source_sha256": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "checks_passed": 28,
+          "timings": [
+            {
+              "shape": [
+                513
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 0.9648012928664684,
+              "candidate_us": 1.1827180860564113,
+              "samples_us": {
+                "compiled": [
+                  0.9677878697402775,
+                  0.9648012928664684,
+                  0.9293018956668675
+                ],
+                "candidate": [
+                  1.1827180860564113,
+                  1.1638306314125657,
+                  1.2140965554863214
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                131071
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 1.4180990401655436,
+              "candidate_us": 1.4045372372493148,
+              "samples_us": {
+                "compiled": [
+                  1.4259051531553268,
+                  1.4130865456536412,
+                  1.4180990401655436
+                ],
+                "candidate": [
+                  1.3980118092149496,
+                  1.4045372372493148,
+                  1.4049840392544866
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "candidate",
+                  "compiled"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1000003
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 6.323946174234152,
+              "candidate_us": 6.425508763641119,
+              "samples_us": {
+                "compiled": [
+                  6.323946174234152,
+                  6.318910513073206,
+                  6.32567098364234
+                ],
+                "candidate": [
+                  6.892119999974966,
+                  6.420922931283712,
+                  6.425508763641119
+                ]
+              },
+              "orders": [
+                [
+                  "candidate",
+                  "compiled"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            }
+          ],
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.6.0+cu124"
+        }
+      ],
+      "summary": {
+        "runs": 3,
+        "correct": 3,
+        "promoted": 0,
+        "geomean_speedups": [
+          0.925873635762591,
+          0.927259993651353,
+          0.9324027151778375
+        ],
+        "worst_speedups": [
+          0.8020263017260608,
+          0.8033232822153369,
+          0.8157491664674273
+        ]
+      }
+    },
+    {
+      "candidate": "runs/20261011T193132Z-silu_mul-strategy-feedback/candidate-2.py",
+      "source_sha256": "6cfb3b5f8afb479b30b22f5f8a3c9438d3ca0a7a1d42dd8454c46edd89856c21",
+      "evaluations": [
+        {
+          "status": "correct",
+          "source_sha256": "6cfb3b5f8afb479b30b22f5f8a3c9438d3ca0a7a1d42dd8454c46edd89856c21",
+          "checks_passed": 28,
+          "timings": [
+            {
+              "shape": [
+                513
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 0.9594429284334183,
+              "candidate_us": 0.9630530839785933,
+              "samples_us": {
+                "compiled": [
+                  0.9594429284334183,
+                  0.958648044615984,
+                  0.9642539662308991
+                ],
+                "candidate": [
+                  0.9514971752651036,
+                  0.9656340698711574,
+                  0.9630530839785933
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                131071
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 1.4479246456176043,
+              "candidate_us": 1.4426547568291426,
+              "samples_us": {
+                "compiled": [
+                  1.4463179977610707,
+                  1.4505593571811914,
+                  1.4479246456176043
+                ],
+                "candidate": [
+                  1.4412914169952273,
+                  1.4445200795307755,
+                  1.4426547568291426
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "candidate",
+                  "compiled"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1000003
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 6.835548672825098,
+              "candidate_us": 3.192733973264694,
+              "samples_us": {
+                "compiled": [
+                  6.835548672825098,
+                  6.836766842752695,
+                  6.830967031419277
+                ],
+                "candidate": [
+                  3.192733973264694,
+                  3.191932337358594,
+                  3.1948767136782408
+                ]
+              },
+              "orders": [
+                [
+                  "candidate",
+                  "compiled"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            }
+          ],
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.6.0+cu124"
+        },
+        {
+          "status": "correct",
+          "source_sha256": "6cfb3b5f8afb479b30b22f5f8a3c9438d3ca0a7a1d42dd8454c46edd89856c21",
+          "checks_passed": 28,
+          "timings": [
+            {
+              "shape": [
+                513
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 0.9642744553275406,
+              "candidate_us": 0.9605789673514664,
+              "samples_us": {
+                "compiled": [
+                  0.9642744553275406,
+                  0.9593219729140401,
+                  0.9652551379986107
+                ],
+                "candidate": [
+                  0.9541826439090073,
+                  0.9605789673514664,
+                  0.9617437608540058
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                131071
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 1.4433495234698057,
+              "candidate_us": 1.4392666053026915,
+              "samples_us": {
+                "compiled": [
+                  1.449473900720477,
+                  1.4433495234698057,
+                  1.4403390232473612
+                ],
+                "candidate": [
+                  1.4477282529696822,
+                  1.4392666053026915,
+                  1.4382234076038003
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "candidate",
+                  "compiled"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1000003
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 6.845550145953894,
+              "candidate_us": 3.1798898708075285,
+              "samples_us": {
+                "compiled": [
+                  6.845550145953894,
+                  6.846243981271982,
+                  6.845082156360149
+                ],
+                "candidate": [
+                  3.1798898708075285,
+                  3.1912631820887327,
+                  3.17904120311141
+                ]
+              },
+              "orders": [
+                [
+                  "candidate",
+                  "compiled"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            }
+          ],
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.6.0+cu124"
+        },
+        {
+          "status": "correct",
+          "source_sha256": "6cfb3b5f8afb479b30b22f5f8a3c9438d3ca0a7a1d42dd8454c46edd89856c21",
+          "checks_passed": 28,
+          "timings": [
+            {
+              "shape": [
+                513
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 0.934604846406728,
+              "candidate_us": 0.9275577031075954,
+              "samples_us": {
+                "compiled": [
+                  0.934604846406728,
+                  0.9362205746583641,
+                  0.9295898489654064
+                ],
+                "candidate": [
+                  0.9285566629841924,
+                  0.9275577031075954,
+                  0.9250286966562271
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                131071
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 1.417644671164453,
+              "candidate_us": 1.4108632458373904,
+              "samples_us": {
+                "compiled": [
+                  1.4173387316986918,
+                  1.417644671164453,
+                  1.4192172093316913
+                ],
+                "candidate": [
+                  1.4108632458373904,
+                  1.410725642926991,
+                  1.4112312346696854
+                ]
+              },
+              "orders": [
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "candidate",
+                  "compiled"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1000003
+              ],
+              "dtype": "bfloat16",
+              "compiled_us": 6.818275898694992,
+              "candidate_us": 3.1508083920925856,
+              "samples_us": {
+                "compiled": [
+                  6.818275898694992,
+                  6.814821157604456,
+                  6.828947924077511
+                ],
+                "candidate": [
+                  3.1474940478801727,
+                  3.153810277581215,
+                  3.1508083920925856
+                ]
+              },
+              "orders": [
+                [
+                  "candidate",
+                  "compiled"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ],
+                [
+                  "compiled",
+                  "candidate"
+                ]
+              ]
+            }
+          ],
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.6.0+cu124"
+        }
+      ],
+      "summary": {
+        "runs": 3,
+        "correct": 3,
+        "promoted": 3,
+        "geomean_speedups": [
+          1.2888064620018327,
+          1.294090681719089,
+          1.2987953142688677
+        ],
+        "worst_speedups": [
+          0.9962513431448029,
+          1.0028368046281846,
+          1.004806578771593
+        ]
+      }
+    }
+  ]
+}

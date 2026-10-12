@@ -1,0 +1,85 @@
+{
+  "scope": "request audit includes background titles and diagnostics; not outcome counts",
+  "groups": [
+    {
+      "policy": "json-lines",
+      "scope": "background",
+      "requests": 18,
+      "offered_tools_before": {
+        "0": 18
+      },
+      "forwarded_tools_after": {
+        "0": 18
+      },
+      "schema_requests": 0,
+      "models": [
+        "kernel-qwen-local-27b"
+      ],
+      "temperatures": [
+        0
+      ],
+      "seeds": [
+        20261011
+      ]
+    },
+    {
+      "policy": "json-lines",
+      "scope": "proposer",
+      "requests": 18,
+      "offered_tools_before": {
+        "2": 18
+      },
+      "forwarded_tools_after": {
+        "0": 18
+      },
+      "schema_requests": 18,
+      "models": [
+        "kernel-qwen-local-27b"
+      ],
+      "temperatures": [
+        0
+      ],
+      "seeds": [
+        20261011
+      ]
+    }
+  ],
+  "trace_sha256": {
+    "runs/strategy-wire/0450db9a94104de2ae363c508e0df432.json": "850e14d5392a4004129d7b16c883e820c4685fbdc57d23c6b45c5a1e0274b0b5",
+    "runs/strategy-wire/209a2187cbcd4ad3a7bcd4a12e3cb0e1.json": "9f17ab5591febcc21f4e2b9b21fd9c1e44b08d8ddf628770b855661bca16b10c",
+    "runs/strategy-wire/2608312127494d57ad7d52eaaf0a1991.json": "071c362c881ba87b60c3f309e749b2587651dbfc8d5c5798e5e73394d7131e36",
+    "runs/strategy-wire/26786467ec064265807f4074c56de613.json": "6be929a746447de64ff94ba8388b0d99900891b479c1dbfd3fb6d18cef85df5f",
+    "runs/strategy-wire/29e12ed9406d40d7b6863b08533c7625.json": "461e7b45eac8651fb5f6fb10d2880dbe3e8ec2cb7ed99f6e4ffc999cb933b76e",
+    "runs/strategy-wire/2defc1c12c1349a8976cb007561d1efa.json": "b46e3c699555f0b145175b2e77000dcb4514b2569109f75923d007bd940f6b14",
+    "runs/strategy-wire/4066fd69543747d08e5b2a71cadba645.json": "dc634dfbc1e7a152172952a540a220678b0b63508658afb42529a4b0299c7b0d",
+    "runs/strategy-wire/4b1889c7ce3c4fe6a6a89df55ea43728.json": "c760ca978e470a1ede4c927d2a7f69546170e823561419ebe63ccedab74c5474",
+    "runs/strategy-wire/4e4a49b8afce4408bafe7bce3bd423ed.json": "fa60b876ec2375f35834fc558e6154c987df6010a97943c44642bcd993954442",
+    "runs/strategy-wire/520d35296a3d40698df59d3e0f4fa49a.json": "5a2efa05083df01bf7d1005d50493d2ed267ac160f739105025467f41a3c98ca",
+    "runs/strategy-wire/5887649dc2f845318d6d6687062a4d5a.json": "efce141bfe53404ada155f879b5606a551e43ffad3fdad7aa73a88b9afb32d74",
+    "runs/strategy-wire/5a145c66014747b18221a5753eaadf99.json": "1c588cd987a1b58aa803b2bbdbc59f9f6e153b7b1ba3ea141f36b3810d7dcebb",
+    "runs/strategy-wire/6449824b60304481971ef7f74d5381ba.json": "6ca23c05e3432552d81f94fccee2aef95e3295994e8f3d39885be998263b772d",
+    "runs/strategy-wire/682e6735e681424cbed6bd0d4c6582f0.json": "ab3037d987129e54b2e30cb04cfc6a6fcbb68ca1e0ea83c6bca3cbe3b0426c8b",
+    "runs/strategy-wire/74fafd490f5a4f238f82b44f3472c87e.json": "67ddd7c404505f65ec76837d4fb2db06fbb069a4f761d91606a69912b7c3952a",
+    "runs/strategy-wire/7ae90ea2de2a467cbef7a35576748cbb.json": "918c904c4a24627128e9000b8252ef3db33fab20068f0d0f720badaeef40ea80",
+    "runs/strategy-wire/86673d435e194bc486d99f55c01fb98a.json": "bdbeff93d67b2f2ab28e1598560c77298d188220779cda9fd347fb4fa45041a6",
+    "runs/strategy-wire/89f00b89085449a69c843d8615b1e3ca.json": "850e14d5392a4004129d7b16c883e820c4685fbdc57d23c6b45c5a1e0274b0b5",
+    "runs/strategy-wire/8ae529dbe92b462ea56b0a6ca67a3b15.json": "e888fb12c6d9b291cca40d73d00b325ec21bc0e8b62477373cce09b8bfc8bdcb",
+    "runs/strategy-wire/92a895b6def84c298fcc84ddac6c3675.json": "06c7aadaf514e7a0a501ccab4215698dc2ae1fa5ff295a365588c8e107b0c001",
+    "runs/strategy-wire/9de6c79aacd248a0a20cde0d34c1fadd.json": "00ef1a816d4bc06f217acf15e986243b6468d4378494b666c51f92c97cece2db",
+    "runs/strategy-wire/adc1ccf7e8194837bb5810f12abf57e1.json": "b64532bc1384ec65ce558ed4883b6d1040b98f38ec4b2a10f3342e6e22e96c93",
+    "runs/strategy-wire/ae39ed3f85c04468b40836d6f8692e2a.json": "a54795063ced6dfe6437633b3008d3a215efb9042ee5b3022e3582345ecfad60",
+    "runs/strategy-wire/b3f1b7f1161c461297e01d73566179db.json": "712bcab3feac42efd726d503ed5a550b0c20d05e57e782a2aeb3d0dbe1bedbc4",
+    "runs/strategy-wire/b7651d85135c40bba859c2c45180950e.json": "7a626fbdedbacfc85a421e06c2d251059de733ea9a7bd222214c268fce66dc15",
+    "runs/strategy-wire/c2ba64fe43eb400694d062936973342d.json": "f9ecf30f27fd2f914c713db7e4efa6da2d9a9ce18cab5d2a1900d9d22694d342",
+    "runs/strategy-wire/ca0406ebf4ca49f6850e2fe08ae109b2.json": "72e011c0b26bf9c36636195876e8913653d567653b180e2b049ec842fe5724a6",
+    "runs/strategy-wire/cc3e5c9064414c21aaad4820b94d1c84.json": "f54407a22b141c26644714c102b58380e2894a41eb59c5b42cf37b7db8157f63",
+    "runs/strategy-wire/ce92c5e15e374fa1abe1d3705784c3c3.json": "915750fb9c8ada9e21cac9ad3d431e05ca41a4ea264357d6d1891b1ee4b65b91",
+    "runs/strategy-wire/cfe1d54605de451494042036e9d0767b.json": "06c7aadaf514e7a0a501ccab4215698dc2ae1fa5ff295a365588c8e107b0c001",
+    "runs/strategy-wire/d07a2fdf5c06405985c33c79475a81df.json": "1f14e3978d77c1b739551937c28a9329ea52d82bbe098b98c8f1367c532bfdae",
+    "runs/strategy-wire/e1d48fbe04c34f268e45e92eb4543021.json": "dbc173fc8fd863a01af2d5e8974f5f49d27536b56a18dc91aa63575d0debb8d0",
+    "runs/strategy-wire/e3cf058e700343f8a6619a52a1190a50.json": "e7a976906c75afa101f1790495a3c75abe820ff202e45ce70da991bf375d0fe9",
+    "runs/strategy-wire/f96ff7f297de48f5b42884b2349ae40b.json": "8623363e4fca4755ac7396022bd914bc49b128b91ad070e80c4a837f6f20f73b",
+    "runs/strategy-wire/fa51130242cd4e49951be048b4799598.json": "f9ecf30f27fd2f914c713db7e4efa6da2d9a9ce18cab5d2a1900d9d22694d342",
+    "runs/strategy-wire/fc671f9988d6412cbcb7af6839ebeb3d.json": "2aa9e3b2ab1ca0427af6ba396bca0e280da6c7b1f407bcace8f5721e5ee3c3f1"
+  }
+}

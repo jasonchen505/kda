@@ -1,0 +1,128 @@
+{
+  "mode": "existing_owner_service",
+  "captured_utc": "2026-10-12T12:12:09.433495+00:00",
+  "endpoint": "http://127.0.0.1:8016",
+  "pid": 3097365,
+  "process_start_ticks": "3304612797",
+  "argv": [
+    "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/vllm-0271-venv/bin/python",
+    "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/vllm-0271-venv/bin/vllm",
+    "serve",
+    "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/models/Qwen3.8-27B-FP8",
+    "--served-model-name",
+    "qwen38-27b-fp8",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8016",
+    "--tensor-parallel-size",
+    "2",
+    "--max-model-len",
+    "65536",
+    "--max-num-seqs",
+    "1",
+    "--max-num-batched-tokens",
+    "4096",
+    "--gpu-memory-utilization",
+    "0.90",
+    "--kv-cache-dtype",
+    "fp8",
+    "--enforce-eager",
+    "--enable-prefix-caching",
+    "--attention-backend",
+    "TRITON_ATTN",
+    "--mm-encoder-attn-backend",
+    "TRITON_ATTN",
+    "--gdn-prefill-backend",
+    "triton",
+    "--reasoning-parser",
+    "qwen3",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser",
+    "qwen3_coder",
+    "--enable-lora",
+    "--max-lora-rank",
+    "16",
+    "--max-loras",
+    "1",
+    "--lora-modules",
+    "expert-sft-actions-v1=artifacts/training/expert_teaching_pipeline_20261011_a/experiment/adapter_expert_actions"
+  ],
+  "generation_gpus": "2,3",
+  "base_model_id": "qwen38-27b-fp8",
+  "adapter_requested": null,
+  "model_listing": {
+    "object": "list",
+    "data": [
+      {
+        "id": "qwen38-27b-fp8",
+        "object": "model",
+        "created": 1791807129,
+        "owned_by": "vllm",
+        "root": "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/models/Qwen3.8-27B-FP8",
+        "parent": null,
+        "max_model_len": 65536,
+        "permission": [
+          {
+            "id": "modelperm-9af5d067390b94fe",
+            "object": "model_permission",
+            "created": 1791807129,
+            "allow_create_engine": false,
+            "allow_sampling": true,
+            "allow_logprobs": true,
+            "allow_search_indices": false,
+            "allow_view": true,
+            "allow_fine_tuning": false,
+            "organization": "*",
+            "group": null,
+            "is_blocking": false
+          }
+        ]
+      },
+      {
+        "id": "expert-sft-actions-v1",
+        "object": "model",
+        "created": 1791807129,
+        "owned_by": "vllm",
+        "root": "artifacts/training/expert_teaching_pipeline_20261011_a/experiment/adapter_expert_actions",
+        "parent": "qwen38-27b-fp8",
+        "max_model_len": null,
+        "permission": [
+          {
+            "id": "modelperm-847f72dab27fe87a",
+            "object": "model_permission",
+            "created": 1791807129,
+            "allow_create_engine": false,
+            "allow_sampling": true,
+            "allow_logprobs": true,
+            "allow_search_indices": false,
+            "allow_view": true,
+            "allow_fine_tuning": false,
+            "organization": "*",
+            "group": null,
+            "is_blocking": false
+          }
+        ]
+      }
+    ]
+  },
+  "initial_queue": {
+    "vllm:num_requests_running": 0.0,
+    "vllm:num_requests_waiting": 0.0
+  },
+  "vllm_version": "0.27.1",
+  "routing_source_sha256": {
+    "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/vllm-0271-venv/lib/python3.13/site-packages/vllm/entrypoints/serve/engine/serving.py": "cc51f6f898eb6c9e7b43df4fa38d31efedf55fa4574871ee4a02c0247e14a98f",
+    "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/vllm-0271-venv/lib/python3.13/site-packages/vllm/entrypoints/openai/models/serving.py": "c6214d373ea3e0a2b70dd44a838e92a49e3be607018a611595aa8b3dfb101839",
+    "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/vllm-0271-venv/lib/python3.13/site-packages/vllm/entrypoints/openai/chat_completion/serving.py": "f3fb82d6eeb956e0e5e9b8e17e135769b3378421ad0fb7958daaf774adc57079"
+  },
+  "runtime_differences_from_parent": [
+    "GPU2/3 instead of GPU4/5",
+    "65536 instead of 16384 context",
+    "FP8 KV cache",
+    "prefix caching",
+    "LoRA-enabled runtime with base ID requested",
+    "memory utilization 0.90 instead of 0.85"
+  ],
+  "scope": "integration replication; runtime differs from the original strategy comparison"
+}

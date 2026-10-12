@@ -1,0 +1,9 @@
+{
+  "scope": "trusted reference/input preflight only; not generated-kernel success",
+  "tasks": [
+    "row_sum",
+    "silu_mul"
+  ],
+  "passed": true,
+  "gpu": "NVIDIA GeForce RTX 4090"
+}

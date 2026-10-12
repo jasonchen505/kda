@@ -1,0 +1,47 @@
+{
+  "scope": "source serialization smoke, not a kernel-generation success",
+  "response": {
+    "id": "chatcmpl-b34df44d5fd63e0c",
+    "object": "chat.completion",
+    "created": 1791743055,
+    "model": "kernel-qwen3-4b",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"draft\": \"import math\",\n  \"plan\": \"Create a simple Python function that takes an input x and returns it unchanged. The function will be defined after importing the math module, with proper indentation and structure.\",\n  \"code_lines\": [\n    \"import math\",\n    \"\",\n    \"def example(x):\",\n    \"    return x\"\n  ]\n}",
+          "refusal": null,
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "reasoning": null
+        },
+        "logprobs": null,
+        "finish_reason": "stop",
+        "stop_reason": null,
+        "token_ids": null,
+        "routed_experts": null
+      }
+    ],
+    "service_tier": null,
+    "system_fingerprint": "vllm-0.27.1-nohash",
+    "usage": {
+      "prompt_tokens": 59,
+      "total_tokens": 135,
+      "completion_tokens": 76,
+      "prompt_tokens_details": null
+    },
+    "prompt_logprobs": null,
+    "prompt_token_ids": null,
+    "prompt_text": null,
+    "kv_transfer_params": null,
+    "ec_transfer_params": null,
+    "metrics": null
+  },
+  "decoded": {
+    "draft": "import math",
+    "plan": "Create a simple Python function that takes an input x and returns it unchanged. The function will be defined after importing the math module, with proper indentation and structure.",
+    "code": "import math\n\ndef example(x):\n    return x\n"
+  }
+}

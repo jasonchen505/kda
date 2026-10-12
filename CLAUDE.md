@@ -1,5 +1,14 @@
 # Agent Instructions
 
+## Portfolio branch scope
+
+On `codex/kernel-agent-harness`, the user-authorized downstream project lives in
+`kernel-agent/`. Its source, task fixtures and frozen experiment evidence are intentionally
+published there. Use its README and locked dependencies for validation; never edit measured
+snapshots or historical raw results to match later controller changes. Chinese user-facing
+reports and resume notes are intentional. The generic upstream rules below apply to the
+original KDA workflow tree, outside the downstream project.
+
 This repository is the generic Kernel Design Agents workflow reference. It should stay small and task-agnostic.
 
 ## Repository Rules

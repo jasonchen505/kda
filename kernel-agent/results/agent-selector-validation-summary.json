@@ -1,0 +1,238 @@
+{
+  "status": "complete",
+  "conditions": [
+    {
+      "policy": "feedback",
+      "planned_runs": 3,
+      "completed_runs": 3,
+      "final_correct": 3,
+      "final_promoted": 2,
+      "prospective_correct": 0,
+      "prospective_completed": 0,
+      "selection_audit": {
+        "first": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "last": {
+          "correct": 3,
+          "promoted": 2
+        },
+        "best": {
+          "correct": 3,
+          "promoted": 2
+        },
+        "gate_first": {
+          "correct": 3,
+          "promoted": 2
+        }
+      }
+    }
+  ],
+  "runs": [
+    {
+      "task": "silu_mul",
+      "split": "task_replication",
+      "policy": "feedback",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": true,
+      "proposals": 3,
+      "unique_sources": 3,
+      "duplicate_proposals": 0,
+      "output_tokens": 1750,
+      "elapsed_seconds": 576.6934124790132,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "4082ca1a62e17629c76f09a42396d6b838f0d165e5933b110b9502d218fa1313",
+          "gate_first": "4082ca1a62e17629c76f09a42396d6b838f0d165e5933b110b9502d218fa1313",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "4082ca1a62e17629c76f09a42396d6b838f0d165e5933b110b9502d218fa1313",
+          "gate_first": "640d750202fc5209a7e8381b9e523d08b6ed7d05e34036428271b777cebf56ab",
+          "diverged": true
+        },
+        {
+          "iteration": 3,
+          "best": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+          "gate_first": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+          "diverged": false
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "4082ca1a62e17629c76f09a42396d6b838f0d165e5933b110b9502d218fa1313",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9533344983772204,
+          "worst_speedup": 0.8601065343078083,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+          "correct": true,
+          "promoted": true,
+          "geomean_speedup": 1.291282843978535,
+          "worst_speedup": 0.9679931714166334,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+          "correct": true,
+          "promoted": true,
+          "geomean_speedup": 1.291282843978535,
+          "worst_speedup": 0.9679931714166334,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "94a50c506dbf23fe743f92ef67ba31d899f52c698997485836e624871596b71f",
+          "correct": true,
+          "promoted": true,
+          "geomean_speedup": 1.291282843978535,
+          "worst_speedup": 0.9679931714166334,
+          "reason": "correct"
+        }
+      }
+    },
+    {
+      "task": "rmsnorm",
+      "split": "development_replication",
+      "policy": "feedback",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": true,
+      "proposals": 3,
+      "unique_sources": 3,
+      "duplicate_proposals": 0,
+      "output_tokens": 2860,
+      "elapsed_seconds": 861.8773754499853,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "e49e9eea4f76067f9b9582551f993cac2f899e00bd0355d99504e29c8c376e64",
+          "gate_first": "e49e9eea4f76067f9b9582551f993cac2f899e00bd0355d99504e29c8c376e64",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "a7601c3c9fe94766b3f6346896aaec70986c03ece6724975fdd1018ed2c6dd72",
+          "gate_first": "a7601c3c9fe94766b3f6346896aaec70986c03ece6724975fdd1018ed2c6dd72",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+          "gate_first": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+          "diverged": false
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "e49e9eea4f76067f9b9582551f993cac2f899e00bd0355d99504e29c8c376e64",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9861695497842531,
+          "worst_speedup": 0.8712229627303034,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+          "correct": true,
+          "promoted": true,
+          "geomean_speedup": 1.0727017654782343,
+          "worst_speedup": 0.9543638770983109,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+          "correct": true,
+          "promoted": true,
+          "geomean_speedup": 1.0727017654782343,
+          "worst_speedup": 0.9543638770983109,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "9b2a76a044f030aa14973d29fbd83bff6aa2a31efa2136a0980baa2967d8ae0f",
+          "correct": true,
+          "promoted": true,
+          "geomean_speedup": 1.0727017654782343,
+          "worst_speedup": 0.9543638770983109,
+          "reason": "correct"
+        }
+      }
+    },
+    {
+      "task": "row_sum",
+      "split": "task_replication",
+      "policy": "feedback",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": false,
+      "proposals": 3,
+      "unique_sources": 3,
+      "duplicate_proposals": 0,
+      "output_tokens": 1472,
+      "elapsed_seconds": 546.434871006757,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "gate_first": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "gate_first": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "gate_first": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "diverged": false
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9494563001154357,
+          "worst_speedup": 0.8506017737868115,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "e92ea00a0f7a344a7a55e2bcb73d042da7a9d47e1e5c31d83b7739cea8d79567",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9550702767728974,
+          "worst_speedup": 0.8471426615998129,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9494563001154357,
+          "worst_speedup": 0.8506017737868115,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "6a074caa8c189ffe7439304ca2b30cb391d449a1cc72b7dd0152506e6215014f",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9494563001154357,
+          "worst_speedup": 0.8506017737868115,
+          "reason": "correct"
+        }
+      }
+    }
+  ],
+  "scope": "one fresh run per task/policy using gate_first selection; first/last/geomean audits share generated artifacts and are not independent trials",
+  "study_file": "results/agent-selector-validation.json",
+  "study_sha256": "ead614f0f5fbf25e8a743790539b68e4749e037c689bfdb845f72616e029543f"
+}

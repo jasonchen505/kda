@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "started_utc": "2026-10-12T14:12:53.084261+00:00",
+  "completed_utc": "2026-10-12T14:12:58.242495+00:00",
+  "reply": "{\"local_kernel_agent\":\"ready\"}",
+  "python": "/data/home/chenyizhou/humanize/.venv-current/bin/python",
+  "endpoint": "http://127.0.0.1:18117",
+  "base_model_id": "kernel-qwen3-4b",
+  "adapter_requested": null,
+  "initial_queue": {
+    "vllm:num_requests_running": 0.0,
+    "vllm:num_requests_waiting": 0.0
+  },
+  "effective_config": {
+    "$schema": "https://opencode.ai/config.json",
+    "enabled_providers": [
+      "kernel-local"
+    ],
+    "model": "kernel-local/kernel-qwen3-4b",
+    "small_model": "kernel-local/kernel-qwen3-4b",
+    "autoupdate": false,
+    "share": "disabled",
+    "provider": {
+      "kernel-local": {
+        "npm": "@ai-sdk/openai-compatible",
+        "name": "Existing local Qwen",
+        "options": {
+          "baseURL": "http://127.0.0.1:18117/v1",
+          "apiKey": "local-not-a-secret"
+        },
+        "models": {
+          "kernel-qwen3-4b": {
+            "name": "Qwen3-4B-Instruct-2507",
+            "limit": {
+              "context": 16384,
+              "output": 512
+            },
+            "cost": {
+              "input": 0,
+              "output": 0
+            }
+          }
+        }
+      }
+    },
+    "agent": {
+      "build": {
+        "temperature": 0,
+        "steps": 4,
+        "prompt": "Return the exact JSON requested. Do not call any tools."
+      }
+    },
+    "permission": {
+      "*": "deny"
+    }
+  },
+  "source_sha256": {
+    "flows/smoke.py": "730dfed1ae49324a6bcb270d4eb15cd5c259e6b93b8c0bcbae98e5fba64f2d4c",
+    "src/kernel_agent/humanize_api.py": "d1e93c1a205f5bc49e064ca21c6a763aee3263ad781aeb0268fabf713119bd61",
+    "scripts/check_updated_humanize.py": "942212765360f02abe5da4da38872635ff3b822be6001d6e776410c8ff9f0b7e"
+  },
+  "scope": "real SDK/CLI/local-model integration smoke, not a kernel trial"
+}

@@ -1,0 +1,77 @@
+--- a/flows/kernel_loop.py
++++ b/flows/kernel_loop.py
+@@ -19,7 +19,7 @@
+ 
+ from kernel_agent import line_protocol
+ from kernel_agent.knowledge import retrieve
+-from kernel_agent.protocol import admit, decision, feedback, proposal
++from kernel_agent.protocol import admit, decision, feedback, prefers, proposal
+ from kernel_agent.references import retrieve_example
+ 
+ 
+@@ -49,6 +49,7 @@
+     rounds: int = Field(default=3, ge=1, le=3)
+     proposal_format: Literal["string", "lines"] = "string"
+     study_policy: Literal["legacy", "blind", "feedback"] = "legacy"
++    selection_policy: Literal["gate_first", "geomean"] = "gate_first"
+ 
+ 
+ def first_prompt(task):
+@@ -159,7 +160,7 @@
+         row["usage"] = session.usage.model_dump(mode="json")
+         records.append(row)
+         await working.write("trace.json", json.dumps(records, indent=2).encode())
+-        if row["decision"]["correct"] and (best is None or row["decision"]["geomean_speedup"] > best["decision"]["geomean_speedup"]):
++        if prefers(row["decision"], best["decision"] if best else None, params.selection_policy):
+             best = row
+         if row["decision"]["promoted"] and not fixed_study:
+             terminal = "promoted"
+@@ -219,6 +220,7 @@
+     return {"task_id": params.task_id, "mode": params.mode, "run_id": params.run_id,
+             "proposal_format": params.proposal_format,
+             "study_policy": params.study_policy,
++            "selection_policy": params.selection_policy,
+             "terminal": terminal, "correct": bool(final_decision and final_decision["correct"]),
+             "promoted": bool(final_decision and final_decision["promoted"]),
+             "search_correct": best is not None,
+--- a/src/kernel_agent/protocol.py
++++ b/src/kernel_agent/protocol.py
+@@ -82,6 +82,20 @@
+         return {"correct": False, "promoted": False, "reason": "invalid_timing_evidence"}
+ 
+ 
++def prefers(candidate, incumbent=None, policy="gate_first"):
++    """Rank search decisions only; never consult final measurements, keep stable ties."""
++    if policy not in ("gate_first", "geomean"):
++        raise ValueError("unknown selection policy")
++    if not candidate.get("correct"):
++        return False
++    if incumbent is None or not incumbent.get("correct"):
++        return True
++    def rank(item):
++        return (bool(item["promoted"]) if policy == "gate_first" else False,
++                item["geomean_speedup"])
++    return rank(candidate) > rank(incumbent)
++
++
+ def feedback(result):
+     state = result.get("status", "evaluator_error")
+     actions = {"numeric_error": "Check cast points, reductions and masks. Preserve the exact task semantics.",
+--- a/scripts/run_strategy_study.py
++++ b/scripts/run_strategy_study.py
+@@ -40,6 +40,7 @@
+                              "backend": "Humanize Agent → OpenCode 1.18.32 → local vLLM",
+                              "temperature": 0, "seed": 20261011, "thinking": False,
+                              "max_tokens_per_request": 4096, "rounds": 3,
++                             "selection_policy": "geomean",
+                              "transport_policies": ["json-lines"], "study_policies": ["blind", "feedback"],
+                              "task_split": {"rmsnorm": "development", "row_sum": "prospective", "silu_mul": "prospective"},
+                              "source_sha256": hashes, "opencode_config": "data/opencode-qwen27.json",
+@@ -59,6 +60,7 @@
+                                    budget={"duration": 900, "output_tokens": 20000, "graceful": False},
+                                    params={"task_id": task, "mode": "reference_guided", "run_id": run_id,
+                                            "proposal_format": "lines", "study_policy": policy, "rounds": 3,
++                                           "selection_policy": "geomean",
+                                            "evaluator": [GPU_PYTHON, str(ROOT / "scripts/evaluate_candidate.py")]}).run()
+         except Exception as error:  # noqa: BLE001 -- keep budget/harness failures in the scheduled denominator
+             result = {"task_id": task, "mode": "reference_guided", "run_id": run_id,

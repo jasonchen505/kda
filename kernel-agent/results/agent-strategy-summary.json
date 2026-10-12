@@ -1,0 +1,466 @@
+{
+  "status": "complete",
+  "conditions": [
+    {
+      "policy": "blind",
+      "planned_runs": 3,
+      "completed_runs": 3,
+      "final_correct": 3,
+      "final_promoted": 0,
+      "prospective_correct": 2,
+      "prospective_completed": 2,
+      "selection_audit": {
+        "first": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "last": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "best": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "gate_first": {
+          "correct": 3,
+          "promoted": 0
+        }
+      }
+    },
+    {
+      "policy": "feedback",
+      "planned_runs": 3,
+      "completed_runs": 3,
+      "final_correct": 3,
+      "final_promoted": 0,
+      "prospective_correct": 2,
+      "prospective_completed": 2,
+      "selection_audit": {
+        "first": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "last": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "best": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "gate_first": {
+          "correct": 3,
+          "promoted": 1
+        }
+      }
+    }
+  ],
+  "runs": [
+    {
+      "task": "rmsnorm",
+      "split": "development",
+      "policy": "blind",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": false,
+      "proposals": 3,
+      "unique_sources": 1,
+      "duplicate_proposals": 2,
+      "output_tokens": 2400,
+      "elapsed_seconds": 459.81543892621994,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "gate_first": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "gate_first": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "gate_first": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "diverged": false
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9863652256110438,
+          "worst_speedup": 0.8761797954430844,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9863652256110438,
+          "worst_speedup": 0.8761797954430844,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9863652256110438,
+          "worst_speedup": 0.8761797954430844,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "dcf6cb70edb169d2d53e799703890a4635bf01264bad883e376d787e5828b887",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9863652256110438,
+          "worst_speedup": 0.8761797954430844,
+          "reason": "correct"
+        }
+      }
+    },
+    {
+      "task": "silu_mul",
+      "split": "prospective",
+      "policy": "blind",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": false,
+      "proposals": 3,
+      "unique_sources": 1,
+      "duplicate_proposals": 2,
+      "output_tokens": 1534,
+      "elapsed_seconds": 331.24015256389976,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "gate_first": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "gate_first": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "gate_first": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "diverged": false
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.924961077897078,
+          "worst_speedup": 0.800690784711291,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.924961077897078,
+          "worst_speedup": 0.800690784711291,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.924961077897078,
+          "worst_speedup": 0.800690784711291,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "86bf43e7d0792d3188ad8d2c62190946d4589ffe26369d33f74b82d6dbf36e54",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.924961077897078,
+          "worst_speedup": 0.800690784711291,
+          "reason": "correct"
+        }
+      }
+    },
+    {
+      "task": "rmsnorm",
+      "split": "development",
+      "policy": "feedback",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": false,
+      "proposals": 3,
+      "unique_sources": 3,
+      "duplicate_proposals": 0,
+      "output_tokens": 2244,
+      "elapsed_seconds": 582.3088668994606,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "gate_first": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "gate_first": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "gate_first": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "diverged": false
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9899246952074884,
+          "worst_speedup": 0.874809135568725,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "25efc07a570b8d7f06123d061ee9bbfef72db639f214ae08bab70be97b09f95c",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9878041601474661,
+          "worst_speedup": 0.8776365838864768,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9899246952074884,
+          "worst_speedup": 0.874809135568725,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "e817dbb6c04d54366b219081976e01c6e896e9cc2b461b8ee6e902ec9c346baa",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9899246952074884,
+          "worst_speedup": 0.874809135568725,
+          "reason": "correct"
+        }
+      }
+    },
+    {
+      "task": "silu_mul",
+      "split": "prospective",
+      "policy": "feedback",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": false,
+      "proposals": 3,
+      "unique_sources": 2,
+      "duplicate_proposals": 1,
+      "output_tokens": 1532,
+      "elapsed_seconds": 373.0154476650059,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "gate_first": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "gate_first": "6cfb3b5f8afb479b30b22f5f8a3c9438d3ca0a7a1d42dd8454c46edd89856c21",
+          "diverged": true
+        },
+        {
+          "iteration": 3,
+          "best": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "gate_first": "6cfb3b5f8afb479b30b22f5f8a3c9438d3ca0a7a1d42dd8454c46edd89856c21",
+          "diverged": true
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9250490309680582,
+          "worst_speedup": 0.7966574454020128,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9250490309680582,
+          "worst_speedup": 0.7966574454020128,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "9ba0253ee3375ccd7525a77fcf4e8eb90d2f4d94c30cff81e69d2966fee26d3c",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9250490309680582,
+          "worst_speedup": 0.7966574454020128,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "6cfb3b5f8afb479b30b22f5f8a3c9438d3ca0a7a1d42dd8454c46edd89856c21",
+          "correct": true,
+          "promoted": true,
+          "geomean_speedup": 1.2870368753846748,
+          "worst_speedup": 0.9895138770160141,
+          "reason": "correct"
+        }
+      }
+    },
+    {
+      "task": "row_sum",
+      "split": "prospective",
+      "policy": "blind",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": false,
+      "proposals": 3,
+      "unique_sources": 2,
+      "duplicate_proposals": 1,
+      "output_tokens": 1548,
+      "elapsed_seconds": 333.85580724850297,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "f0d6566355d16e86c452a8764f7101ad0c6d64c9c300f81b3025cb287c282db2",
+          "gate_first": "f0d6566355d16e86c452a8764f7101ad0c6d64c9c300f81b3025cb287c282db2",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "d5bffbdcb9f3c1d4f95a24a1afde910014851cbb230027c7db3732df030b3637",
+          "gate_first": "d5bffbdcb9f3c1d4f95a24a1afde910014851cbb230027c7db3732df030b3637",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "d5bffbdcb9f3c1d4f95a24a1afde910014851cbb230027c7db3732df030b3637",
+          "gate_first": "d5bffbdcb9f3c1d4f95a24a1afde910014851cbb230027c7db3732df030b3637",
+          "diverged": false
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "f0d6566355d16e86c452a8764f7101ad0c6d64c9c300f81b3025cb287c282db2",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9509948626775596,
+          "worst_speedup": 0.8565138615389081,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "d5bffbdcb9f3c1d4f95a24a1afde910014851cbb230027c7db3732df030b3637",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9447185297612443,
+          "worst_speedup": 0.84706122599561,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "d5bffbdcb9f3c1d4f95a24a1afde910014851cbb230027c7db3732df030b3637",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9447185297612443,
+          "worst_speedup": 0.84706122599561,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "d5bffbdcb9f3c1d4f95a24a1afde910014851cbb230027c7db3732df030b3637",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9447185297612443,
+          "worst_speedup": 0.84706122599561,
+          "reason": "correct"
+        }
+      }
+    },
+    {
+      "task": "row_sum",
+      "split": "prospective",
+      "policy": "feedback",
+      "terminal": "fixed_budget_complete",
+      "correct": true,
+      "promoted": false,
+      "proposals": 3,
+      "unique_sources": 3,
+      "duplicate_proposals": 0,
+      "output_tokens": 1760,
+      "elapsed_seconds": 441.11731530353427,
+      "search_prefix_rankings": [
+        {
+          "iteration": 1,
+          "best": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "gate_first": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "diverged": false
+        },
+        {
+          "iteration": 2,
+          "best": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "gate_first": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "diverged": false
+        },
+        {
+          "iteration": 3,
+          "best": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "gate_first": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "diverged": false
+        }
+      ],
+      "selections": {
+        "first": {
+          "source_sha256": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9422014311834622,
+          "worst_speedup": 0.8479274586263701,
+          "reason": "correct"
+        },
+        "last": {
+          "source_sha256": "69fb7b1fd5e850ac37a529ef9bb5f56477a0d17efd7a5fa0d2981befe39e199a",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9736500508275158,
+          "worst_speedup": 0.901817252288733,
+          "reason": "correct"
+        },
+        "best": {
+          "source_sha256": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9422014311834622,
+          "worst_speedup": 0.8479274586263701,
+          "reason": "correct"
+        },
+        "gate_first": {
+          "source_sha256": "a0ce5e88d7567d51f29787a834bccf15b1832175d76de96ca49dbef74cb14aac",
+          "correct": true,
+          "promoted": false,
+          "geomean_speedup": 0.9422014311834622,
+          "worst_speedup": 0.8479274586263701,
+          "reason": "correct"
+        }
+      }
+    }
+  ],
+  "scope": "one run per task/policy; gate_first is a post-hoc search-only counterfactual on existing final audits, not a fresh run; original final results and selection never change",
+  "study_file": "results/agent-strategy-study.json",
+  "study_sha256": "fa71ffcba4fc309a38f7b538081772e02c35217de7e413278a0a40adbf239a4d"
+}

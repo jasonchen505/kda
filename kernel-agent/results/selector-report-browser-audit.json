@@ -1,0 +1,26 @@
+{
+  "verified_utc": "2026-10-12T12:52:27.536310+00:00",
+  "study_sha256": "ead614f0f5fbf25e8a743790539b68e4749e037c689bfdb845f72616e029543f",
+  "report_sha256": "46ecd08aa30d4ce4cb496323126555806465d6c798fcec459e5bdbc2f1e74fa2",
+  "complete_download_exact_raw_match": true,
+  "original_study_unchanged": true,
+  "large_integer_timestamps_preserved": true,
+  "rows": 3,
+  "final_correct": 3,
+  "final_promoted": 2,
+  "task_selector_and_three_turn_trajectory": "verified",
+  "old_case_and_fixed_source_recheck": "verified",
+  "desktop_width": 1280,
+  "mobile_width": 390,
+  "overflow": false,
+  "viewport_reset": true,
+  "console_errors": 0,
+  "screenshot": "reports/report-preview.png",
+  "checks": {
+    "mechanism_tests_passed": 54,
+    "ruff": "passed",
+    "shell_syntax": "passed",
+    "existing_service_wrapper_full_path": "passed"
+  },
+  "scope": "one new run per prior task family; changed inference runtime; original comparison and post-hoc audits remain separate"
+}

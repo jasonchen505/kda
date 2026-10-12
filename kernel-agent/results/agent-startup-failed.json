@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "started_utc": "20261011T100713Z",
+  "metadata": {
+    "model": "qwen38-27b-fp8",
+    "model_adapter": "none",
+    "backend": "Humanize Agent \u2192 OpenCode 1.18.32 \u2192 local vLLM",
+    "temperature": 0,
+    "seed": 20261011,
+    "thinking": false,
+    "max_tokens_per_request": 4096,
+    "gpu": "RTX 4090, physical GPU 4",
+    "source_sha256": {
+      "flows/kernel_loop.py": "a0277c3de83918718efd96be6066506f13827063900389e1f026f0d8655f2008",
+      "src/kernel_agent/protocol.py": "15bb1527e3242ca91836553a6e6e885853234546c158b1e57e5f6a611567756d",
+      "scripts/evaluate_candidate.py": "c499825ad37ce356f4daa610123784b661c83817d717d049b32c88e63c79ea46",
+      "scripts/local_proxy.py": "7740f0bed9750e650cd45e5d7a91952baca08d053c0e290d974950e6ad64e3c7",
+      "data/tasks.json": "0f5733a57131f9397fe3e6f76cc1b6ba5f928aa1a5accea79c22dcaa50a6fb8d",
+      "data/opencode-local.json": "45da8c2d90c0a12e34c44dd9f8c5736dcbc8e6b3264d0bc3f21837789366a552"
+    },
+    "study_scope": "one session per mode/task; unequal turn budgets; descriptive pilot"
+  },
+  "runs": [
+    {
+      "task_id": "vector_add",
+      "mode": "kda_prompt",
+      "run_id": "20261011T100713Z-vector_add-kda_prompt",
+      "terminal": "harness_error",
+      "correct": false,
+      "promoted": false,
+      "selected_sha256": null,
+      "selected_decision": null,
+      "attempts": [
+        {
+          "iteration": 1,
+          "parent_sha256": null,
+          "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with exactly three string fields: draft, plan, code. The code must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. No source files or tests are supplied.\n\nrun(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.\nVisible examples: [[1024], [8192]]",
+          "evaluation": {
+            "status": "harness_error",
+            "message": "Command '['/data/home/chenyizhou/humanize/.venv/bin/python', '-Pm', 'hmz', 'internal', 'fence', '--policy={\"read\":[\"/usr\",\"/bin\",\"/sbin\",\"/lib\",\"/lib32\",\"/lib64\",\"/libx32\",\"/etc/ssl\",\"/etc/ca-certificates\",\"/etc/pki\",\"/etc/resolv.conf\",\"/etc/hosts\",\"/etc/host.conf\",\"/etc/gai.conf\",\"/etc/nsswitch.conf\",\"/etc/passwd\",\"/etc/group\",\"/etc/localtime\",\"/etc/timezone\",\"/etc/os-release\",\"/etc/ld.so.cache\",\"/etc/ld.so.conf\",\"/etc/ld.so.conf.d\",\"/etc/alternatives\",\"/proc\",\"/sys\",\"/data/home/chenyizhou/humanize/.venv\",\"/data/home/chenyizhou/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu\",\"/data/home/chenyizhou/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu\",\"/data/home/chenyizhou/humanize/src\",\"/data/home/chenyizhou/kernel-agent/runs/20261011T100713Z-vector_add-kda_prompt\",\"/data/home/chenyizhou/.local/bin/opencode\",\"/data/home/chenyizhou/.local\"],\"write\":[\"/dev/null\",\"/dev/zero\",\"/dev/full\",\"/dev/random\",\"/dev/urandom\",\"/dev/tty\",\"/dev/pts\",\"/dev/ptmx\",\"/dev/shm\",\"/dev/nvidia-modeset\",\"/dev/nvidia-uvm\",\"/dev/nvidia-uvm-tools\",\"/dev/nvidia0\",\"/dev/nvidia1\",\"/dev/nvidia2\",\"/dev/nvidia3\",\"/dev/nvidia4\",\"/dev/nvidia5\",\"/dev/nvidia6\",\"/dev/nvidia7\",\"/dev/nvidiactl\",\"/dev/dri\",\"/dev/kfd\",\"/data/home/chenyizhou/.opencode\",\"/data/home/chenyizhou/.config/opencode\",\"/data/home/chenyizhou/.local/share/opencode\",\"/data/home/chenyizhou/.cache/opencode\",\"/data/home/chenyizhou/.local/state/opencode\",\"/data/home/chenyizhou/.cache/humanize\",\"/data/home/chenyizhou/.humanize/epics/-data-home-chenyizhou-kernel-agent/20261011T100713.405Z-5570d1/sessions/opencode\",\"/data/home/chenyizhou/.local/share/opencode/auth.json\",\"/data/home/chenyizhou/.local/share/opencode/mcp-auth.json\"],\"online\":false,\"hosts\":[\"opencode.ai\",\"chatgpt.com\",\"auth.openai.com\",\"api.githubcopilot.com\"],\"tmp\":\"/tmp/hmz-fence-ret8mqt_\",\"scopes\":[\"read\",\"none\",\"none\"],\"listen\":[]}', '--', '/data/home/chenyizhou/humanize/.venv/bin/python', '-Pm', 'hmz', 'internal', 'cred', '--keep=/data/home/chenyizhou/.local/share/opencode/opencode.db*=/data/home/chenyizhou/.humanize/epics/-data-home-chenyizhou-kernel-agent/20261011T100713.405Z-5570d1/sessions/opencode/opencode.db*', '--keep=/data/home/chenyizhou/.local/share/opencode/storage=/data/home/chenyizhou/.humanize/epics/-data-home-chenyizhou-kernel-agent/20261011T100713.405Z-5570d1/sessions/opencode/storage', '--', 'opencode', 'run', '--format', 'json', '--dir', '/data/home/chenyizhou/kernel-agent/runs/20261011T100713Z-vector_add-kda_prompt', '--model', 'kernel-local/qwen38-27b-fp8', '--auto']' returned non-zero exit status 1. (refused: that account needs signing in again)"
+          }
+        }
+      ],
+      "elapsed_seconds": 3.3733312599360943,
+      "usage": {
+        "duration": "PT3.373236S",
+        "cost": 0.0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "task_id": "vector_add",
+      "mode": "evidence_loop",
+      "run_id": "20261011T100713Z-vector_add-evidence_loop",
+      "terminal": "harness_error",
+      "correct": false,
+      "promoted": false,
+      "selected_sha256": null,
+      "selected_decision": null,
+      "attempts": [
+        {
+          "iteration": 1,
+          "parent_sha256": null,
+          "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with exactly three string fields: draft, plan, code. The code must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. No source files or tests are supplied.\n\nrun(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.\nVisible examples: [[1024], [8192]]",
+          "evaluation": {
+            "status": "harness_error",
+            "message": "Command '['/data/home/chenyizhou/humanize/.venv/bin/python', '-Pm', 'hmz', 'internal', 'fence', '--policy={\"read\":[\"/usr\",\"/bin\",\"/sbin\",\"/lib\",\"/lib32\",\"/lib64\",\"/libx32\",\"/etc/ssl\",\"/etc/ca-certificates\",\"/etc/pki\",\"/etc/resolv.conf\",\"/etc/hosts\",\"/etc/host.conf\",\"/etc/gai.conf\",\"/etc/nsswitch.conf\",\"/etc/passwd\",\"/etc/group\",\"/etc/localtime\",\"/etc/timezone\",\"/etc/os-release\",\"/etc/ld.so.cache\",\"/etc/ld.so.conf\",\"/etc/ld.so.conf.d\",\"/etc/alternatives\",\"/proc\",\"/sys\",\"/data/home/chenyizhou/humanize/.venv\",\"/data/home/chenyizhou/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu\",\"/data/home/chenyizhou/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu\",\"/data/home/chenyizhou/humanize/src\",\"/data/home/chenyizhou/kernel-agent/runs/20261011T100713Z-vector_add-evidence_loop\",\"/data/home/chenyizhou/.local/bin/opencode\",\"/data/home/chenyizhou/.local\"],\"write\":[\"/dev/null\",\"/dev/zero\",\"/dev/full\",\"/dev/random\",\"/dev/urandom\",\"/dev/tty\",\"/dev/pts\",\"/dev/ptmx\",\"/dev/shm\",\"/dev/nvidia-modeset\",\"/dev/nvidia-uvm\",\"/dev/nvidia-uvm-tools\",\"/dev/nvidia0\",\"/dev/nvidia1\",\"/dev/nvidia2\",\"/dev/nvidia3\",\"/dev/nvidia4\",\"/dev/nvidia5\",\"/dev/nvidia6\",\"/dev/nvidia7\",\"/dev/nvidiactl\",\"/dev/dri\",\"/dev/kfd\",\"/data/home/chenyizhou/.opencode\",\"/data/home/chenyizhou/.config/opencode\",\"/data/home/chenyizhou/.local/share/opencode\",\"/data/home/chenyizhou/.cache/opencode\",\"/data/home/chenyizhou/.local/state/opencode\",\"/data/home/chenyizhou/.cache/humanize\",\"/data/home/chenyizhou/.humanize/epics/-data-home-chenyizhou-kernel-agent/20261011T100716.806Z-b85522/sessions/opencode\",\"/data/home/chenyizhou/.local/share/opencode/auth.json\",\"/data/home/chenyizhou/.local/share/opencode/mcp-auth.json\"],\"online\":false,\"hosts\":[\"opencode.ai\",\"chatgpt.com\",\"auth.openai.com\",\"api.githubcopilot.com\"],\"tmp\":\"/tmp/hmz-fence-5ne9r24d\",\"scopes\":[\"read\",\"none\",\"none\"],\"listen\":[]}', '--', '/data/home/chenyizhou/humanize/.venv/bin/python', '-Pm', 'hmz', 'internal', 'cred', '--keep=/data/home/chenyizhou/.local/share/opencode/opencode.db*=/data/home/chenyizhou/.humanize/epics/-data-home-chenyizhou-kernel-agent/20261011T100716.806Z-b85522/sessions/opencode/opencode.db*', '--keep=/data/home/chenyizhou/.local/share/opencode/storage=/data/home/chenyizhou/.humanize/epics/-data-home-chenyizhou-kernel-agent/20261011T100716.806Z-b85522/sessions/opencode/storage', '--', 'opencode', 'run', '--format', 'json', '--dir', '/data/home/chenyizhou/kernel-agent/runs/20261011T100713Z-vector_add-evidence_loop', '--model', 'kernel-local/qwen38-27b-fp8', '--auto']' returned non-zero exit status 1. (refused: that account needs signing in again)"
+          }
+        }
+      ],
+      "elapsed_seconds": 3.141501896083355,
+      "usage": {
+        "duration": "PT3.141417S",
+        "cost": 0.0,
+        "output_tokens": 0
+      }
+    }
+  ],
+  "schedule": [
+    [
+      "vector_add",
+      "kda_prompt"
+    ],
+    [
+      "vector_add",
+      "evidence_loop"
+    ]
+  ]
+}

@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "started_utc": "20261011T180954Z",
+  "metadata": {
+    "model": "Qwen/Qwen3-4B-Instruct-2507",
+    "model_adapter": "none",
+    "model_revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "backend": "Humanize Agent \u2192 OpenCode 1.18.32 \u2192 local vLLM",
+    "temperature": 0,
+    "seed": 20261011,
+    "thinking": false,
+    "max_tokens_per_request": 4096,
+    "gpu": "RTX 4090, physical GPU 6",
+    "opencode_config": "data/opencode-proposer.json",
+    "transport_policies": [
+      "json-schema"
+    ],
+    "source_sha256": {
+      "flows/kernel_loop.py": "1d70e1fbbf8b61120034e50f62939a705fe9c7b8665dc40daae22586efcafd7c",
+      "src/kernel_agent/protocol.py": "25ba75f124d7e5c6fa1377df7179267e1c53832ae702248a11ab6e2650cbd60a",
+      "src/kernel_agent/knowledge.py": "71adeb714bbcad0fe9bff761fc57b80e1193f7e5c7615ce9822b50fb13960050",
+      "scripts/evaluate_candidate.py": "e76afe68b5a78070edbaca648c20d068e5547ae461ea2809710e374aeeafbd43",
+      "scripts/local_proxy.py": "8b92faf14d0f4e2611144d7e5f9bba466d6eeae94e749536d884fa703dd9a28e",
+      "scripts/run_pilot.py": "49c6639179cfcecadd2e6c5a395e53112d046b33192b2823e30d000fac65376a",
+      "src/kernel_agent/transport.py": "7c22e96c2dbcdbb6ab6149cc245ae9b07ae85a92410f176893ba9bf48a7cdf5e",
+      "data/tasks.json": "0f5733a57131f9397fe3e6f76cc1b6ba5f928aa1a5accea79c22dcaa50a6fb8d",
+      "data/opencode-local.json": "09b8100459a0dd01756b661d1172fe121d4a0bb5f6530afb31c1d5c0adeeafdc",
+      "data/opencode-proposer.json": "26596dd9501ee89ddfc8dd441d5068bb7ac705c832f52d8c584f194df0875080",
+      "src/kernel_agent/references.py": "cf0dc38a266c560005a0855dc8576da61526690adba4cfc28258cf1cf372c609",
+      "references/triton-3.2/manifest.json": "8a2963d1193f33a798ba52ccf3bca5e62d0666035af4fbc63d7754dbdf3b8e99"
+    },
+    "study_scope": "one run per task/mode/transport policy; development task families; descriptive small sample"
+  },
+  "runs": [
+    {
+      "task_id": "vector_add",
+      "mode": "reference_guided",
+      "run_id": "20261011T180954Z-vector_add-reference_guided-json-schema",
+      "terminal": "budget_exhausted",
+      "correct": false,
+      "promoted": false,
+      "search_correct": false,
+      "search_promoted": false,
+      "selected_sha256": null,
+      "selected_decision": null,
+      "attempts": [
+        {
+          "iteration": 1,
+          "parent_sha256": null,
+          "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with exactly three string fields: draft, plan, code. The code must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.\nVisible examples: [[1024], [8192]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output",
+          "reply": "{\n  \"draft\": \"Implement vector addition with Triton using block-wise parallelism. Handle odd sizes via masking. Use FP32 intermediates, cast to input dtype. Support float32 and bfloat16. Launch grid adapts to input size with cdiv. Preserve shape and dtype. No PyTorch fallback.\",\n  \"plan\": \"Design a kernel with dynamic block size and masking for odd-length inputs. Use tl.program_id and tl.arange for indexing. Load, add, and store with bounds checks. Preallocate output, launch with cdiv grid, and return tensor. Ensure correct dtype promotion and memory safety.\",\n  \"code\": \"import torchimport tritonimport triton.language as tl@triton.jitdef add_kernel(x_ptr, y_ptr, output_ptr, n_elements, BLOCK_SIZE: tl.constexpr):    pid = tl.program_id(0)    block_start = pid * BLOCK_SIZE    offsets = block_start + tl.arange(0, BLOCK_SIZE)    mask = offsets < n_elements    x = tl.load(x_ptr + offsets, mask=mask)    y = tl.load(y_ptr + offsets, mask=mask)    output = x + y    tl.store(output_ptr + offsets, output, mask=mask)def add(x: torch.Tensor, y: torch.Tensor):    output = torch.empty_like(x)    grid = lambda meta: (triton.cdiv(x.numel(), meta['BLOCK_SIZE']), )    add_kernel[grid](x, y, output, x.numel(), BLOCK_SIZE=1024)    return output\"\n}",
+          "evaluation": {
+            "status": "protocol_error",
+            "message": "invalid syntax (<unknown>, line 1)"
+          },
+          "decision": {
+            "correct": false,
+            "promoted": false,
+            "reason": "protocol_error"
+          },
+          "elapsed_seconds": 12.530527975410223,
+          "usage": {
+            "duration": "PT12.528901S",
+            "cost": 0.0,
+            "output_tokens": 329
+          },
+          "next_reference_context": {
+            "card_ids": [
+              "launch",
+              "memory",
+              "format"
+            ],
+            "sources": {
+              "launch": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/01-vector-add.py",
+              "memory": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/02-fused-softmax.py"
+            },
+            "context": "Triton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[format] Source formatting rules: the code field is a JSON string with escaped newline characters. After JSON decoding it must be valid multi-line Python, with indentation. Keep each import on its own line. Never concatenate import statements. Return all three required string fields. Keep the entire answer below 2500 tokens."
+          }
+        },
+        {
+          "iteration": 2,
+          "parent_sha256": null,
+          "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with exactly three string fields: draft, plan, code. The code must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.\nVisible examples: [[1024], [8192]]\n\nIndependent evaluator status: protocol_error. Return valid JSON with draft, plan and complete code strings.\n{\"status\": \"protocol_error\", \"message\": \"invalid syntax (<unknown>, line 1)\"}\nReturn a new complete proposal JSON. Never change the evaluator or its thresholds.\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[format] Source formatting rules: the code field is a JSON string with escaped newline characters. After JSON decoding it must be valid multi-line Python, with indentation. Keep each import on its own line. Never concatenate import statements. Return all three required string fields. Keep the entire answer below 2500 tokens.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output\nPrevious candidate source (if available):\n",
+          "reply": "{\n  \"draft\": \"Implement vector addition using Triton with block-wise parallelism. Use tl.program_id to index programs, tl.arange for offsets, and mask to handle odd sizes. Load and add inputs, store result with dtype preservation via automatic cast. Support any shape and odd sizes via cdiv grid.\",\n  \"plan\": \"Design a 1D kernel with dynamic block size to handle arbitrary sizes. Use mask to prevent out-of-bounds access. Launch grid computed via triton.cdiv. Ensure FP32 intermediate addition, then cast to input dtype. Preserve shape and memory layout. Validate with even and odd sizes.\",\n  \"code\": \"import torchimport tritonimport triton.language as tl@triton.jitdef add_kernel(x_ptr, y_ptr, output_ptr, n_elements, BLOCK_SIZE: tl.constexpr):    pid = tl.program_id(0)    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)    mask = offsets < n_elements    x = tl.load(x_ptr + offsets, mask=mask)    y = tl.load(y_ptr + offsets, mask=mask)    output = x + y    tl.store(output_ptr + offsets, output, mask=mask)def add(x: torch.Tensor, y: torch.Tensor):    output = torch.empty_like(x)    grid = lambda meta: (triton.cdiv(x.numel(), meta['BLOCK_SIZE']), )    add_kernel[grid](x, y, output, x.numel(), BLOCK_SIZE=1024)    return output\"\n}",
+          "evaluation": {
+            "status": "protocol_error",
+            "message": "invalid syntax (<unknown>, line 1)"
+          },
+          "decision": {
+            "correct": false,
+            "promoted": false,
+            "reason": "protocol_error"
+          },
+          "elapsed_seconds": 12.129439242184162,
+          "usage": {
+            "duration": "PT12.127767S",
+            "cost": 0.0,
+            "output_tokens": 322
+          },
+          "next_reference_context": {
+            "card_ids": [
+              "launch",
+              "memory",
+              "format"
+            ],
+            "sources": {
+              "launch": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/01-vector-add.py",
+              "memory": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/02-fused-softmax.py"
+            },
+            "context": "Triton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[format] Source formatting rules: the code field is a JSON string with escaped newline characters. After JSON decoding it must be valid multi-line Python, with indentation. Keep each import on its own line. Never concatenate import statements. Return all three required string fields. Keep the entire answer below 2500 tokens."
+          }
+        },
+        {
+          "iteration": 3,
+          "parent_sha256": null,
+          "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with exactly three string fields: draft, plan, code. The code must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.\nVisible examples: [[1024], [8192]]\n\nIndependent evaluator status: protocol_error. Return valid JSON with draft, plan and complete code strings.\n{\"status\": \"protocol_error\", \"message\": \"invalid syntax (<unknown>, line 1)\"}\nReturn a new complete proposal JSON. Never change the evaluator or its thresholds.\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[format] Source formatting rules: the code field is a JSON string with escaped newline characters. After JSON decoding it must be valid multi-line Python, with indentation. Keep each import on its own line. Never concatenate import statements. Return all three required string fields. Keep the entire answer below 2500 tokens.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output\nPrevious candidate source (if available):\n",
+          "reply": "{\n  \"draft\": \"Implement vector addition using Triton with block-wise parallelism. Use tl.program_id to index programs, tl.arange for offsets, and mask to handle odd sizes. Load and add inputs, store result with dtype preservation via automatic cast. Support any shape and odd sizes via cdiv grid.\",\n  \"plan\": \"Design a 1D kernel with dynamic block size to handle arbitrary sizes. Use mask to prevent out-of-bounds access. Launch grid computed via triton.cdiv. Ensure FP32 intermediate addition, then cast to input dtype. Preserve shape and memory layout. Validate with even and odd sizes.\",\n  \"code\": \"import torchimport tritonimport triton.language as tl@triton.jitdef add_kernel(x_ptr, y_ptr, output_ptr, n_elements, BLOCK_SIZE: tl.constexpr):    pid = tl.program_id(0)    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)    mask = offsets < n_elements    x = tl.load(x_ptr + offsets, mask=mask)    y = tl.load(y_ptr + offsets, mask=mask)    output = x + y    tl.store(output_ptr + offsets, output, mask=mask)def add(x: torch.Tensor, y: torch.Tensor):    output = torch.empty_like(x)    grid = lambda meta: (triton.cdiv(x.numel(), meta['BLOCK_SIZE']), )    add_kernel[grid](x, y, output, x.numel(), BLOCK_SIZE=1024)    return output\"\n}",
+          "evaluation": {
+            "status": "protocol_error",
+            "message": "invalid syntax (<unknown>, line 1)"
+          },
+          "decision": {
+            "correct": false,
+            "promoted": false,
+            "reason": "protocol_error"
+          },
+          "elapsed_seconds": 11.516583897173405,
+          "usage": {
+            "duration": "PT11.515002S",
+            "cost": 0.0,
+            "output_tokens": 322
+          },
+          "next_reference_context": {
+            "card_ids": [
+              "launch",
+              "memory",
+              "format"
+            ],
+            "sources": {
+              "launch": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/01-vector-add.py",
+              "memory": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/02-fused-softmax.py"
+            },
+            "context": "Triton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[format] Source formatting rules: the code field is a JSON string with escaped newline characters. After JSON decoding it must be valid multi-line Python, with indentation. Keep each import on its own line. Never concatenate import statements. Return all three required string fields. Keep the entire answer below 2500 tokens."
+          }
+        }
+      ],
+      "initial_reference_context": {
+        "card_ids": [
+          "launch",
+          "memory"
+        ],
+        "sources": {
+          "launch": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/01-vector-add.py",
+          "memory": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/02-fused-softmax.py"
+        },
+        "context": "Triton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets."
+      },
+      "retrieved_example": {
+        "name": "01-vector-add.py",
+        "url": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/01-vector-add.py",
+        "source_sha256": "253c53484c3c28f684bddaf14b9124d36fdcb724827961f0bd0a36128c2f4c00",
+        "excerpt_sha256": "66a520565cea1a00441ff39b183f450f1fe79ca8cd4aebc6d68c9aaefe631fc6",
+        "functions": [
+          "add_kernel",
+          "add"
+        ],
+        "excerpt": "@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output",
+        "context": "Retrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output"
+      },
+      "final_evaluation": null,
+      "final_decision": null,
+      "elapsed_seconds": 36.18411462381482,
+      "usage": {
+        "duration": "PT36.171669S",
+        "cost": 0.0,
+        "output_tokens": 973
+      },
+      "transport_policy": "json-schema",
+      "effective_config_sha256": "17e588fe7047f038ccb8a2a84c143bd9f7a0ff847a6deaea4f47f948d600cd33",
+      "effective_config": {
+        "$schema": "https://opencode.ai/config.json",
+        "enabled_providers": [
+          "kernel-local"
+        ],
+        "model": "kernel-local/kernel-qwen3-4b",
+        "small_model": "kernel-local/kernel-qwen3-4b",
+        "autoupdate": false,
+        "share": "disabled",
+        "provider": {
+          "kernel-local": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Existing local Qwen",
+            "options": {
+              "baseURL": "http://127.0.0.1:18116/json-schema/v1",
+              "apiKey": "local-not-a-secret"
+            },
+            "models": {
+              "kernel-qwen3-4b": {
+                "name": "Qwen3-4B-Instruct-2507",
+                "limit": {
+                  "context": 16384,
+                  "output": 4096
+                },
+                "cost": {
+                  "input": 0,
+                  "output": 0
+                }
+              }
+            }
+          }
+        },
+        "agent": {
+          "build": {
+            "temperature": 0,
+            "steps": 4,
+            "prompt": "You are a GPU kernel source-code proposer. Your only work product is a JSON response containing draft, plan and complete Python/Triton code. The controller writes that proposal to disk and runs tests. Printing source code as text is allowed even when filesystem tools are disabled. You are not being asked to modify a file or execute commands. Do not call tools and do not refuse because tools are unavailable. Follow the task contract and supplied Triton reference notes. Use real Triton APIs, a normal Python run wrapper, tensor arguments for kernel pointers and vector offsets for memory operations. Return syntactically valid multi-line code encoded as a JSON string. Do not invent APIs. On failure, repair the actual code, not merely its explanation."
+          }
+        },
+        "permission": {
+          "*": "deny"
+        }
+      }
+    }
+  ],
+  "schedule": [
+    [
+      "vector_add",
+      "reference_guided",
+      "json-schema"
+    ]
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "study": "agent-pilot-qwen27.json",
+  "status": "complete",
+  "measured_files_verified": 16,
+  "candidate_hashes_verified": 9,
+  "final_source_links_verified": 4,
+  "final_checks_per_task": 28,
+  "download_equals_original_study": true,
+  "source_review": "Each selected run allocates a fresh output and launches Triton; no Torch computation fallback or manual edits. Reference assisted.",
+  "tests": {
+    "passed": 48,
+    "ruff": "all checks passed"
+  },
+  "selected": [
+    {
+      "task": "vector_add",
+      "source_sha256": "528c743533f49d78c46084ad49788be1172d86c3a965c52674a3bbe39431a74f",
+      "correct": true,
+      "promoted": false,
+      "decision": {
+        "correct": true,
+        "promoted": false,
+        "geomean_speedup": 1.01055221223307,
+        "worst_speedup": 1.0016503801204406,
+        "reason": "independent GPU evaluator"
+      }
+    },
+    {
+      "task": "rmsnorm",
+      "source_sha256": "4242506813417c0fc8de970d652ccf10350d0a009574dbcd61fb03a16b2da068",
+      "correct": true,
+      "promoted": false,
+      "decision": {
+        "correct": true,
+        "promoted": false,
+        "geomean_speedup": 1.0309643250686928,
+        "worst_speedup": 0.8775646142361958,
+        "reason": "independent GPU evaluator"
+      }
+    },
+    {
+      "task": "softmax",
+      "source_sha256": "83e078c3a0afbaf8d5aff0f3f84a4e47c77d21d4887d4c97b0d3b9fdec484c04",
+      "correct": true,
+      "promoted": true,
+      "decision": {
+        "correct": true,
+        "promoted": true,
+        "geomean_speedup": 1.2349202541700661,
+        "worst_speedup": 1.010039636740328,
+        "reason": "independent GPU evaluator"
+      }
+    },
+    {
+      "task": "transpose",
+      "source_sha256": "28dd6e50da175be14dc3d41b27b565be44a39db8230db03d47d24cfc6e267b7f",
+      "correct": true,
+      "promoted": false,
+      "decision": {
+        "correct": true,
+        "promoted": false,
+        "geomean_speedup": 0.9679590632606329,
+        "worst_speedup": 0.9373743734783117,
+        "reason": "independent GPU evaluator"
+      }
+    }
+  ]
+}

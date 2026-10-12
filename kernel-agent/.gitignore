@@ -1,0 +1,14 @@
+# KDA's parent ignore rules exclude data/runs everywhere; frozen evidence is intentional.
+!data/
+!runs/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.humanize/
+.hmz/
+/runs/
+*.egg-info/
+build/
+dist/
+*.log

@@ -1,0 +1,46 @@
+"""Small, versioned API reference selector driven by actual evaluator failures."""
+
+SOURCES = {
+    "launch": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/01-vector-add.py",
+    "memory": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/02-fused-softmax.py",
+    "reduce": "https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/05-layer-norm.py",
+}
+
+CARDS = {
+    "launch": (
+        "Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. "
+        "Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. "
+        "Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. "
+        "Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically."
+    ),
+    "memory": (
+        "Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. "
+        "Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. "
+        "A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. "
+        "Use tl.program_id for program indices and tl.arange for vector offsets."
+    ),
+    "reduce": (
+        "Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. "
+        "For padded row blocks, sum masked elements and divide by the actual width. "
+        "Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; "
+        "RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast."
+    ),
+    "format": (
+        "Source formatting rules: the code field is a JSON string with escaped newline characters. "
+        "After JSON decoding it must be valid multi-line Python, with indentation. "
+        "Keep each import on its own line. Never concatenate import statements. "
+        "Return all three required string fields. Keep the entire answer below 2500 tokens."
+    ),
+}
+
+
+def retrieve(result, task_id):
+    text = str(result).lower()
+    keys = ["launch", "memory"]
+    if task_id in ("softmax", "rmsnorm") or any(word in text for word in ("shape", "reduction", "numeric")):
+        keys.append("reduce")
+    if result.get("status") == "protocol_error" or "syntax" in text:
+        keys.append("format")
+    return {"card_ids": keys, "sources": {k: SOURCES[k] for k in keys if k in SOURCES},
+            "context": "Triton 3.2 API reference notes selected for this failure:\n"
+                       + "\n".join(f"[{key}] {CARDS[key]}" for key in keys)}

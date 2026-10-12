@@ -1,0 +1,68 @@
+"""Run real local-model sessions, retaining every candidate, failure and usage record."""
+import argparse
+import hashlib
+import json
+import os
+import random
+from datetime import UTC, datetime
+from pathlib import Path
+
+from hmz.sdk import Hmz
+
+ROOT = Path(__file__).resolve().parents[1]
+GPU_PYTHON = "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python"
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--tasks", nargs="+", default=["vector_add", "softmax", "rmsnorm", "transpose"])
+    parser.add_argument("--modes", nargs="+", choices=["kda_prompt", "evidence_loop", "api_guided"],
+                        default=["kda_prompt", "evidence_loop", "api_guided"])
+    args = parser.parse_args()
+    os.environ["OPENCODE_CONFIG_CONTENT"] = (ROOT / "data/opencode-local.json").read_text()
+    os.environ["OPENCODE_DISABLE_AUTOUPDATE"] = "true"
+    os.environ["OPENCODE_DISABLE_DEFAULT_PLUGINS"] = "true"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "6"
+    os.environ["PYTHONPATH"] = str(ROOT / "src")
+    fixture = json.loads((ROOT / "data/tasks.json").read_text())
+    run_stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    sources = ["flows/kernel_loop.py", "src/kernel_agent/protocol.py", "src/kernel_agent/knowledge.py", "scripts/evaluate_candidate.py",
+               "scripts/local_proxy.py", "data/tasks.json", "data/opencode-local.json"]
+    hashes = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in sources}
+    evidence = {"schema_version": 1, "status": "running", "started_utc": run_stamp,
+                "metadata": {"model": "Qwen/Qwen3-4B-Instruct-2507", "model_adapter": "none",
+                             "model_revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+                             "backend": "Humanize Agent → OpenCode 1.18.32 → local vLLM",
+                             "temperature": 0, "seed": 20261011, "thinking": False,
+                             "max_tokens_per_request": 4096, "gpu": "RTX 4090, physical GPU 6",
+                             "source_sha256": hashes,
+                             "study_scope": "one session per mode/task; compare three-turn ordinary and API-aware loops; one-turn ablation optional"},
+                "runs": []}
+    schedule = [(task, mode) for task in args.tasks for mode in args.modes]
+    random.Random(20261011).shuffle(schedule)
+    evidence["schedule"] = schedule
+    for index, (task, mode) in enumerate(schedule):
+        run_id = f"{run_stamp}-{task}-{mode}"
+        print(json.dumps({"starting": index + 1, "task": task, "mode": mode}), flush=True)
+        try:
+            result = Hmz(ROOT).run(str(ROOT / "flows/kernel_loop.py"),
+                                   fixture[task]["contract"] + "\nVisible examples: " + json.dumps(fixture[task]["examples"]),
+                                   agents={"builder": "opencode/kernel-local/kernel-qwen3-4b"},
+                                   budget={"duration": 900, "output_tokens": 20000, "graceful": False},
+                                   params={"task_id": task, "mode": mode, "run_id": run_id,
+                                           "evaluator": [GPU_PYTHON, str(ROOT / "scripts/evaluate_candidate.py")]}).run()
+        except Exception as error:  # noqa: BLE001 -- a failed run stays in the denominator
+            result = {"task_id": task, "mode": mode, "run_id": run_id, "terminal": "run_error",
+                      "correct": False, "promoted": False, "attempts": [], "error": str(error)[-4000:]}
+        evidence["runs"].append(result)
+        (ROOT / "results/agent-pilot.json").write_text(json.dumps(evidence, indent=2) + "\n")
+        print(json.dumps({"finished": index + 1, **{k: result[k] for k in
+                         ("task_id", "mode", "terminal", "correct", "promoted")}}), flush=True)
+    if any(hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != digest for name, digest in hashes.items()):
+        raise RuntimeError("agent or evaluator source changed during the pilot")
+    evidence["status"] = "complete"
+    (ROOT / "results/agent-pilot.json").write_text(json.dumps(evidence, indent=2) + "\n")
+
+
+if __name__ == "__main__":
+    main()

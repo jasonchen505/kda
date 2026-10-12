@@ -1,0 +1,118 @@
+{
+  "verified_date": "2026-10-12",
+  "audit_scope": "Historical phase-seven delivery before the phase-eight fresh-generation validation; status, patch hashes and browser checks refer to that delivery snapshot.",
+  "study_sha256": "fa71ffcba4fc309a38f7b538081772e02c35217de7e413278a0a40adbf239a4d",
+  "original_source_sha256": {
+    "flows/kernel_loop.py": "29c55d96dfabffdeae9e2755097b2aabc3aa590bc59a8b408a59f0a9f62d5d1a",
+    "src/kernel_agent/protocol.py": "25ba75f124d7e5c6fa1377df7179267e1c53832ae702248a11ab6e2650cbd60a",
+    "src/kernel_agent/knowledge.py": "bbcf4a2488d2d0e7312e00261cfae3ae996ae527154d06e4c6e3064169e53dcf",
+    "scripts/evaluate_candidate.py": "d72d4bea77b2dd12aac1044305a4e5a82258d39aad75644f920ce3f73a9eb51c",
+    "scripts/local_proxy.py": "045b2beed558b94e948d1916ab756815d5c9a13c9367d0f5ff66128326dfe084",
+    "scripts/run_strategy_study.py": "37f9bf5c97a435eb8a1b51c7b35431a6971dc864077788a07d3e601bc1270fd2",
+    "src/kernel_agent/transport.py": "782538c0bb7e5b5976c6ac2fa1a7d99917cd455cce665ae0c30b1442e18414e8",
+    "src/kernel_agent/line_protocol.py": "caebdd1a974290a5635de1751bad088d94499e50c714fe83c6678534e8d0ed74",
+    "data/tasks.json": "11c386d990c9f2a60d94205ec92e503434eb4677632c8d25b14924ae2d4951be",
+    "data/opencode-qwen27.json": "5d003ef0f45fe715a1d3df82f191cd3f4e91b7dc1e44206812b870b7eabc2c32",
+    "results/qwen27-asset-manifest.json": "bad402d0f46bc60ba38b010b5150b51c5577d207cda2c9ae0b579af26eea1a77",
+    "scripts/start_cached_qwen27.sh": "9a9909db41f623679c773265f315b49e3c8c11a7bec1e7ba404608589a8250ed",
+    "scripts/inventory_model.py": "4122b57434353b1cf633cc6017158faf77dedd3ae9476065942ab55f29aa4365",
+    "src/kernel_agent/references.py": "9a100c009544df5bb3e982a758446644b75ffd34f63150eda443ddf4c620daf7",
+    "references/triton-3.2/manifest.json": "8a2963d1193f33a798ba52ccf3bca5e62d0666035af4fbc63d7754dbdf3b8e99",
+    "docs/strategy-study-plan.md": "ba7a7879a3fae671bc99473cace1bd104d648d42d16e18cc7869cd19842dc6b1"
+  },
+  "original_runs": 6,
+  "proposal_files_verified": 18,
+  "unique_sources_within_runs": 12,
+  "unique_search_correct_final_checked": 11,
+  "search_rejected_sources": 1,
+  "first_user_prompt_equal_all_task_pairs": true,
+  "selector_fix_status": "implemented and 53 controller tests passed; no fresh model-generation campaign",
+  "fixed_candidate_recheck": {
+    "result": "results/silu-selector-recheck.json",
+    "sha256": "c22fc93ad182f40af9cfefbfec81c38e1d4d632b14fd24ff4aaec231a9721d9c",
+    "script": "scripts/recheck_candidates.py",
+    "script_sha256": "f407f43547856dc9f8c22ea10bc2d161824eac3599d2bdc5be688a8157a18697",
+    "scope": "three fresh GPU6 final evaluator processes per existing SiLU source; no model generation or replacement of original campaign",
+    "old_selected": {"correct": "3/3", "promoted": "0/3", "geomean_range": [0.925873635762591, 0.9324027151778375]},
+    "discarded_gate_eligible": {"correct": "3/3", "promoted": "3/3", "geomean_range": [1.2888064620018327, 1.2987953142688677]}
+  },
+  "selector_fix_counterfactual": [
+    {
+      "policy": "blind",
+      "planned_runs": 3,
+      "completed_runs": 3,
+      "final_correct": 3,
+      "final_promoted": 0,
+      "prospective_correct": 2,
+      "prospective_completed": 2,
+      "selection_audit": {
+        "first": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "last": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "best": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "gate_first": {
+          "correct": 3,
+          "promoted": 0
+        }
+      }
+    },
+    {
+      "policy": "feedback",
+      "planned_runs": 3,
+      "completed_runs": 3,
+      "final_correct": 3,
+      "final_promoted": 0,
+      "prospective_correct": 2,
+      "prospective_completed": 2,
+      "selection_audit": {
+        "first": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "last": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "best": {
+          "correct": 3,
+          "promoted": 0
+        },
+        "gate_first": {
+          "correct": 3,
+          "promoted": 1
+        }
+      }
+    }
+  ],
+  "counterfactual_scope": "one run per task/policy; gate_first is a post-hoc search-only counterfactual on existing final audits, not a fresh run; original final results and selection never change",
+  "selector_patch_snapshot_sha256": {
+    "flows/kernel_loop.py": "58ce6c9f0e7fd4c7d10864f35b056527fb3f896217905c6c6e943dc467745a8a",
+    "src/kernel_agent/protocol.py": "155befe3a14e6e3c569fc193fdac844536610fb931b91cb98f28adaa8b7cf062",
+    "scripts/run_strategy_study.py": "048f568a98b0fe222e87e222cdfe0a6f821bc27f2f180f3a6cb068273ef2f04b",
+    "scripts/summarize_strategy.py": "b7964c86fd0b707eb63de465256ca1c8c81ace84d71e3f19c9f149d67982e347",
+    "tests/integration/test_strategy_study.py": "224f37c4653946ba91680fb8c7777a9b2c53abf8c814242eba08d196f66fbf50"
+  },
+  "phase7_browser": {
+    "desktop_width": 1280,
+    "mobile_width": 390,
+    "overflow": false,
+    "console_errors": 0,
+    "complete_download_exact_match": true,
+    "screenshot": "reports/report-preview.png"
+  },
+  "checks": {
+    "controller_tests_passed": 53,
+    "ruff": "passed",
+    "reproduce_shell_syntax": "passed",
+    "wrapper_full_rerun_after_edits": false
+  },
+  "measured_scope": "six original runs completed before selector patch; counterfactual shares original candidates; no fresh validation of patched controller"
+}
