@@ -42,7 +42,7 @@ def inputs(task, shape, dtype):
     return (x,)
 
 
-def main(task, source, final=False):
+def main(task, source, final=False, timing=True):
     code = Path(source).read_text()
     try:
         source_sha = admit(code)
@@ -102,9 +102,14 @@ def main(task, source, final=False):
                         return {"status": "numeric_error", "shape": shape, "dtype": str(dtype),
                                 "scale": scale, "message": str(error)[-2500:], "checks_passed": checks}
                     except Exception as error:  # noqa: BLE001 -- classify candidate failures without losing the run
-                        status = "compile_error" if "Compilation" in type(error).__name__ else "runtime_error"
+                        status = ("resource_exhausted" if isinstance(error, torch.OutOfMemoryError) else
+                                  "compile_error" if "Compilation" in type(error).__name__ else "runtime_error")
                         return {"status": status, "shape": shape, "dtype": str(dtype), "message": str(error)[-2500:],
                                 "traceback": traceback.format_exc()[-3000:], "checks_passed": checks}
+        if not timing:
+            return {"status": "numeric_correct", "source_sha256": source_sha, "checks_passed": checks,
+                    "evaluation_phase": "search_correctness", "timings": None,
+                    "gpu": torch.cuda.get_device_name(), "torch": torch.__version__}
         compiled = torch.compile(lambda *args: reference(task, *args), fullgraph=True,
                                  options={"emulate_precision_casts": True})
         rows = []
@@ -131,7 +136,11 @@ def main(task, source, final=False):
 
 if __name__ == "__main__":
     try:
-        result = main(sys.argv[1], sys.argv[2], final="--final" in sys.argv)
+        if "--correctness-only" in sys.argv and "--final" in sys.argv:
+            raise ValueError("deferred generation may not inspect final shapes")
+        result = main(sys.argv[1], sys.argv[2], final="--final" in sys.argv,
+                      timing="--correctness-only" not in sys.argv)
     except Exception as error:  # noqa: BLE001 -- always return machine-readable evaluator failure
-        result = {"status": "evaluator_error", "message": str(error), "traceback": traceback.format_exc()[-4000:]}
+        result = {"status": "resource_exhausted" if isinstance(error, torch.OutOfMemoryError) else "evaluator_error",
+                  "message": str(error), "traceback": traceback.format_exc()[-4000:]}
     print(json.dumps(result, allow_nan=False))

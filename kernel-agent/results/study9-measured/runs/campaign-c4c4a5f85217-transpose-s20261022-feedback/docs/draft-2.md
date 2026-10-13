@@ -1,0 +1,1 @@
+Optimize transpose by tuning block sizes per shape to improve memory coalescing and occupancy. Use larger blocks for larger matrices to reduce kernel launch overhead and increase parallelism. Keep masking for odd dimensions.

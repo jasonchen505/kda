@@ -1,0 +1,1 @@
+1. Define kernel with 2D block (ROWS_PER_BLOCK, COLS_PER_BLOCK). 2. Compute 2D offsets and masks. 3. Load rows, compute max/exp/sum in FP32. 4. Store results. 5. Launch with grid covering all rows in chunks.

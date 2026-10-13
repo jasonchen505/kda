@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import itertools
 import json
+import math
 import sys
 from collections import Counter
 from datetime import datetime, timezone
@@ -23,6 +24,14 @@ def digest(value):
 def require(value, message):
     if not value:
         raise ValueError(message)
+
+
+def same_decision(actual, recorded):
+    # libm can differ by one ULP between Linux and macOS; flags remain exact.
+    return actual.keys() == recorded.keys() and all(
+        math.isclose(value, recorded[key], rel_tol=1e-12, abs_tol=1e-12)
+        if type(value) is float and type(recorded[key]) in (float, int) else value == recorded[key]
+        for key, value in actual.items())
 
 
 def audit_state(state, sources=None):
@@ -61,7 +70,7 @@ def audit_state(state, sources=None):
                         "model source changed")
             verdict = decision(attempt["evaluation"])
             if attempt.get("decision") is not None:
-                require(verdict == attempt["decision"], "search decision mismatch")
+                require(same_decision(verdict, attempt["decision"]), "search decision mismatch")
             if verdict["correct"]:
                 if plan["generation"].get("evaluation_guard"):
                     occupancy = attempt["evaluation"].get("resource_audit") or {}
@@ -130,6 +139,12 @@ def summarize(state, sources=None):
                 "unique_source_sha_per_job_sum": sum(len({a["source_sha256"] for a in r["attempts"]
                                                           if a.get("source_sha256")}) for r in actual),
                 "duplicate_proposals": sum(bool(a.get("duplicate_of")) for r in actual for a in r["attempts"]),
+                "terminal_reasons": dict(Counter(r.get("terminal", "unknown") for r in actual)),
+                "resource_interrupted_jobs": sum(r.get("terminal") == "resource_unavailable" for r in actual),
+                "resource_affected_jobs": sum(r.get("terminal") == "resource_unavailable" or
+                                              (r.get("final_evaluation") or {}).get("status") in
+                                              {"resource_busy", "resource_contended", "resource_monitor_error",
+                                               "resource_exhausted", "evaluator_timeout"} for r in actual),
                 "failures": dict(failures)}
 
     for policy in ("blind", "feedback"):
@@ -187,7 +202,9 @@ def main():
     if args.resource_state and args.resource_state.exists():
         result["resource_wait"] = json.loads(args.resource_state.read_text())
         if result["resource_wait"].get("waiting") and not result["statuses"].get("running"):
-            result["execution_status"] = "waiting_for_resources"
+            result["execution_status"] = ("resource_wait_expired" if
+                                          result["resource_wait"].get("remaining_seconds") == 0 else
+                                          "waiting_for_resources")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_suffix(args.output.suffix + ".tmp")
     temporary.write_text(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n")

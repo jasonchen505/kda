@@ -1,0 +1,1 @@
+1. Allocate output same shape/dtype. 2. Launch grid (rows,). 3. Kernel: row = pid(0), loop over width in BLOCK_SIZE chunks, accumulate sum of squares in fp32. 4. rstd = rsqrt(mean_sq + eps). 5. Second loop: load x, normalize, cast to x.dtype, multiply by weight, store. 6. Use tl.constexpr for BLOCK_SIZE, mask cols < width.

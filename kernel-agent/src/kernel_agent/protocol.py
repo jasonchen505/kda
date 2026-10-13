@@ -82,6 +82,16 @@ def decision(result):
         return {"correct": False, "promoted": False, "reason": "invalid_timing_evidence"}
 
 
+def numeric_decision(result):
+    """Search correctness alone is eligibility for timing, never a promotion verdict."""
+    passed = (result.get("status") == "numeric_correct"
+              and type(result.get("checks_passed")) is int and result["checks_passed"] >= 28
+              and result.get("evaluation_phase") == "search_correctness"
+              and result.get("timings") is None)
+    return {"numeric_correct": bool(passed), "timing_eligible": bool(passed), "promoted": False,
+            "reason": "timing_pending" if passed else result.get("status", "invalid_evidence")}
+
+
 def prefers(candidate, incumbent=None, policy="gate_first"):
     """Rank search decisions only; never consult final measurements, keep stable ties."""
     if policy not in ("gate_first", "geomean"):
@@ -104,6 +114,8 @@ def feedback(result):
                "compile_error": "Fix Triton compilation/API errors before benchmarking.",
                "runtime_error": "Check pointer bounds, strides and launch grid.",
                "correct": "Correctness passed. Optimize the worst workload without breaking other cases.",
+               "numeric_correct": "Search correctness passed. Timing is deferred; no speedup is known. "
+                                  "Revise using the contract and source; do not invent timing feedback.",
                "protocol_error": "Return valid JSON with draft, plan and complete code strings.",
                "timeout": "Reduce resource use and avoid unbounded launches."}
     return (f"Independent evaluator status: {state}. {actions.get(state, 'Inspect the failure and revise.')}\n"

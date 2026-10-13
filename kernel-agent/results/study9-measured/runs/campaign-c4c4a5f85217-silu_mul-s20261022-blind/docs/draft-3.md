@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y in FP32, single cast at store. Masked 1D grid handles odd sizes. Tuned BLOCK_SIZE and num_warps for throughput.

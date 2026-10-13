@@ -1,0 +1,1 @@
+Row-sum kernel: one program per row, loop over columns in power-of-two blocks, accumulate in FP32, store once. Tuned block size and num_warps for speed across 1..4096 cols.

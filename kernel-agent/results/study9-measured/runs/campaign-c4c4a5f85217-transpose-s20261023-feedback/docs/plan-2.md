@@ -1,0 +1,1 @@
+1. Analyze shape to select optimal BLOCK_M and BLOCK_N. 2. Use 64x64 or 128x64 blocks for larger matrices. 3. Keep 32x32 for small matrices. 4. Ensure grid covers all elements with proper masking. 5. Return contiguous transposed tensor.

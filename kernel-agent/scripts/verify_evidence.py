@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 from kernel_agent.line_protocol import proposal
-from kernel_agent.protocol import decision, prefers
+from kernel_agent.protocol import decision, numeric_decision, prefers
 from kernel_agent.transport import PROPOSER_PREFIX
 from scripts.summarize_campaign import audit_state
 
@@ -139,11 +139,124 @@ def check_campaigns(root):
     audit_state(current, root / "results/study9-measured")
     require(current["plan"]["generation"]["evaluation_guard"] == "pre_post_foreign_cuda_pid_check",
             "guarded campaign lost measurement qualification")
+    guarded_candidates = guarded_requests = 0
+    for row in current["jobs"]:
+        if row["status"] != "completed":
+            continue
+        run = row["result"]
+        for attempt in run["attempts"]:
+            if attempt.get("source_sha256"):
+                path = root / "results/study9-measured/runs" / run["run_id"] / f"candidate-{attempt['iteration']}.py"
+                require(digest(path) == attempt["source_sha256"], "guarded candidate file changed")
+                guarded_candidates += 1
+        traces = [json.loads(p.read_text()) for p in
+                  (root / "evidence/multiseed-guarded-requests" / row["job"]["id"]).glob("*.json")]
+        proposers = [t for t in traces if t.get("response_format")]
+        require(len(proposers) == sum("reply" in a for a in run["attempts"]), "guarded proposer denominator changed")
+        for trace in traces:
+            require(trace["seed"] == row["job"]["seed"] and trace["temperature"] == .2
+                    and trace["model"] == current["plan"]["runtime"]["service"]["base_model"],
+                    "guarded request settings changed")
+        require(all(not t.get("tools") for t in proposers), "guarded proposer has tools")
+        guarded_requests += len(proposers)
     return {"pilot_completed": len(completed), "pilot_proposer_requests": len(proposer),
             "pilot_clean_performance_qualified": False,
             "guarded_scheduled": len(current["jobs"]),
             "guarded_terminal": sum(r["status"] in {"completed", "failed", "interrupted_unknown"} for r in current["jobs"]),
+            "guarded_candidate_files": guarded_candidates, "guarded_proposer_requests": guarded_requests,
             "scope": "separate integration pilot and guarded campaign snapshot; no pooling with historical GPU scores"}
+
+
+def check_deferred(root):
+    path = root / "results/deferred-generation-checkpoint.json"
+    if not path.exists():
+        return None
+    state = json.loads(path.read_text())
+    plan = state["plan"]
+    require(state["state_sha256"] == object_digest({k: v for k, v in state.items() if k != "state_sha256"})
+            and state["plan_sha256"] == object_digest(plan), "deferred generation integrity changed")
+    frozen = root / "results/deferred-measured"
+    for name, expected in plan["source_sha256"].items():
+        require(digest(frozen / name) == expected, f"deferred frozen source changed: {name}")
+    require(plan["generation"]["evaluation_mode"] == "deferred"
+            and [r["job"] for r in state["jobs"]] == plan["jobs"], "deferred schedule/policy changed")
+    eligible_count = shared_passes = proposer_count = 0
+    for row in state["jobs"]:
+        if row["status"] != "completed":
+            continue
+        run = row["result"]
+        require(row["result_sha256"] == object_digest(run), "deferred result changed")
+        require(run["final_evaluation"] is None and run["correct"] is False and run["promoted"] is False,
+                "generation falsely claims final performance")
+        eligible = []
+        for attempt in run["attempts"]:
+            if attempt.get("source_sha256"):
+                source = proposal(attempt["reply"])["code"]
+                require(source == attempt["code"] and hashlib.sha256(source.encode()).hexdigest() == attempt["source_sha256"],
+                        "deferred model source changed")
+                require(digest(frozen / "runs" / run["run_id"] / f"candidate-{attempt['iteration']}.py") ==
+                        attempt["source_sha256"], "deferred candidate file changed")
+            verdict = numeric_decision(attempt["evaluation"])
+            require(attempt.get("decision") == verdict, "deferred numerical decision changed")
+            if verdict["timing_eligible"]:
+                require(attempt["evaluation"]["source_sha256"] == attempt["source_sha256"], "numerical SHA mismatch")
+                if attempt["source_sha256"] not in eligible:
+                    eligible.append(attempt["source_sha256"])
+                audit = attempt["evaluation"].get("resource_audit", {})
+                shared_passes += bool(audit.get("before", {}).get("pids")) and not bool(attempt.get("duplicate_of"))
+        require(eligible == run["timing_candidates"], "deferred timing schedule changed")
+        eligible_count += len(eligible)
+        traces = [json.loads(p.read_text()) for p in
+                  (root / "evidence/deferred-requests" / row["job"]["id"]).glob("*.json")]
+        proposers = [t for t in traces if t.get("response_format")]
+        require(len(proposers) == sum("reply" in a for a in run["attempts"]), "deferred proposer denominator changed")
+        require(all(t["seed"] == row["job"]["seed"] and t["temperature"] == .2
+                    and t["model"] == plan["runtime"]["service"]["base_model"] for t in traces),
+                "deferred request configuration changed")
+        proposer_count += len(proposers)
+        queue_path = root / "results/deferred-timing" / row["job"]["id"] / "checkpoint.json"
+        queue = json.loads(queue_path.read_text())
+        require(queue["state_sha256"] == object_digest({k: v for k, v in queue.items() if k != "state_sha256"})
+                and queue["plan_sha256"] == object_digest(queue["plan"]), "deferred queue integrity changed")
+        require(queue["plan"]["generation_result_sha256"] == row["result_sha256"]
+                and queue["plan"]["generation_result"] == run, "queue generation provenance changed")
+        require([r["source_sha256"] for r in queue["search"]] == eligible, "queued source schedule changed")
+        for source_sha in eligible:
+            require(digest(queue_path.parent / f"{source_sha}.py") == source_sha,
+                    "queued candidate file changed")
+        best = None
+        for measured in queue["search"]:
+            if measured["status"] != "measured":
+                continue
+            verdict = decision(measured["evaluation"])
+            require((verdict["correct"], verdict["promoted"]) ==
+                    (measured["decision"]["correct"], measured["decision"]["promoted"]), "queued search verdict changed")
+            if verdict["correct"]:
+                audit = measured["evaluation"].get("resource_audit", {})
+                require(measured["evaluation"].get("source_sha256") == measured["source_sha256"]
+                        and audit.get("gpu_index") == plan["runtime"]["gpu_index"]
+                        and audit.get("before_pids") == audit.get("after_pids") == [],
+                        "queued search lacks uncontended source-bound evidence")
+            if prefers(verdict, best["decision"] if best else None):
+                best = {"source_sha256": measured["source_sha256"], "decision": verdict}
+        if queue["selection_committed"]:
+            require(all(r["status"] == "measured" for r in queue["search"])
+                    and queue["selected_sha256"] == (best["source_sha256"] if best else None), "queued selection changed")
+        if queue["final"]["status"] == "measured":
+            final = queue["final"]["evaluation"]
+            verdict = decision(final)
+            require((not verdict["correct"] or final.get("source_sha256") == queue["selected_sha256"])
+                    and (queue["correct"], queue["promoted"]) == (verdict["correct"], verdict["promoted"]),
+                    "queued final verdict changed")
+            if verdict["correct"]:
+                audit = final.get("resource_audit", {})
+                require(audit.get("gpu_index") == plan["runtime"]["gpu_index"]
+                        and audit.get("before_pids") == audit.get("after_pids") == [],
+                        "queued final lacks uncontended boundary evidence")
+    return {"generation_status": state["status"], "scheduled": len(state["jobs"]),
+            "proposer_requests": proposer_count, "eligible_sources": eligible_count,
+            "numeric_passes_with_resident_cuda_pids": shared_passes,
+            "scope": "phase-split pilot; numerical eligibility alone is not a performance verdict"}
 
 
 def verify(root=ROOT):
@@ -181,6 +294,7 @@ def verify(root=ROOT):
     recovery = check_recovery(json.loads(recovery_path.read_text()), root) if recovery_path.exists() else None
     return {"status": "verified", "study_sha256": digest(raw), "recovery_validation": recovery,
             "multiseed_campaigns": check_campaigns(root),
+            "deferred_evaluation": check_deferred(root),
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

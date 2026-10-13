@@ -1,0 +1,1 @@
+Row-sum kernel: one program per row, loop over columns in power-of-two blocks, accumulate in FP32, store once. BLOCK_SIZE chosen by cols to minimize iterations while staying within register limits.

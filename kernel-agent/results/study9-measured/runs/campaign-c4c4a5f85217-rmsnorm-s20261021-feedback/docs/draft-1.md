@@ -1,0 +1,1 @@
+Implement RMSNorm with one Triton kernel per row. Load x in fp32, compute mean of squares, rsqrt, cast normalized to input dtype, multiply by weight, store. Handle odd widths with masked loads/stores and power-of-two blocks.

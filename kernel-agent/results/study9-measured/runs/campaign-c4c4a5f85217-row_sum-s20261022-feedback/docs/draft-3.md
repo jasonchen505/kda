@@ -1,0 +1,1 @@
+Optimize row-sum kernel by using a single large block size to eliminate loop overhead for small-to-medium column counts, and increase block size for large columns to improve memory throughput. This targets the worst-case small shape [7, 257] where launch overhead dominates.

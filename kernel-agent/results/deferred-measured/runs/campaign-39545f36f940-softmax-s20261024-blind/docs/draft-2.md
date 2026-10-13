@@ -1,0 +1,1 @@
+Single-pass row softmax. Load row with mask, compute max, exp, sum, divide. Store with mask. Use next_power_of_2 for block size. Handle odd column counts via masking. Preserve input dtype by casting output back.

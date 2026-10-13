@@ -1,0 +1,1 @@
+1. Define a 1D kernel where each program handles one row. 2. Calculate BLOCK_SIZE as next power of 2 for columns. 3. Load row with mask, compute max/exp/sum in FP32. 4. Store result with mask. 5. Launch grid with n_rows programs. 6. Ensure dtype preservation and contiguous input handling.

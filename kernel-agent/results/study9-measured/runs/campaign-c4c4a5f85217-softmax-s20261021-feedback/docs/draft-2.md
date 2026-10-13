@@ -1,0 +1,1 @@
+Optimize worst-case [7, 257] by using a persistent kernel with row-looping to reduce launch overhead and improve occupancy for small row counts. Keep single-block-per-row for large shapes to avoid register pressure.

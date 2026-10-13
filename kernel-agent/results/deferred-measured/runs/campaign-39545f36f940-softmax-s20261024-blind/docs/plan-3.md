@@ -1,0 +1,1 @@
+1. Allocate output tensor matching input shape/dtype. 2. Launch kernel with grid=(n_rows,). 3. Each program handles one row: load with mask, compute softmax in FP32, store with mask. 4. Use triton.next_power_of_2 for block size. 5. Return output tensor.

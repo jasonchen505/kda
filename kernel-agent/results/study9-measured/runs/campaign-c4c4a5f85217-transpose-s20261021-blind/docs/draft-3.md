@@ -1,0 +1,1 @@
+Transpose via 2D tiled loads and tl.trans. Use 64x64 tiles for large dims, 32x32 for small. Mask both axes for odd sizes. Allocate contiguous output (N, M).

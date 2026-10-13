@@ -1,0 +1,1 @@
+Single-pass row softmax with one program per row. Load row as FP32, subtract max, exp, sum, divide, store. Masked lanes use -inf so they contribute zero to exp and sum. Output allocated with empty_like to preserve dtype/shape.

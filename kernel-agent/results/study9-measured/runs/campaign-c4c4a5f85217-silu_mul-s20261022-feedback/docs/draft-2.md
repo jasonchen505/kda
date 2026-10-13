@@ -1,0 +1,1 @@
+Optimize small-shape latency by using a larger block size (4096) to reduce kernel launch overhead and improve memory coalescing. The previous candidate was slower on small shapes due to excessive program count. This revision maintains FP32 computation and correct masking for odd sizes.

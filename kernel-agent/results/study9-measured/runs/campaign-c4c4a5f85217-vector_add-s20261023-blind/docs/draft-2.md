@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 accumulation and dtype-preserving store. Uses masked loads/stores for odd sizes, power-of-two blocks, and a single 1D grid. No PyTorch compute; only allocation and metadata.

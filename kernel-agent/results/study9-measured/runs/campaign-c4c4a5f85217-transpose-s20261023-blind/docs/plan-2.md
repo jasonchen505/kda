@@ -1,0 +1,1 @@
+1. Allocate output (N, M). 2. Launch 2D grid of cdiv(M,BM) x cdiv(N,BN). 3. Each program loads a tile, transposes, stores. 4. Use power-of-2 block sizes with masks for odd dimensions. 5. Keep BLOCK_M=BLOCK_N=32 for good occupancy on small-to-medium matrices.

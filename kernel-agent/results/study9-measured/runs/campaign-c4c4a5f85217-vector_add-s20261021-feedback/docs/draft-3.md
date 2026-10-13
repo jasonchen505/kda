@@ -1,0 +1,1 @@
+Optimize vector add by increasing block size to 1024 for better memory throughput on large shapes while maintaining correctness for odd sizes via masking. Use FP32 intermediates and cast to input dtype.

@@ -1,0 +1,1 @@
+1. Allocate output tensor. 2. Launch grid (rows,). 3. Kernel: loop over width in BLOCK_SIZE chunks, accumulate sum of squares in FP32. 4. Compute rstd = rsqrt(mean_sq + eps). 5. Second loop: load x, normalize, cast to x.dtype, multiply by weight, store. Use tl.constexpr for BLOCK_SIZE and dtype.

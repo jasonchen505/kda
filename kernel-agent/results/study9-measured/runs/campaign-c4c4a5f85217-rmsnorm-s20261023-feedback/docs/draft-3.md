@@ -1,0 +1,1 @@
+Optimize small-row shapes by using a single-block kernel path for width <= 2048 to avoid loop overhead. For larger widths, keep the two-pass loop. Ensure correct dtype casting before weight multiplication.

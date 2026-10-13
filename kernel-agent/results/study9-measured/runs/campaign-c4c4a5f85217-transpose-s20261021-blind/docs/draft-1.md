@@ -1,0 +1,1 @@
+Transpose 2D matrix using Triton. Load tiles from input with row-major strides, store to output with transposed indices. Handle odd sizes via masking. Use 2D grid for parallelism.

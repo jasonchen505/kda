@@ -1,0 +1,1 @@
+1. Allocate output as x.T.contiguous(). 2. Launch 2D grid kernel. 3. Each program loads BLOCK_R x BLOCK_C tile from x. 4. Store transposed tile to output. 5. Mask loads/stores for odd dimensions.

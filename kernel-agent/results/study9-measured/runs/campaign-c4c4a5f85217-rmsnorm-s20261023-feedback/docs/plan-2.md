@@ -1,0 +1,1 @@
+1. If width <= 1024, use BLOCK_SIZE = next_power_of_2(width) and a single load/store without loop. 2. If width > 1024, use BLOCK_SIZE = 2048 to reduce loop iterations. 3. Keep the same kernel structure but add a constexpr flag to choose between single-block and multi-block paths. 4. This should reduce overhead for small widths and improve throughput for large widths.

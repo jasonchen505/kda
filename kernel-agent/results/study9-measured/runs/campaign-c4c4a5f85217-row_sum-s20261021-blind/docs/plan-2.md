@@ -1,0 +1,1 @@
+1) Allocate output (rows,) in input dtype. 2) Launch grid=(rows,). 3) Each program loads row in chunks of BLOCK_SIZE, masks tail, accumulates in fp32. 4) tl.sum reduces to scalar, store to Y+row. 5) Pick BLOCK_SIZE = min(next_pow2(cols), 1024) for efficiency.

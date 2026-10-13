@@ -1,0 +1,1 @@
+1. Allocate output tensor same shape/dtype as input. 2. Compute BLOCK_SIZE as next power of 2 >= n_cols. 3. Launch grid with n_rows programs. 4. Kernel: load row (masked), subtract max, exp, sum, divide, store (masked). 5. Return output.

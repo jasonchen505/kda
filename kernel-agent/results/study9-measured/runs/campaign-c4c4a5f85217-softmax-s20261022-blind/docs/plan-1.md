@@ -1,0 +1,1 @@
+1. Compute BLOCK_SIZE = next_pow2(n_cols). 2. Grid = (n_rows,). 3. Kernel: load row (mask, other=-inf), max, exp, sum, normalize. 4. Store with mask. 5. run(): allocate output same shape/dtype, launch, return.

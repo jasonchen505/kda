@@ -1,0 +1,1 @@
+RMSNorm kernel: one program per row. Compute sum-of-squares in FP32 over masked width, derive rstd, then normalize, cast to input dtype, multiply by weight, and store. Uses a single loop for sum and a second for output to keep register pressure low. Handles odd widths via masking.

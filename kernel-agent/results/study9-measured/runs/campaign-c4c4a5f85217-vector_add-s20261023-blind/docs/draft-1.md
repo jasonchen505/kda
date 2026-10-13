@@ -1,0 +1,1 @@
+Vectorized elementwise add. Load x,y as fp32, add, cast to input dtype, store. Masked for odd sizes. Single 1D grid.

@@ -1,0 +1,1 @@
+Transpose 2D CUDA matrix via Triton. Allocate contiguous output of shape (N,M). 2D grid of blocks; each block loads MxN tile from x with row/col masks, transposes via tl.trans, stores to y. Handles odd sizes and bf16/fp32.

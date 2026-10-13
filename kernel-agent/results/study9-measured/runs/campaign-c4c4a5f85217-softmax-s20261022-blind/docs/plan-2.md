@@ -1,0 +1,1 @@
+Grid over rows. BLOCK_SIZE = next_pow2(n_cols). Kernel: program_id(0) -> row. Load with mask, other=-inf. Cast to float32. Max, exp, sum, divide. Store with mask. Host: validate, allocate, launch, return.

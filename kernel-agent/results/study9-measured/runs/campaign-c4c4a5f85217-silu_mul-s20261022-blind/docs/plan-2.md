@@ -1,0 +1,1 @@
+1D grid over flattened elements. Each program loads BLOCK_SIZE elements with mask, converts to FP32, computes silu(x)*y, stores to output. Use tl.exp for sigmoid. Single kernel launch.

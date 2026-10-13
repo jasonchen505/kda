@@ -1,0 +1,1 @@
+Optimize transpose by using larger 128x128 blocks for large matrices to improve memory coalescing and reduce kernel launch overhead. Keep 64x64 for medium and 32x32 for small. Ensure correct masking for odd dimensions.

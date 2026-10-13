@@ -1,0 +1,1 @@
+1. Allocate output tensor same shape/dtype as input. 2. Launch Triton kernel with grid (n_rows,). 3. Kernel: each program handles one row. Load row as FP32 with mask (other=-inf). Compute row max, subtract, exp, sum, divide. Store result cast to input dtype with mask. 4. Handle all column sizes 1-2048 via next_power_of_2 block size. 5. Return output tensor.

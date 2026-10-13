@@ -1,0 +1,437 @@
+[
+  {
+    "iteration": 1,
+    "parent_sha256": null,
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, weight) returns RMSNorm for contiguous CUDA x of shape (rows,width) and weight of shape (width,), same float32/bfloat16 dtype. eps=1e-6. Reference fp=x.float(); normalized=(fp*torch.rsqrt(fp.square().mean(-1,keepdim=True)+1e-6)).to(x.dtype); result=weight*normalized. Preserve this intermediate cast before weight multiplication. Inputs immutable; rows 1..256, width 1..4096 including odd sizes.\nVisible examples: [[16, 128], [64, 512]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef _layer_norm_fwd_fused(\n    X,  # pointer to the input\n    Y,  # pointer to the output\n    W,  # pointer to the weights\n    B,  # pointer to the biases\n    Mean,  # pointer to the mean\n    Rstd,  # pointer to the 1/std\n    stride,  # how much to increase the pointer when moving by 1 row\n    N,  # number of columns in X\n    eps,  # epsilon to avoid division by zero\n    BLOCK_SIZE: tl.constexpr,\n):\n    # Map the program id to the row of X and Y it should compute.\n    row = tl.program_id(0)\n    Y += row * stride\n    X += row * stride\n    # Compute mean\n    mean = 0\n    _mean = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        a = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        _mean += a\n    mean = tl.sum(_mean, axis=0) / N\n    # Compute variance\n    _var = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        x = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        x = tl.where(cols < N, x - mean, 0.)\n        _var += x * x\n    var = tl.sum(_var, axis=0) / N\n    rstd = 1 / tl.sqrt(var + eps)\n    # Write mean / rstd\n    tl.store(Mean + row, mean)\n    tl.store(Rstd + row, rstd)\n    # Normalize and apply linear transformation\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        w = tl.load(W + cols, mask=mask)\n        b = tl.load(B + cols, mask=mask)\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = (x - mean) * rstd\n        y = x_hat * w + b\n        # Write output\n        tl.store(Y + cols, y, mask=mask)\n\nProposal 1 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Implement RMSNorm with one Triton kernel per row. Load x in fp32, compute mean of squares, rsqrt, cast normalized values to input dtype, multiply by weight, and store. Handle odd widths with masked loads/stores and divide by actual width.\",\n  \"plan\": \"1. Allocate output tensor with same shape/dtype as x. 2. Launch grid (rows,). 3. Kernel: for each row, loop over width in BLOCK_SIZE chunks, accumulate sum of squares in fp32. 4. Compute rstd = rsqrt(mean_sq + eps). 5. Loop again: load x, normalize in fp32, cast to x.dtype, multiply by weight, store. 6. Return output.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"@triton.jit\",\n    \"def _rmsnorm_kernel(\",\n    \"    X,  # pointer to input (rows, width)\",\n    \"    Y,  # pointer to output (rows, width)\",\n    \"    W,  # pointer to weight (width,)\",\n    \"    stride,  # row stride in elements\",\n    \"    N,  # width\",\n    \"    eps,  # epsilon\",\n    \"    BLOCK_SIZE: tl.constexpr,\",\n    \"):\",\n    \"    row = tl.program_id(0)\",\n    \"    X += row * stride\",\n    \"    Y += row * stride\",\n    \"\",\n    \"    # Compute sum of squares in fp32\",\n    \"    _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\",\n    \"    for off in range(0, N, BLOCK_SIZE):\",\n    \"        cols = off + tl.arange(0, BLOCK_SIZE)\",\n    \"        mask = cols < N\",\n    \"        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"        _sum_sq += x * x\",\n    \"    sum_sq = tl.sum(_sum_sq, axis=0)\",\n    \"    mean_sq = sum_sq / N\",\n    \"    rstd = tl.rsqrt(mean_sq + eps)\",\n    \"\",\n    \"    # Normalize, cast to input dtype, multiply by weight, store\",\n    \"    for off in range(0, N, BLOCK_SIZE):\",\n    \"        cols = off + tl.arange(0, BLOCK_SIZE)\",\n    \"        mask = cols < N\",\n    \"        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"        w = tl.load(W + cols, mask=mask)\",\n    \"        x_norm = x * rstd\",\n    \"        # Cast to input dtype before weight multiplication\",\n    \"        x_norm_cast = x_norm.to(X.dtype.element_ty)\",\n    \"        y = x_norm_cast * w\",\n    \"        tl.store(Y + cols, y, mask=mask)\",\n    \"\",\n    \"def run(x, weight):\",\n    \"    rows, width = x.shape\",\n    \"    y = torch.empty_like(x)\",\n    \"    BLOCK_SIZE = triton.next_power_of_2(width)\",\n    \"    # Cap block size to avoid excessive register usage\",\n    \"    if BLOCK_SIZE > 1024:\",\n    \"        BLOCK_SIZE = 1024\",\n    \"    grid = (rows,)\",\n    \"    _rmsnorm_kernel[grid](\",\n    \"        x, y, weight,\",\n    \"        width,  # stride for contiguous 2D tensor\",\n    \"        width,\",\n    \"        1e-6,\",\n    \"        BLOCK_SIZE=BLOCK_SIZE,\",\n    \"    )\",\n    \"    return y\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,  # pointer to input (rows, width)\n    Y,  # pointer to output (rows, width)\n    W,  # pointer to weight (width,)\n    stride,  # row stride in elements\n    N,  # width\n    eps,  # epsilon\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    # Compute sum of squares in fp32\n    _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        _sum_sq += x * x\n    sum_sq = tl.sum(_sum_sq, axis=0)\n    mean_sq = sum_sq / N\n    rstd = tl.rsqrt(mean_sq + eps)\n\n    # Normalize, cast to input dtype, multiply by weight, store\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        w = tl.load(W + cols, mask=mask)\n        x_norm = x * rstd\n        # Cast to input dtype before weight multiplication\n        x_norm_cast = x_norm.to(X.dtype.element_ty)\n        y = x_norm_cast * w\n        tl.store(Y + cols, y, mask=mask)\n\ndef run(x, weight):\n    rows, width = x.shape\n    y = torch.empty_like(x)\n    BLOCK_SIZE = triton.next_power_of_2(width)\n    # Cap block size to avoid excessive register usage\n    if BLOCK_SIZE > 1024:\n        BLOCK_SIZE = 1024\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x, y, weight,\n        width,  # stride for contiguous 2D tensor\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return y\n",
+    "source_sha256": "5384417934950830dd61c84bb9f128a584b946e30bed4ee362fe93b0f2c83607",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,  # pointer to input (rows, width)\n    Y,  # pointer to output (rows, width)\n    W,  # pointer to weight (width,)\n    stride,  # row stride in elements\n    N,  # width\n    eps,  # epsilon\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    # Compute sum of squares in fp32\n    _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        _sum_sq += x * x\n    sum_sq = tl.sum(_sum_sq, axis=0)\n    mean_sq = sum_sq / N\n    rstd = tl.rsqrt(mean_sq + eps)\n\n    # Normalize, cast to input dtype, multiply by weight, store\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        w = tl.load(W + cols, mask=mask)\n        x_norm = x * rstd\n        # Cast to input dtype before weight multiplication\n        x_norm_cast = x_norm.to(X.dtype.element_ty)\n        y = x_norm_cast * w\n        tl.store(Y + cols, y, mask=mask)\n\ndef run(x, weight):\n    rows, width = x.shape\n    y = torch.empty_like(x)\n    BLOCK_SIZE = triton.next_power_of_2(width)\n    # Cap block size to avoid excessive register usage\n    if BLOCK_SIZE > 1024:\n        BLOCK_SIZE = 1024\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x, y, weight,\n        width,  # stride for contiguous 2D tensor\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return y\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "5384417934950830dd61c84bb9f128a584b946e30bed4ee362fe93b0f2c83607",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.1600202415138483,
+          "candidate_us": 1.3503872323781252,
+          "samples_us": {
+            "compiled": [
+              1.1688114609569311,
+              1.1600202415138483,
+              1.1600132565945387
+            ],
+            "candidate": [
+              1.3231278862804174,
+              1.3503872323781252,
+              1.3726642355322838
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.1774759516119957,
+          "candidate_us": 1.9975081086158752,
+          "samples_us": {
+            "compiled": [
+              2.2043208591639996,
+              2.175886183977127,
+              2.1774759516119957
+            ],
+            "candidate": [
+              2.005461137741804,
+              1.9975081086158752,
+              1.9735335372388363
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            4096
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 3.3295187167823315,
+          "candidate_us": 2.854288090020418,
+          "samples_us": {
+            "compiled": [
+              3.3295187167823315,
+              3.3181789331138134,
+              3.3308665733784437
+            ],
+            "candidate": [
+              2.854288090020418,
+              2.8319875709712505,
+              2.8576855547726154
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T13:20:08.673239+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T13:20:19.028525+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 1.029876713930023,
+      "worst_speedup": 0.8590278504566223,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 242.31770856305957,
+    "usage": {
+      "duration": "PT3M51.863868S",
+      "cost": 0.0,
+      "output_tokens": 864
+    }
+  },
+  {
+    "iteration": 2,
+    "parent_sha256": "5384417934950830dd61c84bb9f128a584b946e30bed4ee362fe93b0f2c83607",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, weight) returns RMSNorm for contiguous CUDA x of shape (rows,width) and weight of shape (width,), same float32/bfloat16 dtype. eps=1e-6. Reference fp=x.float(); normalized=(fp*torch.rsqrt(fp.square().mean(-1,keepdim=True)+1e-6)).to(x.dtype); result=weight*normalized. Preserve this intermediate cast before weight multiplication. Inputs immutable; rows 1..256, width 1..4096 including odd sizes.\nVisible examples: [[16, 128], [64, 512]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef _layer_norm_fwd_fused(\n    X,  # pointer to the input\n    Y,  # pointer to the output\n    W,  # pointer to the weights\n    B,  # pointer to the biases\n    Mean,  # pointer to the mean\n    Rstd,  # pointer to the 1/std\n    stride,  # how much to increase the pointer when moving by 1 row\n    N,  # number of columns in X\n    eps,  # epsilon to avoid division by zero\n    BLOCK_SIZE: tl.constexpr,\n):\n    # Map the program id to the row of X and Y it should compute.\n    row = tl.program_id(0)\n    Y += row * stride\n    X += row * stride\n    # Compute mean\n    mean = 0\n    _mean = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        a = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        _mean += a\n    mean = tl.sum(_mean, axis=0) / N\n    # Compute variance\n    _var = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        x = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        x = tl.where(cols < N, x - mean, 0.)\n        _var += x * x\n    var = tl.sum(_var, axis=0) / N\n    rstd = 1 / tl.sqrt(var + eps)\n    # Write mean / rstd\n    tl.store(Mean + row, mean)\n    tl.store(Rstd + row, rstd)\n    # Normalize and apply linear transformation\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        w = tl.load(W + cols, mask=mask)\n        b = tl.load(B + cols, mask=mask)\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = (x - mean) * rstd\n        y = x_hat * w + b\n        # Write output\n        tl.store(Y + cols, y, mask=mask)\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,  # pointer to input (rows, width)\n    Y,  # pointer to output (rows, width)\n    W,  # pointer to weight (width,)\n    stride,  # row stride in elements\n    N,  # width\n    eps,  # epsilon\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    # Compute sum of squares in fp32\n    _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        _sum_sq += x * x\n    sum_sq = tl.sum(_sum_sq, axis=0)\n    mean_sq = sum_sq / N\n    rstd = tl.rsqrt(mean_sq + eps)\n\n    # Normalize, cast to input dtype, multiply by weight, store\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        w = tl.load(W + cols, mask=mask)\n        x_norm = x * rstd\n        # Cast to input dtype before weight multiplication\n        x_norm_cast = x_norm.to(X.dtype.element_ty)\n        y = x_norm_cast * w\n        tl.store(Y + cols, y, mask=mask)\n\ndef run(x, weight):\n    rows, width = x.shape\n    y = torch.empty_like(x)\n    BLOCK_SIZE = triton.next_power_of_2(width)\n    # Cap block size to avoid excessive register usage\n    if BLOCK_SIZE > 1024:\n        BLOCK_SIZE = 1024\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x, y, weight,\n        width,  # stride for contiguous 2D tensor\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n    return y\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nIndependent evaluator status: correct. Correctness passed. Optimize the worst workload without breaking other cases.\n{\"status\": \"correct\", \"source_sha256\": \"5384417934950830dd61c84bb9f128a584b946e30bed4ee362fe93b0f2c83607\", \"checks_passed\": 28, \"timings\": [{\"shape\": [7, 257], \"dtype\": \"bfloat16\", \"compiled_us\": 1.1600202415138483, \"candidate_us\": 1.3503872323781252, \"samples_us\": {\"compiled\": [1.1688114609569311, 1.1600202415138483, 1.1600132565945387], \"candidate\": [1.3231278862804174, 1.3503872323781252, 1.3726642355322838]}, \"orders\": [[\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"]]}, {\"shape\": [128, 1536], \"dtype\": \"bfloat16\", \"compiled_us\": 2.1774759516119957, \"candidate_us\": 1.9975081086158752, \"samples_us\": {\"compiled\": [2.2043208591639996, 2.175886183977127, 2.1774759516119957], \"candidate\": [2.005461137741804, 1.9975081086158752, 1.9735335372388363]}, \"orders\": [[\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"], [\"candidate\", \"compiled\"]]}, {\"shape\": [256, 4096], \"dtype\": \"bfloat16\", \"compiled_us\": 3.3295187167823315, \"candidate_us\": 2.854288090020418, \"samples_us\": {\"compiled\": [3.3295187167823315, 3.3181789331138134, 3.3308665733784437], \"candidate\": [2.854288090020418, 2.8319875709712505, 2.8576855547726154]}, \"orders\": [[\"candidate\", \"compiled\"], [\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"]]}], \"gpu\": \"NVIDIA GeForce RTX 4090\", \"torch\": \"2.6.0+cu124\", \"resource_audit\": {\"gpu_index\": 4, \"method\": \"foreign CUDA PID checks before and after the evaluator\", \"scope\": \"boundary observations, not continuous monitoring or an exclusive hardware lease\", \"before_utc\": \"2026-10-13T13:20:08.673239+00:00\", \"before_pids\": [], \"after_utc\": \"2026-10-13T13:20:19.028525+00:00\", \"after_pids\": []}}\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}.  Never change the evaluator or its thresholds.\n\nProposal 2 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Optimize small-row case by using a single block size that fits the width when possible, avoiding the loop overhead. For widths <= 1024, use a single block load. For larger widths, keep the loop but use a larger block size (2048) to reduce iterations. This should improve the [7, 257] case significantly.\",\n  \"plan\": \"1. If width <= 1024, use BLOCK_SIZE = next_power_of_2(width) and a single load/store without loop. 2. If width > 1024, use BLOCK_SIZE = 2048 to reduce loop iterations. 3. Keep the same kernel structure but add a constexpr flag to choose between single-block and multi-block paths. 4. This should reduce overhead for small widths and improve throughput for large widths.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"@triton.jit\",\n    \"def _rmsnorm_kernel(\",\n    \"    X,  # pointer to input (rows, width)\",\n    \"    Y,  # pointer to output (rows, width)\",\n    \"    W,  # pointer to weight (width,)\",\n    \"    stride,  # row stride in elements\",\n    \"    N,  # width\",\n    \"    eps,  # epsilon\",\n    \"    BLOCK_SIZE: tl.constexpr,\",\n    \"    SINGLE_BLOCK: tl.constexpr,\",\n    \"):\",\n    \"    row = tl.program_id(0)\",\n    \"    X += row * stride\",\n    \"    Y += row * stride\",\n    \"\",\n    \"    if SINGLE_BLOCK:\",\n    \"        cols = tl.arange(0, BLOCK_SIZE)\",\n    \"        mask = cols < N\",\n    \"        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"        sum_sq = tl.sum(x * x, axis=0)\",\n    \"        mean_sq = sum_sq / N\",\n    \"        rstd = tl.rsqrt(mean_sq + eps)\",\n    \"        w = tl.load(W + cols, mask=mask)\",\n    \"        x_norm = x * rstd\",\n    \"        x_norm_cast = x_norm.to(X.dtype.element_ty)\",\n    \"        y = x_norm_cast * w\",\n    \"        tl.store(Y + cols, y, mask=mask)\",\n    \"    else:\",\n    \"        _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\",\n    \"        for off in range(0, N, BLOCK_SIZE):\",\n    \"            cols = off + tl.arange(0, BLOCK_SIZE)\",\n    \"            mask = cols < N\",\n    \"            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"            _sum_sq += x * x\",\n    \"        sum_sq = tl.sum(_sum_sq, axis=0)\",\n    \"        mean_sq = sum_sq / N\",\n    \"        rstd = tl.rsqrt(mean_sq + eps)\",\n    \"\",\n    \"        for off in range(0, N, BLOCK_SIZE):\",\n    \"            cols = off + tl.arange(0, BLOCK_SIZE)\",\n    \"            mask = cols < N\",\n    \"            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"            w = tl.load(W + cols, mask=mask)\",\n    \"            x_norm = x * rstd\",\n    \"            x_norm_cast = x_norm.to(X.dtype.element_ty)\",\n    \"            y = x_norm_cast * w\",\n    \"            tl.store(Y + cols, y, mask=mask)\",\n    \"\",\n    \"def run(x, weight):\",\n    \"    rows, width = x.shape\",\n    \"    y = torch.empty_like(x)\",\n    \"    if width <= 1024:\",\n    \"        BLOCK_SIZE = triton.next_power_of_2(width)\",\n    \"        SINGLE_BLOCK = True\",\n    \"    else:\",\n    \"        BLOCK_SIZE = 2048\",\n    \"        SINGLE_BLOCK = False\",\n    \"    grid = (rows,)\",\n    \"    _rmsnorm_kernel[grid](\",\n    \"        x, y, weight,\",\n    \"        width,  # stride for contiguous 2D tensor\",\n    \"        width,\",\n    \"        1e-6,\",\n    \"        BLOCK_SIZE=BLOCK_SIZE,\",\n    \"        SINGLE_BLOCK=SINGLE_BLOCK,\",\n    \"    )\",\n    \"    return y\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,  # pointer to input (rows, width)\n    Y,  # pointer to output (rows, width)\n    W,  # pointer to weight (width,)\n    stride,  # row stride in elements\n    N,  # width\n    eps,  # epsilon\n    BLOCK_SIZE: tl.constexpr,\n    SINGLE_BLOCK: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    if SINGLE_BLOCK:\n        cols = tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        sum_sq = tl.sum(x * x, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n        w = tl.load(W + cols, mask=mask)\n        x_norm = x * rstd\n        x_norm_cast = x_norm.to(X.dtype.element_ty)\n        y = x_norm_cast * w\n        tl.store(Y + cols, y, mask=mask)\n    else:\n        _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            _sum_sq += x * x\n        sum_sq = tl.sum(_sum_sq, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            w = tl.load(W + cols, mask=mask)\n            x_norm = x * rstd\n            x_norm_cast = x_norm.to(X.dtype.element_ty)\n            y = x_norm_cast * w\n            tl.store(Y + cols, y, mask=mask)\n\ndef run(x, weight):\n    rows, width = x.shape\n    y = torch.empty_like(x)\n    if width <= 1024:\n        BLOCK_SIZE = triton.next_power_of_2(width)\n        SINGLE_BLOCK = True\n    else:\n        BLOCK_SIZE = 2048\n        SINGLE_BLOCK = False\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x, y, weight,\n        width,  # stride for contiguous 2D tensor\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n        SINGLE_BLOCK=SINGLE_BLOCK,\n    )\n    return y\n",
+    "source_sha256": "b5f485a02d2f8101d235edc8cbf32a72f633977a3cd1f274c83861fcc4d8db25",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,  # pointer to input (rows, width)\n    Y,  # pointer to output (rows, width)\n    W,  # pointer to weight (width,)\n    stride,  # row stride in elements\n    N,  # width\n    eps,  # epsilon\n    BLOCK_SIZE: tl.constexpr,\n    SINGLE_BLOCK: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    if SINGLE_BLOCK:\n        cols = tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        sum_sq = tl.sum(x * x, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n        w = tl.load(W + cols, mask=mask)\n        x_norm = x * rstd\n        x_norm_cast = x_norm.to(X.dtype.element_ty)\n        y = x_norm_cast * w\n        tl.store(Y + cols, y, mask=mask)\n    else:\n        _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            _sum_sq += x * x\n        sum_sq = tl.sum(_sum_sq, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            w = tl.load(W + cols, mask=mask)\n            x_norm = x * rstd\n            x_norm_cast = x_norm.to(X.dtype.element_ty)\n            y = x_norm_cast * w\n            tl.store(Y + cols, y, mask=mask)\n\ndef run(x, weight):\n    rows, width = x.shape\n    y = torch.empty_like(x)\n    if width <= 1024:\n        BLOCK_SIZE = triton.next_power_of_2(width)\n        SINGLE_BLOCK = True\n    else:\n        BLOCK_SIZE = 2048\n        SINGLE_BLOCK = False\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x, y, weight,\n        width,  # stride for contiguous 2D tensor\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n        SINGLE_BLOCK=SINGLE_BLOCK,\n    )\n    return y\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "b5f485a02d2f8101d235edc8cbf32a72f633977a3cd1f274c83861fcc4d8db25",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.1616654228419065,
+          "candidate_us": 1.198817859403789,
+          "samples_us": {
+            "compiled": [
+              1.1616654228419065,
+              1.1566608445718884,
+              1.1631196830421686
+            ],
+            "candidate": [
+              1.1931955814361572,
+              1.198817859403789,
+              1.2068679789081216
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.144983969628811,
+          "candidate_us": 1.8518887227401137,
+          "samples_us": {
+            "compiled": [
+              2.144983969628811,
+              2.143396530300379,
+              2.1718177013099194
+            ],
+            "candidate": [
+              1.8328225705772638,
+              1.8518887227401137,
+              1.8548767548054457
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            4096
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 3.3285263925790787,
+          "candidate_us": 2.7646622620522976,
+          "samples_us": {
+            "compiled": [
+              3.3266544342041016,
+              3.3438950777053833,
+              3.3285263925790787
+            ],
+            "candidate": [
+              2.7651931159198284,
+              2.7646622620522976,
+              2.7441002894192934
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T13:25:07.015299+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T13:25:17.014703+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": true,
+      "geomean_speedup": 1.10555999254135,
+      "worst_speedup": 0.9690091065373687,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 297.98015332594514,
+    "usage": {
+      "duration": "PT4M47.893562S",
+      "cost": 0.0,
+      "output_tokens": 1054
+    }
+  },
+  {
+    "iteration": 3,
+    "parent_sha256": "b5f485a02d2f8101d235edc8cbf32a72f633977a3cd1f274c83861fcc4d8db25",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, weight) returns RMSNorm for contiguous CUDA x of shape (rows,width) and weight of shape (width,), same float32/bfloat16 dtype. eps=1e-6. Reference fp=x.float(); normalized=(fp*torch.rsqrt(fp.square().mean(-1,keepdim=True)+1e-6)).to(x.dtype); result=weight*normalized. Preserve this intermediate cast before weight multiplication. Inputs immutable; rows 1..256, width 1..4096 including odd sizes.\nVisible examples: [[16, 128], [64, 512]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef _layer_norm_fwd_fused(\n    X,  # pointer to the input\n    Y,  # pointer to the output\n    W,  # pointer to the weights\n    B,  # pointer to the biases\n    Mean,  # pointer to the mean\n    Rstd,  # pointer to the 1/std\n    stride,  # how much to increase the pointer when moving by 1 row\n    N,  # number of columns in X\n    eps,  # epsilon to avoid division by zero\n    BLOCK_SIZE: tl.constexpr,\n):\n    # Map the program id to the row of X and Y it should compute.\n    row = tl.program_id(0)\n    Y += row * stride\n    X += row * stride\n    # Compute mean\n    mean = 0\n    _mean = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        a = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        _mean += a\n    mean = tl.sum(_mean, axis=0) / N\n    # Compute variance\n    _var = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        x = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        x = tl.where(cols < N, x - mean, 0.)\n        _var += x * x\n    var = tl.sum(_var, axis=0) / N\n    rstd = 1 / tl.sqrt(var + eps)\n    # Write mean / rstd\n    tl.store(Mean + row, mean)\n    tl.store(Rstd + row, rstd)\n    # Normalize and apply linear transformation\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        w = tl.load(W + cols, mask=mask)\n        b = tl.load(B + cols, mask=mask)\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = (x - mean) * rstd\n        y = x_hat * w + b\n        # Write output\n        tl.store(Y + cols, y, mask=mask)\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,  # pointer to input (rows, width)\n    Y,  # pointer to output (rows, width)\n    W,  # pointer to weight (width,)\n    stride,  # row stride in elements\n    N,  # width\n    eps,  # epsilon\n    BLOCK_SIZE: tl.constexpr,\n    SINGLE_BLOCK: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    if SINGLE_BLOCK:\n        cols = tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        sum_sq = tl.sum(x * x, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n        w = tl.load(W + cols, mask=mask)\n        x_norm = x * rstd\n        x_norm_cast = x_norm.to(X.dtype.element_ty)\n        y = x_norm_cast * w\n        tl.store(Y + cols, y, mask=mask)\n    else:\n        _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            _sum_sq += x * x\n        sum_sq = tl.sum(_sum_sq, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            w = tl.load(W + cols, mask=mask)\n            x_norm = x * rstd\n            x_norm_cast = x_norm.to(X.dtype.element_ty)\n            y = x_norm_cast * w\n            tl.store(Y + cols, y, mask=mask)\n\ndef run(x, weight):\n    rows, width = x.shape\n    y = torch.empty_like(x)\n    if width <= 1024:\n        BLOCK_SIZE = triton.next_power_of_2(width)\n        SINGLE_BLOCK = True\n    else:\n        BLOCK_SIZE = 2048\n        SINGLE_BLOCK = False\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x, y, weight,\n        width,  # stride for contiguous 2D tensor\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n        SINGLE_BLOCK=SINGLE_BLOCK,\n    )\n    return y\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nIndependent evaluator status: correct. Correctness passed. Optimize the worst workload without breaking other cases.\n{\"status\": \"correct\", \"source_sha256\": \"b5f485a02d2f8101d235edc8cbf32a72f633977a3cd1f274c83861fcc4d8db25\", \"checks_passed\": 28, \"timings\": [{\"shape\": [7, 257], \"dtype\": \"bfloat16\", \"compiled_us\": 1.1616654228419065, \"candidate_us\": 1.198817859403789, \"samples_us\": {\"compiled\": [1.1616654228419065, 1.1566608445718884, 1.1631196830421686], \"candidate\": [1.1931955814361572, 1.198817859403789, 1.2068679789081216]}, \"orders\": [[\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"]]}, {\"shape\": [128, 1536], \"dtype\": \"bfloat16\", \"compiled_us\": 2.144983969628811, \"candidate_us\": 1.8518887227401137, \"samples_us\": {\"compiled\": [2.144983969628811, 2.143396530300379, 2.1718177013099194], \"candidate\": [1.8328225705772638, 1.8518887227401137, 1.8548767548054457]}, \"orders\": [[\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"], [\"candidate\", \"compiled\"]]}, {\"shape\": [256, 4096], \"dtype\": \"bfloat16\", \"compiled_us\": 3.3285263925790787, \"candidate_us\": 2.7646622620522976, \"samples_us\": {\"compiled\": [3.3266544342041016, 3.3438950777053833, 3.3285263925790787], \"candidate\": [2.7651931159198284, 2.7646622620522976, 2.7441002894192934]}, \"orders\": [[\"candidate\", \"compiled\"], [\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"]]}], \"gpu\": \"NVIDIA GeForce RTX 4090\", \"torch\": \"2.6.0+cu124\", \"resource_audit\": {\"gpu_index\": 4, \"method\": \"foreign CUDA PID checks before and after the evaluator\", \"scope\": \"boundary observations, not continuous monitoring or an exclusive hardware lease\", \"before_utc\": \"2026-10-13T13:25:07.015299+00:00\", \"before_pids\": [], \"after_utc\": \"2026-10-13T13:25:17.014703+00:00\", \"after_pids\": []}}\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}.  Never change the evaluator or its thresholds.\n\nProposal 3 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Optimize small-row shapes by using a single-block kernel path for width <= 2048 to avoid loop overhead. For larger widths, keep the two-pass loop. Ensure correct dtype casting before weight multiplication.\",\n  \"plan\": \"1. Use SINGLE_BLOCK for width <= 2048. 2. For width > 2048, use BLOCK_SIZE=4096 to reduce loop iterations. 3. Keep FP32 accumulation for sum of squares. 4. Cast normalized values to input dtype before multiplying by weight.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"@triton.jit\",\n    \"def _rmsnorm_kernel(\",\n    \"    X,  # pointer to input (rows, width)\",\n    \"    Y,  # pointer to output (rows, width)\",\n    \"    W,  # pointer to weight (width,)\",\n    \"    stride,  # row stride in elements\",\n    \"    N,  # width\",\n    \"    eps,  # epsilon\",\n    \"    BLOCK_SIZE: tl.constexpr,\",\n    \"    SINGLE_BLOCK: tl.constexpr,\",\n    \"):\",\n    \"    row = tl.program_id(0)\",\n    \"    X += row * stride\",\n    \"    Y += row * stride\",\n    \"\",\n    \"    if SINGLE_BLOCK:\",\n    \"        cols = tl.arange(0, BLOCK_SIZE)\",\n    \"        mask = cols < N\",\n    \"        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"        sum_sq = tl.sum(x * x, axis=0)\",\n    \"        mean_sq = sum_sq / N\",\n    \"        rstd = tl.rsqrt(mean_sq + eps)\",\n    \"        w = tl.load(W + cols, mask=mask)\",\n    \"        x_norm = x * rstd\",\n    \"        x_norm_cast = x_norm.to(X.dtype.element_ty)\",\n    \"        y = x_norm_cast * w\",\n    \"        tl.store(Y + cols, y, mask=mask)\",\n    \"    else:\",\n    \"        _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\",\n    \"        for off in range(0, N, BLOCK_SIZE):\",\n    \"            cols = off + tl.arange(0, BLOCK_SIZE)\",\n    \"            mask = cols < N\",\n    \"            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"            _sum_sq += x * x\",\n    \"        sum_sq = tl.sum(_sum_sq, axis=0)\",\n    \"        mean_sq = sum_sq / N\",\n    \"        rstd = tl.rsqrt(mean_sq + eps)\",\n    \"\",\n    \"        for off in range(0, N, BLOCK_SIZE):\",\n    \"            cols = off + tl.arange(0, BLOCK_SIZE)\",\n    \"            mask = cols < N\",\n    \"            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"            w = tl.load(W + cols, mask=mask)\",\n    \"            x_norm = x * rstd\",\n    \"            x_norm_cast = x_norm.to(X.dtype.element_ty)\",\n    \"            y = x_norm_cast * w\",\n    \"            tl.store(Y + cols, y, mask=mask)\",\n    \"\",\n    \"def run(x, weight):\",\n    \"    rows, width = x.shape\",\n    \"    y = torch.empty_like(x)\",\n    \"    if width <= 2048:\",\n    \"        BLOCK_SIZE = triton.next_power_of_2(width)\",\n    \"        SINGLE_BLOCK = True\",\n    \"    else:\",\n    \"        BLOCK_SIZE = 4096\",\n    \"        SINGLE_BLOCK = False\",\n    \"    grid = (rows,)\",\n    \"    _rmsnorm_kernel[grid](\",\n    \"        x, y, weight,\",\n    \"        width,  # stride for contiguous 2D tensor\",\n    \"        width,\",\n    \"        1e-6,\",\n    \"        BLOCK_SIZE=BLOCK_SIZE,\",\n    \"        SINGLE_BLOCK=SINGLE_BLOCK,\",\n    \"    )\",\n    \"    return y\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,  # pointer to input (rows, width)\n    Y,  # pointer to output (rows, width)\n    W,  # pointer to weight (width,)\n    stride,  # row stride in elements\n    N,  # width\n    eps,  # epsilon\n    BLOCK_SIZE: tl.constexpr,\n    SINGLE_BLOCK: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    if SINGLE_BLOCK:\n        cols = tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        sum_sq = tl.sum(x * x, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n        w = tl.load(W + cols, mask=mask)\n        x_norm = x * rstd\n        x_norm_cast = x_norm.to(X.dtype.element_ty)\n        y = x_norm_cast * w\n        tl.store(Y + cols, y, mask=mask)\n    else:\n        _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            _sum_sq += x * x\n        sum_sq = tl.sum(_sum_sq, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            w = tl.load(W + cols, mask=mask)\n            x_norm = x * rstd\n            x_norm_cast = x_norm.to(X.dtype.element_ty)\n            y = x_norm_cast * w\n            tl.store(Y + cols, y, mask=mask)\n\ndef run(x, weight):\n    rows, width = x.shape\n    y = torch.empty_like(x)\n    if width <= 2048:\n        BLOCK_SIZE = triton.next_power_of_2(width)\n        SINGLE_BLOCK = True\n    else:\n        BLOCK_SIZE = 4096\n        SINGLE_BLOCK = False\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x, y, weight,\n        width,  # stride for contiguous 2D tensor\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n        SINGLE_BLOCK=SINGLE_BLOCK,\n    )\n    return y\n",
+    "source_sha256": "48e0729e0e91ba7ddcea0c113d4796d9a6f7bf20c41499b14f2458325e09e4b8",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,  # pointer to input (rows, width)\n    Y,  # pointer to output (rows, width)\n    W,  # pointer to weight (width,)\n    stride,  # row stride in elements\n    N,  # width\n    eps,  # epsilon\n    BLOCK_SIZE: tl.constexpr,\n    SINGLE_BLOCK: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    if SINGLE_BLOCK:\n        cols = tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        sum_sq = tl.sum(x * x, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n        w = tl.load(W + cols, mask=mask)\n        x_norm = x * rstd\n        x_norm_cast = x_norm.to(X.dtype.element_ty)\n        y = x_norm_cast * w\n        tl.store(Y + cols, y, mask=mask)\n    else:\n        _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            _sum_sq += x * x\n        sum_sq = tl.sum(_sum_sq, axis=0)\n        mean_sq = sum_sq / N\n        rstd = tl.rsqrt(mean_sq + eps)\n\n        for off in range(0, N, BLOCK_SIZE):\n            cols = off + tl.arange(0, BLOCK_SIZE)\n            mask = cols < N\n            x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n            w = tl.load(W + cols, mask=mask)\n            x_norm = x * rstd\n            x_norm_cast = x_norm.to(X.dtype.element_ty)\n            y = x_norm_cast * w\n            tl.store(Y + cols, y, mask=mask)\n\ndef run(x, weight):\n    rows, width = x.shape\n    y = torch.empty_like(x)\n    if width <= 2048:\n        BLOCK_SIZE = triton.next_power_of_2(width)\n        SINGLE_BLOCK = True\n    else:\n        BLOCK_SIZE = 4096\n        SINGLE_BLOCK = False\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x, y, weight,\n        width,  # stride for contiguous 2D tensor\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n        SINGLE_BLOCK=SINGLE_BLOCK,\n    )\n    return y\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "48e0729e0e91ba7ddcea0c113d4796d9a6f7bf20c41499b14f2458325e09e4b8",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.1390821309760213,
+          "candidate_us": 1.1739479377865791,
+          "samples_us": {
+            "compiled": [
+              1.1390821309760213,
+              1.1377865448594093,
+              1.1432318715378642
+            ],
+            "candidate": [
+              1.1726520024240017,
+              1.1745409574359655,
+              1.1739479377865791
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.1466852631419897,
+          "candidate_us": 1.69881503097713,
+          "samples_us": {
+            "compiled": [
+              2.1466852631419897,
+              2.1482694428414106,
+              2.1463814191520214
+            ],
+            "candidate": [
+              1.696394756436348,
+              1.7086772713810205,
+              1.69881503097713
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            4096
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 3.29916481859982,
+          "candidate_us": 2.6159342378377914,
+          "samples_us": {
+            "compiled": [
+              3.302279394119978,
+              3.29916481859982,
+              3.29899275675416
+            ],
+            "candidate": [
+              2.614934928715229,
+              2.616091165691614,
+              2.6159342378377914
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T13:30:11.418359+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T13:30:21.503976+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": true,
+      "geomean_speedup": 1.1563835118655736,
+      "worst_speedup": 0.9703003807168011,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 304.548577118665,
+    "usage": {
+      "duration": "PT4M54.309273S",
+      "cost": 0.0,
+      "output_tokens": 991
+    }
+  }
+]

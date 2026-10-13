@@ -1,0 +1,1 @@
+Tune block sizes per shape to reduce launch overhead and improve memory coalescing for transpose. Use smaller blocks for small matrices, larger for big ones. Keep masking for odd sizes.

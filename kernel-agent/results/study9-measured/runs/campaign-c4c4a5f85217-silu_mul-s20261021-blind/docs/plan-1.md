@@ -1,0 +1,1 @@
+1. Allocate output empty_like(x). 2. Launch 1D grid with BLOCK_SIZE=1024. 3. Kernel: offsets=pid*BLOCK+arange, mask=offsets<n. 4. Load x,y, cast to float32. 5. Compute silu=x*sigmoid(x), multiply by y. 6. Cast to output dtype, store with mask.

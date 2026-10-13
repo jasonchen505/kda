@@ -1,0 +1,1 @@
+1. Reduce BLOCK_SIZE from 1024 to 256 to improve occupancy on small shapes like [4099]. 2. Keep mask-based bounds checking for odd sizes. 3. Maintain FP32 intermediate computation. 4. Test across all contracted shapes to ensure worst-case speedup >=0.90 and geomean >=1.05.

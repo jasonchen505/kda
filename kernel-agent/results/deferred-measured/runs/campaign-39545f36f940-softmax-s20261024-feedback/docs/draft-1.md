@@ -1,0 +1,1 @@
+Single-pass row softmax kernel. Each program handles one row. Load row with mask, compute max, exp, sum, normalize. Store result. Uses FP32 accumulation for stability. Handles non-power-of-two columns via masking. Preserves input dtype by casting output back.

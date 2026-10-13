@@ -1,5 +1,39 @@
 # Publication verification
 
+## Phase-split harness and partial multi-seed evidence, 2026-10-13
+
+The current CPU suite passes **107 tests** on both pinned Humanize environments, plus Ruff
+and offline artifact checks. The new cases verify shared numerical execution, deferred
+candidate eligibility, resource-blocked queue recovery, committed measurement reuse,
+interrupted pure-evaluation retry, source binding and final-veto selection protection.
+Those tests use SDK fakes / CPU children and are separate from model and GPU evidence.
+
+A separate real local-Qwen pilot completed two generation jobs / six proposals on GPU4
+while a foreign CUDA process remained resident (9757 MiB, observed utilization 100%).
+Three unique sources passed 28 search numerical checks each; three duplicate proposals
+reused the already recorded checks. The controller preserved all six unedited candidate
+files, twelve request bodies and 3727 reported SDK output tokens. The timing worker's
+real preflight refused occupied GPU4, retained the queue and exited 2. **No speedup or
+final-correctness claim is made for these pending sources.** The queue resume path and
+final veto are covered by CPU mechanism tests, not a new clean GPU performance run.
+
+Frozen plan: `39545f36f9403e84c7f7d0d2d8226c3aedc582b82ddc5c0b52abbe0963cd1f3e`.
+Artifacts: `results/deferred-generation-checkpoint.json`, `results/deferred-measured/`,
+`results/deferred-timing/`, `evidence/deferred-requests/`, `results/deferred-checks.json`.
+This numerical-feedback execution mode is not pooled with the immediate-performance
+feedback experiment. The original server workspace keeps its measured v3 source intact.
+
+The guarded multi-seed snapshot now contains 23/36 terminal jobs, 57 candidate files and
+114 request bodies: 12 final-correct, 6 promoted, 8 early resource stops and another final
+resource veto. Thirteen jobs remain pending. The original same-plan runner was resumed
+in a finite supervisor on user-selected GPU4; no terminal/unknown job is replayed and no
+other user's process is stopped. Report status is an offline snapshot, not a live monitor.
+
+The HTML now leads with a five-minute project review and an interactive phase-separation
+explanation. Raw checkpoint downloads preserve the original bytes, including floating-point
+representations used in integrity hashes. Earlier measured sources and full-study scores
+retain their original hashes and their separate result scopes.
+
 ## Guarded multi-seed follow-up, 2026-10-13
 
 The current installed CPU suite passes **99 tests** on both pinned Humanize environments,

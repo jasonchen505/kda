@@ -1,0 +1,429 @@
+[
+  {
+    "iteration": 1,
+    "parent_sha256": null,
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.\nVisible examples: [[1024], [8192]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output\n\nProposal 1 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\"draft\":\"Vectorized elementwise add. Load x,y as fp32, add, cast to input dtype, store. Masked for odd sizes. Single 1D grid.\",\"plan\":\"Allocate output like x. Launch 1D grid with BLOCK_SIZE 1024. Kernel loads with mask, promotes to fp32, adds, casts to out dtype, stores masked.\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"@triton.jit\",\"def _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\",\"    pid = tl.program_id(axis=0)\",\"    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\",\"    mask = offsets < n_elements\",\"    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\",\"    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\",\"    s = x + y\",\"    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\",\"\",\"def run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\",\"    assert x.is_cuda and y.is_cuda\",\"    assert x.shape == y.shape\",\"    assert x.dtype in (torch.float32, torch.bfloat16)\",\"    assert x.dtype == y.dtype\",\"    out = torch.empty_like(x)\",\"    n = out.numel()\",\"    if n == 0:\",\"        return out\",\"    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\",\"    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\",\"    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\",\"    return out\"]}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\n    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\n    s = x + y\n    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.dtype in (torch.float32, torch.bfloat16)\n    assert x.dtype == y.dtype\n    out = torch.empty_like(x)\n    n = out.numel()\n    if n == 0:\n        return out\n    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\n    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\n    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\n    return out\n",
+    "source_sha256": "c90d1bdaf00b1ffc6a83c5a1c599eeff8864ec24df48dc92eabdd0e7c3972ec2",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\n    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\n    s = x + y\n    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.dtype in (torch.float32, torch.bfloat16)\n    assert x.dtype == y.dtype\n    out = torch.empty_like(x)\n    n = out.numel()\n    if n == 0:\n        return out\n    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\n    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\n    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "c90d1bdaf00b1ffc6a83c5a1c599eeff8864ec24df48dc92eabdd0e7c3972ec2",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            4099
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 0.9238977218046784,
+          "candidate_us": 1.1937840608879924,
+          "samples_us": {
+            "compiled": [
+              0.9271795861423016,
+              0.9235631441697478,
+              0.9238977218046784
+            ],
+            "candidate": [
+              1.193908741697669,
+              1.1937840608879924,
+              1.1931435437873006
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            65537
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.329513848759234,
+          "candidate_us": 1.3238501269370317,
+          "samples_us": {
+            "compiled": [
+              1.3411360559985042,
+              1.329513848759234,
+              1.3175862841308117
+            ],
+            "candidate": [
+              1.3238501269370317,
+              1.3249978655949235,
+              1.3212236808612943
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            1048576
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 6.944847293198109,
+          "candidate_us": 2.252012025564909,
+          "samples_us": {
+            "compiled": [
+              6.944847293198109,
+              6.94775115698576,
+              6.940976716578007
+            ],
+            "candidate": [
+              2.257624175399542,
+              2.252012025564909,
+              2.245945855975151
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T10:36:45.097971+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T10:36:54.877444+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 1.33828328351666,
+      "worst_speedup": 0.773923653426433,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 120.43993210420012,
+    "usage": {
+      "duration": "PT1M50.563505S",
+      "cost": 0.0,
+      "output_tokens": 404
+    }
+  },
+  {
+    "iteration": 2,
+    "parent_sha256": "c90d1bdaf00b1ffc6a83c5a1c599eeff8864ec24df48dc92eabdd0e7c3972ec2",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.\nVisible examples: [[1024], [8192]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\n    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\n    s = x + y\n    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.dtype in (torch.float32, torch.bfloat16)\n    assert x.dtype == y.dtype\n    out = torch.empty_like(x)\n    n = out.numel()\n    if n == 0:\n        return out\n    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\n    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\n    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\n    return out\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nProposal 2 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Vectorized elementwise add with FP32 accumulation and dtype-preserving store. Uses masked loads/stores for odd sizes, power-of-two blocks, and a single 1D grid. No PyTorch compute; only allocation and metadata.\",\n  \"plan\": \"1) Allocate output with torch.empty_like. 2) Launch 1D Triton kernel with BLOCK_SIZE=1024. 3) Each program loads x/y blocks with mask, casts to float32, adds, casts back to input dtype, stores with mask. 4) Return output tensor.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"\",\n    \"@triton.jit\",\n    \"def _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\",\n    \"    pid = tl.program_id(axis=0)\",\n    \"    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\",\n    \"    mask = offsets < n_elements\",\n    \"    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\",\n    \"    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\",\n    \"    s = x + y\",\n    \"    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\",\n    \"\",\n    \"\",\n    \"def run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda and y.is_cuda\",\n    \"    assert x.shape == y.shape\",\n    \"    assert x.dtype in (torch.float32, torch.bfloat16)\",\n    \"    assert x.dtype == y.dtype\",\n    \"    out = torch.empty_like(x)\",\n    \"    n = out.numel()\",\n    \"    if n == 0:\",\n    \"        return out\",\n    \"    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\",\n    \"    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\",\n    \"    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\",\n    \"    return out\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\n    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\n    s = x + y\n    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\n\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.dtype in (torch.float32, torch.bfloat16)\n    assert x.dtype == y.dtype\n    out = torch.empty_like(x)\n    n = out.numel()\n    if n == 0:\n        return out\n    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\n    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\n    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\n    return out\n",
+    "source_sha256": "eb8d99287fb0cfefe6f94116a18874611511dcf65c45d2d97b841da00d629b75",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\n    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\n    s = x + y\n    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\n\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.dtype in (torch.float32, torch.bfloat16)\n    assert x.dtype == y.dtype\n    out = torch.empty_like(x)\n    n = out.numel()\n    if n == 0:\n        return out\n    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\n    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\n    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "eb8d99287fb0cfefe6f94116a18874611511dcf65c45d2d97b841da00d629b75",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            4099
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 0.8940266561694443,
+          "candidate_us": 1.1794909369200468,
+          "samples_us": {
+            "compiled": [
+              0.9011602960526943,
+              0.8925172733142972,
+              0.8940266561694443
+            ],
+            "candidate": [
+              1.1804525274783373,
+              1.1794909369200468,
+              1.1759715853258967
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            65537
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.2900673318654299,
+          "candidate_us": 1.2893610401079059,
+          "samples_us": {
+            "compiled": [
+              1.2900673318654299,
+              1.2906210031360388,
+              1.2864137534052134
+            ],
+            "candidate": [
+              1.2937039136886597,
+              1.2893610401079059,
+              1.2870576465502381
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            1048576
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 6.916586309671402,
+          "candidate_us": 2.226474229246378,
+          "samples_us": {
+            "compiled": [
+              6.908433046191931,
+              6.916586309671402,
+              6.929530296474695
+            ],
+            "candidate": [
+              2.238971646875143,
+              2.226474229246378,
+              2.2236104123294353
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T10:39:20.045386+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T10:39:29.938522+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 1.3306258026938833,
+      "worst_speedup": 0.7579767068867669,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 155.06161116808653,
+    "usage": {
+      "duration": "PT2M25.080199S",
+      "cost": 0.0,
+      "output_tokens": 541
+    }
+  },
+  {
+    "iteration": 3,
+    "parent_sha256": "eb8d99287fb0cfefe6f94116a18874611511dcf65c45d2d97b841da00d629b75",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.\nVisible examples: [[1024], [8192]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\n    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\n    s = x + y\n    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\n\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.dtype in (torch.float32, torch.bfloat16)\n    assert x.dtype == y.dtype\n    out = torch.empty_like(x)\n    n = out.numel()\n    if n == 0:\n        return out\n    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\n    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\n    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\n    return out\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nProposal 3 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Vectorized elementwise add with FP32 accumulation and dtype-preserving store. Uses masked loads/stores for odd sizes, power-of-two blocks, and a single 1D grid. No PyTorch compute fallback.\",\n  \"plan\": \"1. Allocate output with torch.empty_like. 2. Compute grid size via triton.cdiv. 3. Launch Triton kernel with BLOCK_SIZE=1024. 4. Kernel loads x/y as FP32, adds, casts to output dtype, stores with mask. 5. Return output tensor.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"\",\n    \"@triton.jit\",\n    \"def _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\",\n    \"    pid = tl.program_id(axis=0)\",\n    \"    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\",\n    \"    mask = offsets < n_elements\",\n    \"    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\",\n    \"    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\",\n    \"    s = x + y\",\n    \"    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\",\n    \"\",\n    \"\",\n    \"def run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda and y.is_cuda\",\n    \"    assert x.shape == y.shape\",\n    \"    assert x.dtype in (torch.float32, torch.bfloat16)\",\n    \"    assert x.dtype == y.dtype\",\n    \"    out = torch.empty_like(x)\",\n    \"    n = out.numel()\",\n    \"    if n == 0:\",\n    \"        return out\",\n    \"    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\",\n    \"    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\",\n    \"    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\",\n    \"    return out\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\n    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\n    s = x + y\n    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\n\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.dtype in (torch.float32, torch.bfloat16)\n    assert x.dtype == y.dtype\n    out = torch.empty_like(x)\n    n = out.numel()\n    if n == 0:\n        return out\n    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\n    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\n    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\n    return out\n",
+    "source_sha256": "eb8d99287fb0cfefe6f94116a18874611511dcf65c45d2d97b841da00d629b75",
+    "duplicate_of": 2,
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _add_kernel(x_ptr, y_ptr, out_ptr, n_elements, OUT_DTYPE: tl.constexpr, BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask).to(tl.float32)\n    y = tl.load(y_ptr + offsets, mask=mask).to(tl.float32)\n    s = x + y\n    tl.store(out_ptr + offsets, s.to(OUT_DTYPE), mask=mask)\n\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.dtype in (torch.float32, torch.bfloat16)\n    assert x.dtype == y.dtype\n    out = torch.empty_like(x)\n    n = out.numel()\n    if n == 0:\n        return out\n    out_dtype = tl.bfloat16 if x.dtype == torch.bfloat16 else tl.float32\n    grid = lambda meta: (triton.cdiv(n, meta['BLOCK_SIZE']),)\n    _add_kernel[grid](x, y, out, n, OUT_DTYPE=out_dtype, BLOCK_SIZE=1024)\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "eb8d99287fb0cfefe6f94116a18874611511dcf65c45d2d97b841da00d629b75",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            4099
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 0.8940266561694443,
+          "candidate_us": 1.1794909369200468,
+          "samples_us": {
+            "compiled": [
+              0.9011602960526943,
+              0.8925172733142972,
+              0.8940266561694443
+            ],
+            "candidate": [
+              1.1804525274783373,
+              1.1794909369200468,
+              1.1759715853258967
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            65537
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.2900673318654299,
+          "candidate_us": 1.2893610401079059,
+          "samples_us": {
+            "compiled": [
+              1.2900673318654299,
+              1.2906210031360388,
+              1.2864137534052134
+            ],
+            "candidate": [
+              1.2937039136886597,
+              1.2893610401079059,
+              1.2870576465502381
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            1048576
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 6.916586309671402,
+          "candidate_us": 2.226474229246378,
+          "samples_us": {
+            "compiled": [
+              6.908433046191931,
+              6.916586309671402,
+              6.929530296474695
+            ],
+            "candidate": [
+              2.238971646875143,
+              2.226474229246378,
+              2.2236104123294353
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T10:39:20.045386+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T10:39:29.938522+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 1.3306258026938833,
+      "worst_speedup": 0.7579767068867669,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 143.9119966737926,
+    "usage": {
+      "duration": "PT2M23.906432S",
+      "cost": 0.0,
+      "output_tokens": 539
+    }
+  }
+]

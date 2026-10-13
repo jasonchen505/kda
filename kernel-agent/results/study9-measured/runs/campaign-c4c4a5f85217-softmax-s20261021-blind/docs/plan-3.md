@@ -1,0 +1,1 @@
+1. Validate input. 2. Allocate output. 3. Compute BLOCK_SIZE. 4. Launch kernel with grid (n_rows,). 5. Kernel loads row, computes softmax in FP32, stores. 6. Return output.

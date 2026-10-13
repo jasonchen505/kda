@@ -1,0 +1,1 @@
+Optimize small-shape latency by reducing Triton launch overhead. Use a smaller BLOCK_SIZE (1024) to improve occupancy for small tensors and reduce per-program overhead. Keep FP32 compute and single cast at store.

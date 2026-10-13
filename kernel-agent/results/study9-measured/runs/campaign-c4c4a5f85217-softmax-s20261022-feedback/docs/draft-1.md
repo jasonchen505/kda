@@ -1,0 +1,1 @@
+Row-parallel softmax kernel. Each program handles one row. Load with mask, subtract max, exp, sum, divide, store. FP32 compute for both dtypes. BLOCK_SIZE is next power of two of n_cols.

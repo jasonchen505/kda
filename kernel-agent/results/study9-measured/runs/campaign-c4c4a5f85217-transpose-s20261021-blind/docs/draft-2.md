@@ -1,0 +1,1 @@
+Transpose via 2D tile loads with tl.trans and masked stores. Use 64x64 tiles for better DRAM coalescing on larger shapes, 32x32 for small/odd. Output allocated as (N,M) contiguous.

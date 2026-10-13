@@ -1,0 +1,1 @@
+Optimize small-row softmax by processing multiple rows per program to reduce launch overhead and improve occupancy for shapes like [7, 257].

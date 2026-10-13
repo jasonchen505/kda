@@ -21,11 +21,17 @@ drivers. A GPU4 pilot then executed three real Qwen proposals and passed Softmax
 checks, but another user's GPU process appeared during the job; its raw performance verdict
 is retained without a clean-performance claim. The [guarded 36-job multi-seed study](docs/multiseed-execution.md)
 now has evaluator boundary checks and finite readiness waiting on user-selected GPU4.
-Its independent checkpoint is waiting for resources. These records are separate from
-the historical GPU headline above, and do not yet establish a feedback benefit.
-The current strict occupancy gate is a conservative measurement policy, not a CUDA
-requirement. [GPU sharing and a future split between correctness and timing](docs/gpu-sharing-policy.md)
-explains the distinction and the limits of PID/VRAM-based checks.
+Its latest snapshot records **23/36 terminal jobs, 12 final-correct and 6 promoted**,
+with 13 pending. Eight jobs stopped early for resource availability; another final check
+was resource-vetoed. These are end-to-end outcomes with infrastructure failures retained,
+not a completed feedback comparison. The three-task headline above is a separate study.
+
+The new [phase-split harness](docs/deferred-evaluation.md) lets model generation and search
+numerical checks share GPU4, then persists unedited eligible sources in a separate timing
+queue. Measurement resumes without requesting the model again; search-only selection is
+committed before the final veto. This is a different feedback contract (numerical results
+only), with a separate engineering pilot. [GPU sharing policy](docs/gpu-sharing-policy.md)
+explains why shared execution and qualified speedup evidence need different controls.
 
 ```text
 Task contract → local Qwen proposal → protocol / AST admission → independent GPU process
@@ -95,6 +101,12 @@ freezes the source/runtime plan without model generation; `--run` resumes pendin
 Use the same arguments and source for every restart. The runner checks the existing owned
 base service and separate evaluation GPU before allocating a job, and exits 2 if work is
 pending. It never starts or kills the model service. See the study plan for exact commands.
+
+The phase-split entry is `scripts/run_deferred.py generate|measure|summary`. See
+`docs/deferred-evaluation.md` for its separate workspace, frozen settings and commands.
+Generation-only completion cannot be interpreted as final correctness or promotion.
+On this server, prepend `/data/home/chenyizhou/.local/bin` to `PATH` so that the recorded
+OpenCode executable is available in a non-interactive SSH session.
 
 ## Usage
 

@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y kernel. Load x,y as FP32, compute sigmoid via exp, multiply, store once. Handles odd sizes via masking. BLOCK_SIZE=1024.

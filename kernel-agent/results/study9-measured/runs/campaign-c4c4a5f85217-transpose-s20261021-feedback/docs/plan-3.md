@@ -1,0 +1,1 @@
+Select BLOCK_R/BLOCK_C based on M,N: 32 for small, 64 for medium, 128 for large. This reduces wasted threads and improves cache locality. Grid computed with triton.cdiv. Kernel unchanged otherwise.

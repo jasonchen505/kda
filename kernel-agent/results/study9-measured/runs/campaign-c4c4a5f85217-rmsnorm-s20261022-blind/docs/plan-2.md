@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Launch grid=(rows,). 3. Kernel: load row in chunks, accumulate sum_sq in FP32. 4. Compute rstd = rsqrt(mean_sq + eps). 5. Second pass: load x, normalize, cast to DTYPE, multiply by weight, store. 6. Use BLOCK_SIZE = min(next_pow2(width), 1024).

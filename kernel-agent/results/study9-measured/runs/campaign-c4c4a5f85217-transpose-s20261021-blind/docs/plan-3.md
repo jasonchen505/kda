@@ -1,0 +1,1 @@
+Grid over M and N blocks. Load x tile [BLOCK_M, BLOCK_N] with row/col masks. Transpose in-register. Store to out at transposed offsets with same mask. Select block size based on min(M,N) to balance occupancy and memory coalescing.

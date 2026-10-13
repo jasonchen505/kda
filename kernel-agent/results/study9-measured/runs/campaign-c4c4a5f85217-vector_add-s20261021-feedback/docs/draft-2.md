@@ -1,0 +1,1 @@
+Optimize vector add by tuning block size and grid for small-to-large shapes. Use 256 elements per block to reduce tail latency on small shapes while maintaining throughput on large shapes. Preserve FP32 intermediate addition and dtype casting.

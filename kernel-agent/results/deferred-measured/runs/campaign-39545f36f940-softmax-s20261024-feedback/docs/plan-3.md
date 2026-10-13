@@ -1,0 +1,1 @@
+1. Allocate output tensor matching input shape/dtype. 2. Compute BLOCK_SIZE as next power of 2 for column count. 3. Launch grid with one program per row (capped at 1024). 4. Kernel loads row with mask, computes max in FP32, subtracts, exponentiates, sums, divides. 5. Store result with mask. 6. Return output tensor.

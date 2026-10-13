@@ -1,0 +1,1 @@
+Single-pass row softmax. One program per row. Load row as FP32 with -inf mask, subtract max, exp, sum, divide, store. BLOCK_SIZE is next power of two of n_cols. Handles odd sizes via mask. Preserves dtype and shape.

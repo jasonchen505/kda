@@ -86,3 +86,24 @@ and an exploratory percentile interval by resampling the **six task clusters**, 
 108 dependent proposals. The small development-task set and unmatched first-source/system
 contexts limit generalization and causal claims. A partial snapshot shows progress, not a
 feedback-benefit estimate. Historical GPU scores stay in their own report section.
+
+## Progress snapshot and architectural follow-up, 2026-10-13
+
+The first bounded supervisor exited after 23 jobs committed and the next job's three-hour
+resource wait expired. The published raw checkpoint records 13 pending jobs, 57 proposals,
+12 final-correct results and 6 promotions. Eight jobs ended early with `resource_unavailable`;
+another completed three proposals but its final check was resource-vetoed. These outcomes
+are preserved in the scheduled denominator and cannot be presented as model-only failures.
+Both arms have three recorded promotions at this partial snapshot, with unequal completed
+counts. No feedback advantage, complete rate or interval is inferred.
+
+The snapshot includes all 57 candidate files and 114 model request bodies, with frozen
+generation sources and offline selection/source checks. The Linux/macOS analysis permits
+only tiny floating-point reconstruction differences (1e-12); Boolean verdicts and selection
+still must agree. The original checkpoint and recorded numeric values are never rewritten.
+
+The current controller additionally implements deferred timing in a separate workspace,
+described in `deferred-evaluation.md`. It receives search numerical feedback only and has
+its own two-job integration pilot. It does not replace resource-affected v3 jobs or change
+the remaining v3 job policy. The original workspace retains the frozen v3 source so it can
+resume without plan drift.

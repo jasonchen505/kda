@@ -1,0 +1,1 @@
+1. Allocate output as x.T.contiguous(). 2. Launch 2D grid kernel. 3. Each program loads BLOCK_R x BLOCK_C tile from x using row/col offsets. 4. Transpose tile in registers. 5. Store to output at transposed positions with masks for both dimensions.

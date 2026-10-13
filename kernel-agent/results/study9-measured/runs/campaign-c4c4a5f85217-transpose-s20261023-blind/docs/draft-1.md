@@ -1,0 +1,1 @@
+Transpose via 2D tile loads and transposed stores. Grid covers output rows/cols. Mask both dims for odd sizes. Allocate contiguous output, launch Triton kernel, return tensor.

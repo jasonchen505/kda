@@ -1,0 +1,1 @@
+1. Increase BLOCK_SIZE from 1024 to 4096 to reduce the number of kernel instances for small tensors. 2. Keep the same kernel logic: load x and y, compute SiLU in FP32, multiply, and store. 3. Ensure masking handles odd sizes correctly. 4. Return the output tensor.

@@ -1,0 +1,1 @@
+Transpose via tiled Triton kernel. Load BLOCK_M x BLOCK_N tile from x, transpose in registers, store to output. Masked loads/stores handle odd sizes. 32x32 tiles balance occupancy and register pressure for shapes up to 1024x1024.

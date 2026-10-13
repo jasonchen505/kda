@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Compute BLOCK_SIZE = next_power_of_2(n_cols). 3. Launch grid (n_rows,). 4. Kernel: load row to FP32, mask invalid cols with -inf. 5. Compute max, exp(x-max), sum, divide. 6. Store result cast to output dtype. 7. Return output.

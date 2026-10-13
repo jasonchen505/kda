@@ -1,0 +1,1 @@
+Stable row softmax for 2D contiguous CUDA tensors (FP32/BF16). Uses single-pass Triton kernel with FP32 accumulation, masked loads/stores, and power-of-two block sizing. Preserves input dtype and shape.

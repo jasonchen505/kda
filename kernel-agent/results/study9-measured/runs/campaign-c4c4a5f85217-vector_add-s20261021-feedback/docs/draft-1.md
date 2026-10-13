@@ -1,0 +1,1 @@
+Vectorized elementwise addition kernel using Triton. Loads x and y with masking for odd sizes, computes sum in FP32, casts to input dtype, and stores. Uses 1D grid with BLOCK_SIZE=1024.

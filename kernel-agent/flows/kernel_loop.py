@@ -20,7 +20,7 @@ from pydantic import Field
 from kernel_agent import line_protocol
 from kernel_agent import humanize_api
 from kernel_agent.knowledge import retrieve
-from kernel_agent.protocol import admit, decision, feedback, prefers, proposal
+from kernel_agent.protocol import admit, decision, feedback, numeric_decision, prefers, proposal
 from kernel_agent.references import retrieve_example
 
 
@@ -51,6 +51,7 @@ class Params(FlowParams):
     proposal_format: Literal["string", "lines"] = "string"
     study_policy: Literal["legacy", "blind", "feedback"] = "legacy"
     selection_policy: Literal["gate_first", "geomean"] = "gate_first"
+    evaluation_mode: Literal["integrated", "deferred"] = "integrated"
 
 
 def first_prompt(task):
@@ -75,6 +76,9 @@ def first_prompt(task):
 @flow(agents=Agents, envs=Envs, params=Params)
 async def kernel_loop(task, *, agents, envs, params, ctx):
     fixed_study = params.study_policy != "legacy"
+    deferred = params.evaluation_mode == "deferred"
+    if deferred and not fixed_study:
+        raise ValueError("deferred timing requires fixed proposal budgets")
     if fixed_study and (params.mode != "reference_guided" or params.proposal_format != "lines"):
         raise ValueError("strategy study requires the shared reference-guided line protocol")
     workspace = envs["workspace"]
@@ -82,6 +86,10 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
     docs = await working.derive_subdir(subdir="docs")
     session = await humanize_api.spawn(agents["builder"], working)
     prompt = first_prompt(task)
+    if deferred:
+        prompt += ("\nGeneration uses search numerical checks only, on a potentially shared GPU. "
+                   "Performance selection and final checks occur later in a separate queue. "
+                   "No timing or final-shape evidence is available during revision.")
     if params.proposal_format == "lines":
         prompt = line_protocol.first_prompt(prompt)
     initial_context = None
@@ -149,22 +157,23 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
                     result = {"status": "evaluator_error", "exit_code": code, "message": (out + err)[-4000:]}
                 else:
                     result = json.loads(out)
-                    if result.get("status") == "correct" and result.get("source_sha256") != source_sha:
+                    if result.get("status") in {"correct", "numeric_correct"} and result.get("source_sha256") != source_sha:
                         result = {"status": "stale_evidence", "message": "candidate SHA mismatch"}
         except (ValueError, SyntaxError, TypeError) as error:
             result = {"status": "protocol_error", "message": str(error)}
         except Exception as error:  # noqa: BLE001 -- evaluator process errors are evidence
             result = {"status": "evaluator_error", "message": str(error)[-4000:]}
         row["evaluation"] = result
-        row["decision"] = decision(result)
+        row["decision"] = numeric_decision(result) if deferred else decision(result)
         row["elapsed_seconds"] = time.perf_counter() - round_started
         row["usage"] = session.usage.model_dump(mode="json")
         records.append(row)
         await working.write("trace.json", json.dumps(records, indent=2).encode())
-        if result.get("status") in {"resource_busy", "resource_contended", "resource_monitor_error"}:
+        if result.get("status") in {"resource_busy", "resource_contended", "resource_monitor_error",
+                                    "resource_exhausted", "evaluator_timeout"}:
             terminal = "resource_unavailable"
             break  # Infrastructure failures must not be misrepresented as code-repair feedback.
-        if prefers(row["decision"], best["decision"] if best else None, params.selection_policy):
+        if not deferred and prefers(row["decision"], best["decision"] if best else None, params.selection_policy):
             best = row
         if row["decision"]["promoted"] and not fixed_study:
             terminal = "promoted"
@@ -213,7 +222,7 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
         final_evaluation = await final_check(best)
         final_decision = decision(final_evaluation)
         candidate_finals[best["source_sha256"]] = {"evaluation": final_evaluation, "decision": final_decision}
-    if fixed_study:
+    if fixed_study and not deferred:
         # Audit first/last/best on final data without changing the search-selected source.
         for candidate in records:
             digest = candidate.get("source_sha256")
@@ -225,6 +234,10 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
             "proposal_format": params.proposal_format,
             "study_policy": params.study_policy,
             "selection_policy": params.selection_policy,
+            "evaluation_mode": params.evaluation_mode,
+            "measurement_state": "timing_pending" if deferred else "finalized",
+            "timing_candidates": list(dict.fromkeys(a["source_sha256"] for a in records
+                                      if a.get("decision", {}).get("timing_eligible"))) if deferred else [],
             "terminal": terminal, "correct": bool(final_decision and final_decision["correct"]),
             "promoted": bool(final_decision and final_decision["promoted"]),
             "search_correct": best is not None,

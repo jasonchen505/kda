@@ -1,0 +1,1 @@
+1) Allocate output. 2) Launch grid=(n_rows,). 3) Kernel: load row with mask, other=-inf, cast to fp32, max, exp, sum, divide, store masked. 4) Return output.

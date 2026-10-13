@@ -1,0 +1,1 @@
+Optimize row softmax by processing multiple rows per program to improve memory coalescing and occupancy. Use a 2D block layout with row and column offsets, masking both dimensions. Maintain FP32 arithmetic for stability while preserving input/output dtype.

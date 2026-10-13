@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "layout": {
+    "body_width": 426,
+    "checkpoint_length": 1067598,
+    "deferred_metrics": "6真实模型提案3已保存的可测速源码0/2完成独立测速的任务GPU4共卡数值检查",
+    "deferred_rows": 2,
+    "headline": "已完成 3 次真实 agent 运行。3 次通过最终正确性检查，2 次通过最终性能晋升门槛。",
+    "multiseed_rows": 6,
+    "viewport_width": 426
+  },
+  "console_errors_or_warnings": 0,
+  "phase_selector_verified": true,
+  "checkpoint_download_sha256": "e3d5610b1d29f333ed291c16e666de32ddb54edc573c742573121b29289fa1da",
+  "checkpoint_download_preserves_bytes": true,
+  "html_sha256": "d73a1db6f46af94c8f590e07cdf2945f5bcee64f8749454ba75994f3998f6358",
+  "screenshot_sha256": "323a8892b4282ae89846457ff3516aea9e43228811862158d29f2516492ebedb"
+}

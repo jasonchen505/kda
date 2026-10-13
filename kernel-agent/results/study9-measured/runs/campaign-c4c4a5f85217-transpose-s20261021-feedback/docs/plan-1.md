@@ -1,0 +1,1 @@
+1. Allocate output tensor with shape (N, M) where input is (M, N). 2. Launch 2D grid of programs. 3. Each program computes row/col offsets for its tile. 4. Load tile with mask for boundaries. 5. Transpose via tl.trans and store to output with mask. 6. Use power-of-2 block sizes with constexpr.

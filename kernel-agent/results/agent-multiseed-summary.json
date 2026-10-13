@@ -2,54 +2,72 @@
   "schema_version": 1,
   "status": "incomplete",
   "execution_status": "waiting_for_resources",
-  "captured_utc": "2026-10-13T07:26:22.316064+00:00",
+  "captured_utc": "2026-10-13T19:23:29.168751+00:00",
   "plan_sha256": "c4c4a5f852179e6b59674540860de8e8905197389858bc2ce085950958a31864",
-  "checkpoint_sha256": "ee35abd6b0f2cf5c5d4855aadad12cca0ce01dffcf9b965a12835b630a8fd53d",
+  "checkpoint_sha256": "f03ffab6b292c959dbe1ff1364bd0cf74415ba851825b927e761ec8643afc50d",
   "scheduled": 36,
   "statuses": {
-    "pending": 36
+    "completed": 23,
+    "pending": 13
   },
-  "terminal": 0,
+  "terminal": 23,
   "arms": [
     {
       "policy": "blind",
       "scheduled": 18,
-      "started": 0,
-      "terminal": 0,
-      "result_available": 0,
-      "pending": 18,
+      "started": 13,
+      "terminal": 13,
+      "result_available": 13,
+      "pending": 5,
       "running": 0,
-      "correct": 0,
-      "promoted": 0,
+      "correct": 5,
+      "promoted": 3,
       "correct_per_scheduled": null,
       "promoted_per_scheduled": null,
-      "reported_output_tokens": 0,
-      "usage_missing_jobs": 18,
-      "reported_elapsed_seconds": 0,
-      "proposals": 0,
-      "unique_source_sha_per_job_sum": 0,
-      "duplicate_proposals": 0,
-      "failures": {}
+      "reported_output_tokens": 16696,
+      "usage_missing_jobs": 5,
+      "reported_elapsed_seconds": 4792.710448008031,
+      "proposals": 28,
+      "unique_source_sha_per_job_sum": 23,
+      "duplicate_proposals": 5,
+      "terminal_reasons": {
+        "fixed_budget_complete": 7,
+        "resource_unavailable": 6
+      },
+      "resource_interrupted_jobs": 6,
+      "resource_affected_jobs": 6,
+      "failures": {
+        "no_final_evidence": 7,
+        "resource_busy": 1
+      }
     },
     {
       "policy": "feedback",
       "scheduled": 18,
-      "started": 0,
-      "terminal": 0,
-      "result_available": 0,
-      "pending": 18,
+      "started": 10,
+      "terminal": 10,
+      "result_available": 10,
+      "pending": 8,
       "running": 0,
-      "correct": 0,
-      "promoted": 0,
+      "correct": 7,
+      "promoted": 3,
       "correct_per_scheduled": null,
       "promoted_per_scheduled": null,
-      "reported_output_tokens": 0,
-      "usage_missing_jobs": 18,
-      "reported_elapsed_seconds": 0,
-      "proposals": 0,
-      "unique_source_sha_per_job_sum": 0,
-      "duplicate_proposals": 0,
-      "failures": {}
+      "reported_output_tokens": 20031,
+      "usage_missing_jobs": 8,
+      "reported_elapsed_seconds": 6182.988058805466,
+      "proposals": 29,
+      "unique_source_sha_per_job_sum": 27,
+      "duplicate_proposals": 2,
+      "terminal_reasons": {
+        "fixed_budget_complete": 8,
+        "resource_unavailable": 2
+      },
+      "resource_interrupted_jobs": 2,
+      "resource_affected_jobs": 3,
+      "failures": {
+        "resource_busy": 3
+      }
     }
   ],
   "tasks": [
@@ -58,41 +76,53 @@
       "arms": {
         "blind": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 2,
           "running": 0,
-          "correct": 0,
+          "correct": 1,
           "promoted": 0,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
-          "duplicate_proposals": 0,
+          "reported_output_tokens": 1484,
+          "usage_missing_jobs": 2,
+          "reported_elapsed_seconds": 440.1476473249495,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 2,
+          "duplicate_proposals": 1,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
           "failures": {}
         },
         "feedback": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 2,
           "running": 0,
           "correct": 0,
           "promoted": 0,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
-          "duplicate_proposals": 0,
-          "failures": {}
+          "reported_output_tokens": 1479,
+          "usage_missing_jobs": 2,
+          "reported_elapsed_seconds": 460.1943380571902,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 2,
+          "duplicate_proposals": 1,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 1,
+          "failures": {
+            "resource_busy": 1
+          }
         }
       }
     },
@@ -101,40 +131,53 @@
       "arms": {
         "blind": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 3,
+          "terminal": 3,
+          "result_available": 3,
+          "pending": 0,
           "running": 0,
-          "correct": 0,
-          "promoted": 0,
-          "correct_per_scheduled": null,
-          "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
-          "duplicate_proposals": 0,
-          "failures": {}
+          "correct": 2,
+          "promoted": 2,
+          "correct_per_scheduled": 0.6666666666666666,
+          "promoted_per_scheduled": 0.6666666666666666,
+          "reported_output_tokens": 4438,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 1238.3962002396584,
+          "proposals": 7,
+          "unique_source_sha_per_job_sum": 4,
+          "duplicate_proposals": 3,
+          "terminal_reasons": {
+            "fixed_budget_complete": 2,
+            "resource_unavailable": 1
+          },
+          "resource_interrupted_jobs": 1,
+          "resource_affected_jobs": 1,
+          "failures": {
+            "no_final_evidence": 1
+          }
         },
         "feedback": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 2,
+          "terminal": 2,
+          "result_available": 2,
+          "pending": 1,
           "running": 0,
-          "correct": 0,
-          "promoted": 0,
+          "correct": 2,
+          "promoted": 2,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
+          "reported_output_tokens": 3853,
+          "usage_missing_jobs": 1,
+          "reported_elapsed_seconds": 1226.9212882556021,
+          "proposals": 6,
+          "unique_source_sha_per_job_sum": 6,
           "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 2
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
           "failures": {}
         }
       }
@@ -144,41 +187,57 @@
       "arms": {
         "blind": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 2,
+          "terminal": 2,
+          "result_available": 2,
+          "pending": 1,
           "running": 0,
           "correct": 0,
           "promoted": 0,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
-          "duplicate_proposals": 0,
-          "failures": {}
+          "reported_output_tokens": 3271,
+          "usage_missing_jobs": 1,
+          "reported_elapsed_seconds": 879.5006612017751,
+          "proposals": 4,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 1,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1,
+            "resource_unavailable": 1
+          },
+          "resource_interrupted_jobs": 1,
+          "resource_affected_jobs": 1,
+          "failures": {
+            "no_final_evidence": 2
+          }
         },
         "feedback": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 2,
+          "terminal": 2,
+          "result_available": 2,
+          "pending": 1,
           "running": 0,
-          "correct": 0,
-          "promoted": 0,
+          "correct": 1,
+          "promoted": 1,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
+          "reported_output_tokens": 4876,
+          "usage_missing_jobs": 1,
+          "reported_elapsed_seconds": 1402.8357244171202,
+          "proposals": 5,
+          "unique_source_sha_per_job_sum": 5,
           "duplicate_proposals": 0,
-          "failures": {}
+          "terminal_reasons": {
+            "resource_unavailable": 1,
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 1,
+          "resource_affected_jobs": 1,
+          "failures": {
+            "resource_busy": 1
+          }
         }
       }
     },
@@ -187,40 +246,54 @@
       "arms": {
         "blind": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 2,
+          "terminal": 2,
+          "result_available": 2,
+          "pending": 1,
           "running": 0,
           "correct": 0,
           "promoted": 0,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
+          "reported_output_tokens": 3094,
+          "usage_missing_jobs": 1,
+          "reported_elapsed_seconds": 902.0246042050421,
+          "proposals": 5,
+          "unique_source_sha_per_job_sum": 5,
           "duplicate_proposals": 0,
-          "failures": {}
+          "terminal_reasons": {
+            "resource_unavailable": 1,
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 1,
+          "resource_affected_jobs": 1,
+          "failures": {
+            "resource_busy": 1,
+            "no_final_evidence": 1
+          }
         },
         "feedback": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 3,
+          "terminal": 3,
+          "result_available": 3,
+          "pending": 0,
           "running": 0,
-          "correct": 0,
+          "correct": 3,
           "promoted": 0,
-          "correct_per_scheduled": null,
-          "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 6418,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 2065.595761541277,
+          "proposals": 9,
+          "unique_source_sha_per_job_sum": 9,
           "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 3
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
           "failures": {}
         }
       }
@@ -230,41 +303,56 @@
       "arms": {
         "blind": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 2,
+          "terminal": 2,
+          "result_available": 2,
+          "pending": 1,
           "running": 0,
-          "correct": 0,
+          "correct": 1,
           "promoted": 0,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
+          "reported_output_tokens": 1932,
+          "usage_missing_jobs": 1,
+          "reported_elapsed_seconds": 574.1269665434957,
+          "proposals": 4,
+          "unique_source_sha_per_job_sum": 4,
           "duplicate_proposals": 0,
-          "failures": {}
+          "terminal_reasons": {
+            "resource_unavailable": 1,
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 1,
+          "resource_affected_jobs": 1,
+          "failures": {
+            "no_final_evidence": 1
+          }
         },
         "feedback": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 2,
           "running": 0,
           "correct": 0,
           "promoted": 0,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
+          "reported_output_tokens": 1798,
+          "usage_missing_jobs": 2,
+          "reported_elapsed_seconds": 505.08439607545733,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
           "duplicate_proposals": 0,
-          "failures": {}
+          "terminal_reasons": {
+            "resource_unavailable": 1
+          },
+          "resource_interrupted_jobs": 1,
+          "resource_affected_jobs": 1,
+          "failures": {
+            "resource_busy": 1
+          }
         }
       }
     },
@@ -273,40 +361,53 @@
       "arms": {
         "blind": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 3,
+          "terminal": 3,
+          "result_available": 3,
+          "pending": 0,
           "running": 0,
-          "correct": 0,
-          "promoted": 0,
-          "correct_per_scheduled": null,
-          "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
+          "correct": 1,
+          "promoted": 1,
+          "correct_per_scheduled": 0.3333333333333333,
+          "promoted_per_scheduled": 0.3333333333333333,
+          "reported_output_tokens": 2477,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 758.5143684931099,
+          "proposals": 5,
+          "unique_source_sha_per_job_sum": 5,
           "duplicate_proposals": 0,
-          "failures": {}
+          "terminal_reasons": {
+            "resource_unavailable": 2,
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 2,
+          "resource_affected_jobs": 2,
+          "failures": {
+            "no_final_evidence": 2
+          }
         },
         "feedback": {
           "scheduled": 3,
-          "started": 0,
-          "terminal": 0,
-          "result_available": 0,
-          "pending": 3,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 2,
           "running": 0,
-          "correct": 0,
+          "correct": 1,
           "promoted": 0,
           "correct_per_scheduled": null,
           "promoted_per_scheduled": null,
-          "reported_output_tokens": 0,
-          "usage_missing_jobs": 3,
-          "reported_elapsed_seconds": 0,
-          "proposals": 0,
-          "unique_source_sha_per_job_sum": 0,
-          "duplicate_proposals": 0,
+          "reported_output_tokens": 1607,
+          "usage_missing_jobs": 2,
+          "reported_elapsed_seconds": 522.3565504588187,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 2,
+          "duplicate_proposals": 1,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
           "failures": {}
         }
       }
@@ -318,7 +419,7 @@
       "seed": 20261021,
       "resolved": false,
       "statuses": {
-        "feedback": "pending",
+        "feedback": "completed",
         "blind": "pending"
       },
       "outcomes": null,
@@ -342,7 +443,7 @@
       "seed": 20261023,
       "resolved": false,
       "statuses": {
-        "blind": "pending",
+        "blind": "completed",
         "feedback": "pending"
       },
       "outcomes": null,
@@ -352,33 +453,57 @@
     {
       "task_id": "softmax",
       "seed": 20261021,
-      "resolved": false,
+      "resolved": true,
       "statuses": {
-        "blind": "pending",
-        "feedback": "pending"
+        "blind": "completed",
+        "feedback": "completed"
       },
-      "outcomes": null,
-      "first_source_matches": null,
-      "feedback_minus_blind": null
+      "outcomes": {
+        "blind": {
+          "correct": true,
+          "promoted": true
+        },
+        "feedback": {
+          "correct": true,
+          "promoted": true
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 0,
+        "promoted": 0
+      }
     },
     {
       "task_id": "softmax",
       "seed": 20261022,
-      "resolved": false,
+      "resolved": true,
       "statuses": {
-        "feedback": "pending",
-        "blind": "pending"
+        "feedback": "completed",
+        "blind": "completed"
       },
-      "outcomes": null,
-      "first_source_matches": null,
-      "feedback_minus_blind": null
+      "outcomes": {
+        "feedback": {
+          "correct": true,
+          "promoted": true
+        },
+        "blind": {
+          "correct": true,
+          "promoted": true
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 0,
+        "promoted": 0
+      }
     },
     {
       "task_id": "softmax",
       "seed": 20261023,
       "resolved": false,
       "statuses": {
-        "blind": "pending",
+        "blind": "completed",
         "feedback": "pending"
       },
       "outcomes": null,
@@ -390,7 +515,7 @@
       "seed": 20261021,
       "resolved": false,
       "statuses": {
-        "feedback": "pending",
+        "feedback": "completed",
         "blind": "pending"
       },
       "outcomes": null,
@@ -402,7 +527,7 @@
       "seed": 20261022,
       "resolved": false,
       "statuses": {
-        "blind": "pending",
+        "blind": "completed",
         "feedback": "pending"
       },
       "outcomes": null,
@@ -412,33 +537,57 @@
     {
       "task_id": "rmsnorm",
       "seed": 20261023,
-      "resolved": false,
+      "resolved": true,
       "statuses": {
-        "feedback": "pending",
-        "blind": "pending"
+        "feedback": "completed",
+        "blind": "completed"
       },
-      "outcomes": null,
-      "first_source_matches": null,
-      "feedback_minus_blind": null
+      "outcomes": {
+        "feedback": {
+          "correct": true,
+          "promoted": true
+        },
+        "blind": {
+          "correct": false,
+          "promoted": false
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 1,
+        "promoted": 1
+      }
     },
     {
       "task_id": "transpose",
       "seed": 20261021,
-      "resolved": false,
+      "resolved": true,
       "statuses": {
-        "blind": "pending",
-        "feedback": "pending"
+        "blind": "completed",
+        "feedback": "completed"
       },
-      "outcomes": null,
-      "first_source_matches": null,
-      "feedback_minus_blind": null
+      "outcomes": {
+        "blind": {
+          "correct": false,
+          "promoted": false
+        },
+        "feedback": {
+          "correct": true,
+          "promoted": false
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 1,
+        "promoted": 0
+      }
     },
     {
       "task_id": "transpose",
       "seed": 20261022,
       "resolved": false,
       "statuses": {
-        "feedback": "pending",
+        "feedback": "completed",
         "blind": "pending"
       },
       "outcomes": null,
@@ -448,21 +597,33 @@
     {
       "task_id": "transpose",
       "seed": 20261023,
-      "resolved": false,
+      "resolved": true,
       "statuses": {
-        "feedback": "pending",
-        "blind": "pending"
+        "feedback": "completed",
+        "blind": "completed"
       },
-      "outcomes": null,
-      "first_source_matches": null,
-      "feedback_minus_blind": null
+      "outcomes": {
+        "feedback": {
+          "correct": true,
+          "promoted": false
+        },
+        "blind": {
+          "correct": false,
+          "promoted": false
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 1,
+        "promoted": 0
+      }
     },
     {
       "task_id": "row_sum",
       "seed": 20261021,
       "resolved": false,
       "statuses": {
-        "blind": "pending",
+        "blind": "completed",
         "feedback": "pending"
       },
       "outcomes": null,
@@ -474,7 +635,7 @@
       "seed": 20261022,
       "resolved": false,
       "statuses": {
-        "feedback": "pending",
+        "feedback": "completed",
         "blind": "pending"
       },
       "outcomes": null,
@@ -486,7 +647,7 @@
       "seed": 20261023,
       "resolved": false,
       "statuses": {
-        "blind": "pending",
+        "blind": "completed",
         "feedback": "pending"
       },
       "outcomes": null,
@@ -498,7 +659,7 @@
       "seed": 20261021,
       "resolved": false,
       "statuses": {
-        "blind": "pending",
+        "blind": "completed",
         "feedback": "pending"
       },
       "outcomes": null,
@@ -508,21 +669,33 @@
     {
       "task_id": "silu_mul",
       "seed": 20261022,
-      "resolved": false,
+      "resolved": true,
       "statuses": {
-        "blind": "pending",
-        "feedback": "pending"
+        "blind": "completed",
+        "feedback": "completed"
       },
-      "outcomes": null,
-      "first_source_matches": null,
-      "feedback_minus_blind": null
+      "outcomes": {
+        "blind": {
+          "correct": true,
+          "promoted": true
+        },
+        "feedback": {
+          "correct": true,
+          "promoted": false
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 0,
+        "promoted": -1
+      }
     },
     {
       "task_id": "silu_mul",
       "seed": 20261023,
       "resolved": false,
       "statuses": {
-        "blind": "pending",
+        "blind": "completed",
         "feedback": "pending"
       },
       "outcomes": null,
@@ -530,11 +703,11 @@
       "feedback_minus_blind": null
     }
   ],
-  "resolved_pairs": 0,
+  "resolved_pairs": 6,
   "contrasts": null,
   "budget_allocations": {
-    "duration_seconds": 0,
-    "output_tokens": 0
+    "duration_seconds": 20700,
+    "output_tokens": 460000
   },
   "runtime": {
     "evaluator_runtime": {
@@ -579,10 +752,10 @@
   },
   "scope": "Reference-assisted development-task replication; dependent proposals are not trials. Pending/running jobs have no verdict; failed/unknown terminal jobs stay in the denominator. Task-cluster intervals appear only after all scheduled jobs terminate. Paired seeds do not imply matched initial candidates or causal attribution.",
   "resource_wait": {
-    "job_id": "softmax-s20261022-feedback",
-    "observed_utc": "2026-10-13T07:26:07.223754+00:00",
-    "reason": "evaluation GPU 4 is occupied (5685 MiB)",
-    "remaining_seconds": 10605,
+    "job_id": "softmax-s20261023-feedback",
+    "observed_utc": "2026-10-13T19:23:03.557924+00:00",
+    "reason": "evaluation GPU 4 is occupied (9757 MiB)",
+    "remaining_seconds": 10797,
     "waiting": true
   }
 }

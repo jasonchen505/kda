@@ -1,0 +1,1 @@
+1. Reduce BLOCK_SIZE from 4096 to 1024 to improve parallelism for small shapes (4099, 65537). 2. Keep the same kernel logic: load, convert to FP32, compute SiLU, multiply, store. 3. Maintain correctness for all shapes including odd sizes via masking.

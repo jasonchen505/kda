@@ -1,0 +1,1 @@
+1. run(x): validate 2D contiguous, get n_rows, n_cols, dtype. 2. Allocate out = torch.empty_like(x). 3. BLOCK_SIZE = triton.next_power_of_2(n_cols). 4. Launch softmax_kernel with grid=(n_rows,), passing x, out, strides, n_cols, BLOCK_SIZE. 5. Kernel: program_id(0) = row, load row with mask, max, exp, sum, divide, store. 6. Return out.

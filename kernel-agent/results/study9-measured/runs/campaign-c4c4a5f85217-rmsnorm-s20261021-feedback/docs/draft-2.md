@@ -1,0 +1,1 @@
+Optimize small-row case by using a single-block kernel when width fits in 1024 elements, eliminating the loop overhead that hurts the [7,257] shape. Keep the two-pass loop for larger widths. The single-block path loads once, computes sum-of-squares, then normalizes and stores in one pass.

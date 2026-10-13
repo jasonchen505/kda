@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "files_sha256": {
+    "docs/project-summary.md": "c425f9abbc8427719e7064a60d11db9d603415436d96757202a10dee56a0b51e",
+    "docs/project-summary.zh.md": "c8e908236d4c42fbff1728da5273f43b3da284dcb6f5d4598d1559db6750e653",
+    "docs/publication-verification.md": "5d5c65cda0173f66808499216677f3b9c515003f2389974a475a976d9b67713d",
+    "reports/template.html": "43b5cfc97855a1cd303c98a78b1d3c95df5a262a47c041fc346936f4288b95a9",
+    "scripts/build_report.py": "e10ea6448718b29ab4167c068fe4b298f9beb54a276cd28e716fdc85a526d572",
+    "scripts/summarize_campaign.py": "3c32a7569b649abffb4189574a1fce2e3b6f2528df542b14211e7eb6baf97e5a",
+    "scripts/verify_evidence.py": "9abf9a5ad0acd4531b622e1261c4b2d4edabb0cfbfa106a52c35cf8bcb6ae95c"
+  },
+  "scope": "Delivery analysis and explanatory source; separate from frozen generation sources"
+}

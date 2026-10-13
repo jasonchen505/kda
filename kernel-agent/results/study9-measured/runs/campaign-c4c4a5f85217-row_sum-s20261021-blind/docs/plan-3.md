@@ -1,0 +1,1 @@
+1) Allocate output (rows,) same dtype/device. 2) Launch grid=(rows,). 3) Kernel: row=program_id(0), pointer offset row*cols, loop off in range(0,cols,BLOCK), load masked, to fp32, accumulate, tl.sum, store. 4) Choose BLOCK=min(next_pow2(cols),2048) and num_warps=8 for large cols, 4 for small.

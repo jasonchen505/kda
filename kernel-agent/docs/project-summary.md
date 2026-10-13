@@ -27,8 +27,12 @@ evaluator. The work targets LLM research engineering and agent evaluation for sy
   foreign CUDA occupancy before/after measurements, stop repair on infrastructure faults,
   and wait for resources without charging a pending job. Analyze paired seeds by task,
   withhold complete rates/intervals until all scheduled jobs terminate.
+- **Phase separation:** share the GPU for generation/search numerical validation, persist
+  unedited eligible candidates in a timing queue, and resume pure measurements without
+  repeating model calls. Search selection is persisted before final-data access; resource
+  failures leave measurements queued rather than erasing generated work.
 
-The novel engineering work is the orchestration and evidence contract. KDA, Humanize,
+The engineering contribution is the orchestration and evidence contract. KDA, Humanize,
 OpenCode, Triton and Qwen are reused components; this project does not claim to implement
 them or to reproduce the complete original KDA research pipeline.
 
@@ -69,10 +73,20 @@ to the selector alone. This distinction is part of the result, not an omitted ca
 
 This is a resume-ready harness prototype, with working code and real evidence. It is not
 a production sandbox or a demonstrated general-purpose kernel optimizer. The task set is
-small, repeated families are used, seeds are not replicated, and the cached 27B weights'
-upstream revision is unverified. The next fixed-runtime study is prepared: six development
-families × three stochastic seeds × two arms, 36 jobs. A preceding one-job real integration
-pilot exposed shared-GPU interference, so its numerical pass is retained but its recorded
-promotion is not qualified as clean performance. The new guarded plan is waiting on
-user-selected GPU4 in a finite one-shot process. The complete feedback comparison remains
-pending empirical work. Profiler-assisted repair remains a later research question.
+small, families are reused, and the cached 27B weights' upstream revision is unverified.
+The six-family × three-seed × two-arm study has 23/36 terminal jobs in the published
+snapshot: 12 final-correct and 6 promoted, with 8 early resource stops and another final
+resource veto. Thirteen jobs remain pending; incomplete, unequally observed arms cannot
+establish a feedback benefit. Failures remain in the scheduled denominator.
+
+That experiment exposed an architectural bottleneck. The new mode splits shared generation
+and numerical validation from guarded performance evaluation. This improves resource use
+without inventing speedups, changing old trials or replaying uncertain model calls.
+Its separate two-job pilot tests the execution chain, not whether numerical-only feedback
+outperforms timing feedback. A completed multi-seed comparison, held-out task families and
+profiler-assisted repair remain research extensions.
+
+The phase-split pilot completed six real proposals with three unique numerically eligible
+sources while GPU4 had another resident CUDA process. All three unique checks passed;
+the actual timing preflight left the queue pending. It proves shared generation/checking
+and durable queue creation, with no claim about these sources' final performance.

@@ -1,0 +1,1 @@
+1. Increase BLOCK_SIZE from 256 to 1024 to improve memory coalescing and reduce launch overhead for large tensors. 2. Keep masking for odd sizes. 3. Maintain FP32 accumulation and final cast. 4. Verify correctness across all contracted shapes.

@@ -1,0 +1,1 @@
+Optimize row-softmax by processing one row per program to maximize parallelism and reduce register pressure. Use a single block per row with power-of-two column masking. This avoids 2D tiling overhead and better matches the memory access pattern for wide rows, targeting the worst-case latency observed in previous runs.

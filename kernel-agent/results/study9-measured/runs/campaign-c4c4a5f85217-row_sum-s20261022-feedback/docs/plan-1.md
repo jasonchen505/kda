@@ -1,0 +1,1 @@
+1) Allocate out = torch.empty(rows, dtype=x.dtype, device=x.device). 2) Launch grid=(rows,). 3) Kernel: row=program_id(0); base=X+row*cols; loop off in range(0,cols,BLOCK): load masked, to fp32, sum. 4) Store out[row]=acc.to(out_dtype). BLOCK=1024 constexpr. Use triton.cdiv for grid if needed (not needed here).

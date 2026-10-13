@@ -1,0 +1,1 @@
+1) Allocate output with torch.empty_like. 2) Launch 1D Triton kernel with BLOCK_SIZE=1024. 3) Each program loads x/y blocks with mask, casts to float32, adds, casts back to input dtype, stores with mask. 4) Return output tensor.

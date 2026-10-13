@@ -1,0 +1,1 @@
+Optimize small-row case by using a single block size that fits the width when possible, avoiding the loop overhead. For widths <= 1024, use a single block load. For larger widths, keep the loop but use a larger block size (2048) to reduce iterations. This should improve the [7, 257] case significantly.

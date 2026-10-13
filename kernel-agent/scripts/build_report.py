@@ -47,9 +47,17 @@ for key, name in (("recovery_validation", "campaign-recovery-validation.json"),
                   ("multiseed_checks", "multiseed-checks.json"),
                   ("multiseed_pilot", "multiseed-gpu4-pilot-checkpoint.json"),
                   ("multiseed_pilot_qualification", "multiseed-gpu4-pilot-qualification.json"),
+                  ("deferred_summary", "deferred-evaluation-summary.json"),
+                  ("deferred_generation", "deferred-generation-checkpoint.json"),
+                  ("delivery_checks", "deferred-checks.json"),
                   ("upgrade_checks", "harness-upgrade-checks.json")):
     path = ROOT / "results" / name
     payload[key] = json.loads(path.read_text()) if path.exists() else None
+checkpoint = ROOT / "results/agent-multiseed-checkpoint.json"
+payload["raw_multiseed_checkpoint"] = checkpoint.read_text() if checkpoint.exists() else None
+payload["raw_deferred_evidence"] = json.dumps(
+    {"summary": payload["deferred_summary"], "generation": payload["deferred_generation"]},
+    ensure_ascii=False, allow_nan=False)
 metrics = {}
 for run in study["runs"]:
     replies = parsed = admitted = 0

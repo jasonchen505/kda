@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Compute grid size via triton.cdiv. 3. Launch Triton kernel with BLOCK_SIZE=1024. 4. Kernel loads x/y as FP32, adds, casts to output dtype, stores with mask. 5. Return output tensor.

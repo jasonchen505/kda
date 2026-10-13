@@ -1,0 +1,1 @@
+1. Allocate output tensor with same shape/dtype as x. 2. Launch grid (rows,). 3. Kernel: for each row, loop over width in BLOCK_SIZE chunks, accumulate sum of squares in fp32. 4. Compute rstd = rsqrt(mean_sq + eps). 5. Loop again: load x, normalize in fp32, cast to x.dtype, multiply by weight, store. 6. Return output.

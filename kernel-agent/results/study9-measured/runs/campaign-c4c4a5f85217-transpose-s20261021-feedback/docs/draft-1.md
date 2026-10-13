@@ -1,0 +1,1 @@
+Triton transpose kernel using 2D block tiling. Each program loads a BLOCK_R x BLOCK_C tile from input and stores it transposed to output. Handles odd dimensions via masking on both load and store. Output allocated as contiguous x.T shape.

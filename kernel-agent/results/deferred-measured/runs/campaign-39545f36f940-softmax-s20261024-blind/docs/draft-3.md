@@ -1,0 +1,1 @@
+Single-pass row softmax kernel. Loads row with mask, computes max/exp/sum in FP32, stores result. Uses next_power_of_2 block size for columns. Handles odd sizes via masking. Preserves input dtype and shape.

@@ -1,0 +1,1 @@
+1. Analyze shape to select optimal BLOCK_M and BLOCK_N. 2. Use 64x64 for large matrices, 32x32 for small. 3. Ensure contiguous output allocation. 4. Maintain correct masking for odd sizes. 5. Test across all contracted shapes.

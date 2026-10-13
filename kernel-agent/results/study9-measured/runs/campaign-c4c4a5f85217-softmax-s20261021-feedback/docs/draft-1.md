@@ -1,0 +1,1 @@
+Single-pass row softmax. Each program handles one row. Load row with mask, compute max, exp, sum, normalize. Store with mask. Use FP32 for reductions. Support odd column counts via power-of-two block size and masking.

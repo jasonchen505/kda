@@ -12,9 +12,9 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#architecture">系统</a><a href="#multiseed">多种子对照</a><a href="#results">既有结果</a><a href="#recovery">恢复调度</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#deferred">共卡与调度</a><a href="#multiseed">多种子对照</a><a href="#results">既有结果</a><a href="#evidence">证据</a></nav>
 <main>
-<header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.12</div>
+<header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.13</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
 <p class="lede">复现 KDA 的任务工作流，用 Humanize 驱动本地 Qwen 生成 Triton 代码。改进对象是 agent 控制器：如何测试、修复、停止和选择候选。</p>
 <span class="tag">真实模型生成</span> <span class="tag">独立 GPU 评测</span> <span class="tag">离线报告</span>
@@ -25,6 +25,22 @@
 <p id="main-finding"></p>
 <p class="small" id="model-info"></p>
 <p class="small" id="runtime-note"></p>
+
+<section id="portfolio"><h2>五分钟看懂这个求职项目</h2>
+<p>研究工程问题：如何让一个本地 coding agent 在数值、性能和资源约束下写出可验收的 kernel，并在失败或中断后保留可信实验记录。</p>
+<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流；Humanize → OpenCode → 本地 Qwen 的真实生成链路。六类 Triton 任务用于评估这个 agent。</p></div><div class="card"><h3>自己改进了什么</h3><p>结构化源码协议与分类反馈、正确候选保留、门槛优先选择、独立最终否决；再补任务恢复、预算持久化和生成／测速阶段分离。</p></div></div>
+<p>证据链：同预算反馈对照没有证明收益 → 轨迹揭示选择器缺陷 → 固定源码重测与新生成验证 → SIGKILL 恢复验证 → 多种子运行暴露设备调度瓶颈 → 共卡生成与独立测速队列。</p>
+<p class="small">定位：可以写入简历的 agent harness 研究工程原型。三任务完整验证为 3/3 最终正确、2/3 晋升；更广的反馈收益仍需完整对照。报告将真实生成、工程测试和待评测状态分别计数。</p></section>
+
+<section id="deferred" hidden><div class="section-top"><h2>共卡继续生成，测速独立排队</h2><span class="tag">Agent harness · 阶段分离</span></div>
+<p>生成期间允许共卡完成搜索数值检查，保存符合条件的原始模型源码；之后在测量窗口恢复测速。GPU 被占用时，候选留在队列中，不再丢掉整条生成轨迹。</p>
+<div class="cards" id="deferred-metrics"></div>
+<div class="flow"><div class="node"><b>生成与数值修订</b><span>可共卡 · 不测速度</span></div><div class="node"><b>源码进入队列</b><span>SHA 绑定 · 去重 · 原子落盘</span></div><div class="node"><b>搜索测速与选择</b><span>独立恢复 · 门槛优先</span></div><div class="node"><b>最终检查</b><span>新形状 · 只接受或否决</span></div></div>
+<div class="controls"><label for="deferred-phase">查看每阶段的职责</label><select id="deferred-phase"><option value="generation">① 共卡生成与正确性</option><option value="queue">② 排队与恢复</option><option value="selection">③ 测速、选择与最终否决</option></select></div>
+<div class="card"><h3 id="deferred-phase-title"></h3><p id="deferred-phase-note"></p></div>
+<div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>运行</th><th>提案数</th><th>可测速源码</th><th>共卡时的观察</th><th>测速状态</th></tr></thead><tbody id="deferred-table"></tbody></table></div>
+<p id="deferred-conclusion"></p><p class="small">该试跑验证阶段分离的工程链路：Softmax 既有开发任务、同一种子、两组各三次提案。反馈组只接收数值结果，不接收速度；因此不能与原来的性能反馈实验混合，也不据此估计泛化成功率。</p>
+<details><summary>冻结计划、运行状态与预算</summary><pre id="deferred-provenance"></pre></details><button class="secondary" id="download-deferred">下载阶段分离记录</button></section>
 
 <section id="multiseed" hidden><div class="section-top"><h2>多种子对照 · 状态与结果</h2><span class="tag" id="multiseed-status"></span></div>
 <p>验证评测反馈是否让 kernel agent 更稳定：六类开发任务 × 三种随机种子 × 无反馈／有反馈，共 36 次运行。两组使用同模型、门槛优先选择和三个提案机会。</p>
@@ -239,17 +255,29 @@ const multiseed=DATA.multiseed_summary;
 if(multiseed){
  $('multiseed').hidden=false;
  const s=multiseed.statuses;
- $('multiseed-status').textContent=multiseed.status==='complete'?'已完成':multiseed.execution_status==='waiting_for_resources'?'等待 GPU4 · 未完成':'运行进度快照 · 未完成';
+ $('multiseed-status').textContent=multiseed.status==='complete'?'已完成':multiseed.execution_status==='resource_wait_expired'?'等待已超时 · 可恢复':multiseed.execution_status==='waiting_for_resources'?'等待 GPU4 · 未完成':'运行进度快照 · 未完成';
  for(const [value,label] of [[`${multiseed.terminal}/${multiseed.scheduled}`,'已终止任务'],[`${multiseed.resolved_pairs}/18`,'已完成的种子配对'],[String(s.running||0),'运行中'],[String(s.pending||0),'待运行']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('multiseed-metrics').append(card)}
  $('multiseed-snapshot').textContent=`快照时间 ${multiseed.captured_utc}；生成 GPU ${multiseed.runtime.service.generation_gpus}，评测 GPU ${multiseed.runtime.gpu_index}，温度 ${multiseed.generation.temperature}。报告文件是离线快照，服务端实验独立运行。`;
  if(DATA.multiseed_pilot_qualification){$('multiseed-pilot-note').hidden=false;$('multiseed-pilot-note').textContent='此前 GPU4 集成试跑完成一次 Softmax 数值检查，但其他用户的 CUDA 进程在途中启动；原评测器记录的性能晋升不算干净测量。原始轨迹、候选与干扰记录保留在完整 JSON 和仓库中，不合并到下面的新对照。';}
- $('multiseed-wait').textContent=multiseed.resource_wait?.waiting?`资源观察：${multiseed.resource_wait.reason}。最多等待 3 小时；等待不调用模型、不预留任务预算。评测前后还会检查其他 CUDA 进程，发现干扰就否决速度证据。`:'每次评测前后检查 GPU 上的其他 CUDA 进程；发现干扰不采纳速度证据。边界检查不能排除短暂的中途干扰。';
- for(const arm of multiseed.arms){const card=node('div',undefined,'card');card.append(node('h3',arm.policy==='blind'?'无反馈修订':'实际评测反馈'),node('p',`已终止 ${arm.terminal}/${arm.scheduled}；最终正确 ${arm.correct}，性能晋升 ${arm.promoted}。`),node('p',`运行中 ${arm.running}，待运行 ${arm.pending}；已记录 ${arm.proposals} 次提案，${arm.duplicate_proposals} 次重复。`,'small'));$('multiseed-arms').append(card)}
+ $('multiseed-wait').textContent=multiseed.resource_wait?.waiting?`资源观察：${multiseed.resource_wait.reason}。${multiseed.execution_status==='resource_wait_expired'?`本次 3 小时等待已结束，进程退出，保留 ${s.pending||0} 个待运行任务。`:'单次最多等待 3 小时。'}等待不调用模型、不预留新任务预算。评测前后还会检查其他 CUDA 进程，发现干扰就否决速度证据。`:'每次评测前后检查 GPU 上的其他 CUDA 进程；发现干扰不采纳速度证据。边界检查不能排除短暂的中途干扰。';
+ for(const arm of multiseed.arms){const card=node('div',undefined,'card');card.append(node('h3',arm.policy==='blind'?'无反馈修订':'实际评测反馈'),node('p',`已终止 ${arm.terminal}/${arm.scheduled}；最终正确 ${arm.correct}，性能晋升 ${arm.promoted}。`),node('p',`运行中 ${arm.running}，待运行 ${arm.pending}；已记录 ${arm.proposals} 次提案，${arm.duplicate_proposals} 次重复；${arm.resource_interrupted_jobs||0} 次因资源问题提前终止。`,'small'));$('multiseed-arms').append(card)}
  for(const row of multiseed.tasks){const a=row.arms.blind,b=row.arms.feedback,tr=node('tr');const cell=r=>`${r.terminal?`${r.correct}/${r.terminal}`:'—'}；待 ${r.pending} / 运行中 ${r.running}`;for(const text of [taskNames[row.task_id]||row.task_id,cell(a),cell(b),`${a.promoted} / ${b.promoted}`])tr.append(node('td',text));$('multiseed-tasks').append(tr)}
  $('multiseed-conclusion').textContent=multiseed.status==='complete'?`全部 ${multiseed.scheduled} 次已终止。按任务平均的反馈－无反馈差异：正确性 ${(multiseed.contrasts.correct.macro_task_difference*100).toFixed(1)} 个百分点；晋升 ${(multiseed.contrasts.promoted.macro_task_difference*100).toFixed(1)} 个百分点。探索性区间和每种子差异见下载；不能单独作因果归因。`:'本轮尚未完成，暂不计算反馈收益、完整成功率或区间。首轮、每次修订与最终裁决均单独保留，后续失败不会选择性重跑。';
  $('multiseed-provenance').textContent=JSON.stringify({runtime:multiseed.runtime,generation:multiseed.generation,plan_sha256:multiseed.plan_sha256,budget_allocations:multiseed.budget_allocations,resource_wait:multiseed.resource_wait,checks:DATA.multiseed_checks,scope:multiseed.scope},null,2);
  $('download-multiseed').addEventListener('click',()=>download(multiseed,'agent-multiseed-summary.json'));
- $('download-checkpoint').addEventListener('click',()=>download(DATA.multiseed_checkpoint,'agent-multiseed-checkpoint.json'));
+ $('download-checkpoint').addEventListener('click',()=>downloadRaw(DATA.raw_multiseed_checkpoint,'agent-multiseed-checkpoint.json'));
+}
+const deferred=DATA.deferred_summary;
+if(deferred){
+ $('deferred').hidden=false;
+ const proposals=deferred.jobs.reduce((n,j)=>n+j.proposals,0),eligible=deferred.jobs.reduce((n,j)=>n+j.numerically_eligible_sources,0),complete=deferred.jobs.filter(j=>j.timing_status==='complete').length;
+ for(const [value,label] of [[String(proposals),'真实模型提案'],[String(eligible),'已保存的可测速源码'],[`${complete}/${deferred.scheduled}`,'完成独立测速的任务'],['GPU4','共卡数值检查']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('deferred-metrics').append(card)}
+ const phaseNotes={generation:['先推进 agent','本地模型生成源码，独立 GPU 进程检查搜索形状和数值。其他 CUDA 进程存在时仍可执行；数值通过只代表可以进入测速，不代表性能晋升。'],queue:['保留成果，独立恢复','可测速的唯一源码按 SHA 持久化。占用检查拒绝测速时，记录原因并保留队列；恢复不会再次请求模型。未知的纯评测可以重测，已提交的测量复用。'],selection:['先冻结选择，再打开最终数据','全部搜索测速结束后，按性能门槛和平均加速选择。选中 SHA 先落盘，随后检查最终形状；最终结果只接受或否决，不能反馈修复或重选源码。']};
+ const show=()=>{const [title,note]=phaseNotes[$('deferred-phase').value];$('deferred-phase-title').textContent=title;$('deferred-phase-note').textContent=note};show();$('deferred-phase').addEventListener('change',show);
+ for(const j of deferred.jobs){const before=j.shared_evaluations.map(a=>a.before).filter(Boolean),maxUsed=Math.max(0,...before.map(a=>a.used_mib)),resident=before.some(a=>a.pids.length),tr=node('tr');for(const t of [j.job.study_policy==='feedback'?'数值反馈修订':'无反馈修订',String(j.proposals),String(j.numerically_eligible_sources),resident?`存在其他 CUDA 进程；占用最高 ${maxUsed} MiB`:'未观察到驻留进程',j.timing_status==='complete'?'已完成':j.timing_status==='awaiting_measurement_resources'?'等待测量窗口':'已入队'])tr.append(node('td',t));$('deferred-table').append(tr)}
+ $('deferred-conclusion').textContent=complete===deferred.scheduled?`阶段分离的生成和独立测量均已结束；最终正确 ${deferred.jobs.filter(j=>j.correct).length}/${deferred.scheduled}，晋升 ${deferred.jobs.filter(j=>j.promoted).length}/${deferred.scheduled}。这是工程集成试跑，不是反馈收益对照。`:`已完成生成并保存 ${eligible} 份可测速源码。尚有 ${deferred.scheduled-complete} 个任务等待独立测量，不报告其速度、最终正确性或性能晋升。`;
+ $('deferred-provenance').textContent=JSON.stringify({summary:deferred,checks:DATA.delivery_checks},null,2);
+ $('download-deferred').addEventListener('click',()=>downloadRaw(DATA.raw_deferred_evidence,'deferred-evaluation.json'));
 }
 const recovery=DATA.recovery_validation, nextPlan=DATA.multiseed_preflight;
 if(recovery){
@@ -269,7 +297,7 @@ if(recovery){
   }
   $('recovery-note').textContent=phase==='before'?'A 的结果已提交，B 的预算预留和调用状态已落盘，C 尚未调用。此时对测试子进程发送 SIGKILL。':'A 的结果 SHA 完全复用；B 保留为未知并占据原分母；C 完成。再次启动不新增调用。以上使用测试驱动，不计入 GPU 成绩。';
  }
- const check=DATA.upgrade_checks;
+ const check=DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
  $('upgrade-checks').textContent=check?`${check.passed_tests} 项机制与证据检查通过；lint、脚本语法和离线审计通过。`:'SIGKILL 场景与恢复断言通过；机制检查详见项目测试记录。';
  $('multiseed-note').textContent=multiseed?`旧 GPU6 计划保留为零启动的预检记录；修正评测解释器后，新计划在 GPU${multiseed.runtime.gpu_index} 上运行。已终止 ${multiseed.terminal}/${multiseed.scheduled}，结果与进度见上方多种子章节。`:nextPlan?`冻结 ${nextPlan.summary.scheduled} 次运行、108 次提案机会；已启动 ${nextPlan.summary.terminal} 次。状态：等待资源。预检记录：${nextPlan.last_event.error}。预算预留仍为 0。`:'扩展实验尚未启动。';
  $('recovery-detail').textContent=JSON.stringify({assertions:recovery.assertions,summary:recovery.summary,next_plan:nextPlan},null,2);
@@ -277,7 +305,8 @@ if(recovery){
  $('download-recovery').addEventListener('click',()=>download(recovery,'campaign-recovery-validation.json'));
  showRecovery();
 }
-$('tests-note').textContent=(DATA.validation||'流程单元与集成检查见项目 tests/。')+(DATA.upgrade_checks?` 当前工程升级 ${DATA.upgrade_checks.passed_tests} 项检查通过，CPU 恢复测试另见调度章节。`:'');$('provenance').textContent=JSON.stringify({metadata:study.metadata,upstreams:DATA.upstreams,study_status:study.status},null,2);$('startup').append(node('p','启动诊断文件：'+(DATA.startup_files||[]).join('、'),'small'));$('generated').textContent=DATA.generated_utc;showSpeed();showRun();
+const currentChecks=DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+$('tests-note').textContent=(DATA.validation||'流程单元与集成检查见项目 tests/。')+(currentChecks?` 当前工程 ${currentChecks.passed_tests} 项检查通过，CPU 恢复测试另见调度章节。`:'');$('provenance').textContent=JSON.stringify({metadata:study.metadata,upstreams:DATA.upstreams,study_status:study.status},null,2);$('startup').append(node('p','启动诊断文件：'+(DATA.startup_files||[]).join('、'),'small'));$('generated').textContent=DATA.generated_utc;showSpeed();showRun();
 if(isSelectorValidation&&DATA.selector_validation_audit){$('selector-delivery').hidden=false;$('selector-delivery-data').textContent=JSON.stringify(DATA.selector_validation_audit,null,2)}
 </script>
 </body></html>

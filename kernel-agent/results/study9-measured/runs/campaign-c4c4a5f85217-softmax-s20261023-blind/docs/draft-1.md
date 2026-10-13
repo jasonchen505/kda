@@ -1,0 +1,1 @@
+Row-wise softmax on last dim of 2D contiguous tensor. One program per row. Load row with mask, compute max in FP32, exp, sum, divide. Store with mask. Preserve dtype by casting input to FP32 for compute, output stored as original dtype. Support odd column counts via power-of-two block masking.

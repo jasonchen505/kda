@@ -1,0 +1,1 @@
+1. Use 64x64 blocks for all matrix sizes to maximize memory coalescing. 2. Keep the same kernel structure with proper masking for odd dimensions. 3. Ensure output is contiguous and correctly shaped. 4. Maintain input immutability and support all contracted shapes.

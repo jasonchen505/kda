@@ -30,6 +30,8 @@ ALIAS = "kernel-qwen-local-27b"
 def source_hashes():
     paths = ["flows/kernel_loop.py", "scripts/run_campaign.py", "scripts/local_proxy.py",
              "scripts/evaluate_candidate.py", "scripts/evaluate_checked.py", "docs/measurement-guard.md",
+             "scripts/evaluate_shared.py", "scripts/run_deferred.py",
+             "docs/deferred-evaluation.md",
              "data/tasks.json", "data/opencode-qwen27.json",
              "results/qwen27-asset-manifest.json", "docs/multiseed-study-plan.md", "pyproject.toml", "uv.lock"]
     paths += [str(p.relative_to(ROOT)) for folder in ("src/kernel_agent", "references")
@@ -214,6 +216,8 @@ def execute(plan, job, trace_root):
         os.environ["OPENCODE_CONFIG_CONTENT"] = json.dumps(config)
         print(json.dumps({"starting": job["id"]}), flush=True)
         budget = plan["per_job_budget"]
+        deferred = generation.get("evaluation_mode") == "deferred"
+        evaluator_script = "evaluate_shared.py" if deferred else "evaluate_checked.py"
         result = Hmz(ROOT).run(str(ROOT / "flows/kernel_loop.py"),
                               fixture["contract"] + "\nVisible examples: " + json.dumps(fixture["examples"]),
                               agents={"builder": f"opencode/kernel-local/{ALIAS}"},
@@ -223,8 +227,9 @@ def execute(plan, job, trace_root):
                                       "run_id": run_id, "mode": generation["mode"], "rounds": generation["rounds"],
                                       "proposal_format": generation["proposal_format"],
                                       "selection_policy": generation["selection_policy"],
+                                      "evaluation_mode": "deferred" if deferred else "integrated",
                                       "evaluator": [plan["runtime"]["gpu_python"],
-                                                    str(ROOT / "scripts/evaluate_checked.py"), "--gpu-index",
+                                                    str(ROOT / "scripts" / evaluator_script), "--gpu-index",
                                                     str(plan["runtime"]["gpu_index"])]}).run()
     if source_hashes() != plan["source_sha256"]:
         raise ValueError("measured sources changed during a job")

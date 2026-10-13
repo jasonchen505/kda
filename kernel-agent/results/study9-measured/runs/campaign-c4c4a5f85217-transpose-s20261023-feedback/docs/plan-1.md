@@ -1,0 +1,1 @@
+1. Parse input shape (M, N). 2. Allocate output (N, M). 3. Define kernel with BLOCK_M, BLOCK_N constexpr. 4. Compute 2D program IDs. 5. Build row/col offsets for input tile. 6. Load with mask (row < M, col < N). 7. Transpose via tl.trans. 8. Store to output with mask (out_row < N, out_col < M). 9. Launch with grid covering ceil(M/BM) x ceil(N/BN).

@@ -1,0 +1,1 @@
+Row-wise softmax on last dim. Single Triton kernel, one program per row. Load row with mask, subtract max, exp, sum, divide. Store masked. FP32 math internally, cast output to input dtype. Supports odd cols via power-of-two BLOCK_SIZE and masks.

@@ -1,0 +1,1 @@
+1. Allocate output via torch.empty_like. 2. Launch Triton kernel with BLOCK_SIZE=1024. 3. Kernel: compute offsets, mask, load x/y to FP32, compute silu(x)*y in FP32, cast to output dtype, store. 4. Return output.

@@ -1,0 +1,1 @@
+Row-wise softmax on last dim for 2D contiguous CUDA tensors (FP32/BF16). One Triton kernel per row, BLOCK_SIZE = next_pow2(n_cols). Load with mask (other=-inf), subtract max, exp, sum, divide, store masked. FP32 math internally. Host run() allocates output, launches grid=(n_rows,), returns output.

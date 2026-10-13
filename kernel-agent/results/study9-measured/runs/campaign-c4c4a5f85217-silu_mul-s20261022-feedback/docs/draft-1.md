@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y kernel. Load x,y as FP32, compute sigmoid in FP32, multiply, cast to output dtype once. Masked loads/stores for odd sizes. Single 1D grid.

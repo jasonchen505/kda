@@ -4,7 +4,7 @@ import pytest
 
 from kernel_agent.campaign import Campaign
 from scripts.run_campaign import make_plan
-from scripts.summarize_campaign import digest, summarize
+from scripts.summarize_campaign import digest, same_decision, summarize
 from scripts.validate_recovery import fake_flow
 
 
@@ -75,3 +75,11 @@ def test_guarded_results_require_occupancy_evidence(tmp_path):
     state["state_sha256"] = digest(state)
     with pytest.raises(ValueError, match="guarded search evidence missing"):
         summarize(state)
+
+
+def test_cross_platform_one_ulp_difference_does_not_weaken_verdict_checks():
+    actual = {"correct": True, "promoted": False, "geomean_speedup": .5363117184387787}
+    recorded = {**actual, "geomean_speedup": .5363117184387788}
+    assert same_decision(actual, recorded)
+    assert not same_decision(actual, {**recorded, "promoted": True})
+    assert not same_decision(actual, {**recorded, "geomean_speedup": .54})

@@ -1,0 +1,1 @@
+Optimize transpose by using larger 64x64 blocks for all shapes to improve memory coalescing and reduce kernel launch overhead. The previous 32x32 blocks for small matrices caused suboptimal performance. Larger blocks better utilize GPU memory bandwidth for the data movement pattern.

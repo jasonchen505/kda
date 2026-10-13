@@ -1,0 +1,1 @@
+1. Use BLOCK_SIZE=1024 for cols<=1024 to handle most shapes in one iteration. 2. Use BLOCK_SIZE=2048 for cols>1024 to reduce iterations for large shapes. 3. Keep FP32 accumulation and single cast at output. 4. Maintain grid=(rows,) for one program per row.

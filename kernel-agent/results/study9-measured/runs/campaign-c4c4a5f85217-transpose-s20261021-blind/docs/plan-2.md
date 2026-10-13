@@ -1,0 +1,1 @@
+1) Compute M,N. 2) Choose block size: 64 if min(M,N)>=64 else 32. 3) 2D grid over M and N tiles. 4) Load tile from x with row/col masks, transpose, store to out with transposed masks. 5) Return out.

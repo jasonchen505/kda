@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Compute BLOCK_SIZE = next_power_of_2(n_cols). 3. Launch grid with min(n_rows, max_blocks) programs. 4. Kernel loops over rows with stride. 5. Load, mask, max, exp, sum, divide, store. 6. Return output.

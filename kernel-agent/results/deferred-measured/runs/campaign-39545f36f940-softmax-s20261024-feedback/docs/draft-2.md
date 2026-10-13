@@ -1,0 +1,1 @@
+Single-pass row softmax kernel. Loads row with -inf mask, computes max/exp/sum in FP32, stores in input dtype. Uses persistent loop for small row counts to improve occupancy. BLOCK_SIZE is next power of two of n_cols.

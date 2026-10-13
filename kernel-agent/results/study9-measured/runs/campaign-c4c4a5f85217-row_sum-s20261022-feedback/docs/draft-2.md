@@ -1,0 +1,1 @@
+Optimize row-sum by selecting block size based on column count to reduce loop overhead for small widths and maximize memory throughput for large widths. Use 128 for cols<=128, 256 for cols<=256, 512 for cols<=512, and 1024 otherwise. This targets the worst-case small shape [7, 257] where the previous fixed 1024 block caused excessive masking overhead.

@@ -1,0 +1,1 @@
+1. Add PERSISTENT constexpr flag. 2. In kernel, if PERSISTENT, loop over rows with stride; else single row. 3. In run(), set PERSISTENT=True when n_rows < 32. 4. Keep BLOCK_SIZE as next_power_of_2(n_cols). 5. Ensure FP32 reduction and correct masking.

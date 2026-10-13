@@ -1,0 +1,1 @@
+1. Increase BLOCK_R and BLOCK_C to 64. 2. Keep 2D grid. 3. Ensure output allocation is contiguous. 4. Verify masking logic for odd sizes.

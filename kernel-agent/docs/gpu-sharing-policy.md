@@ -17,16 +17,21 @@ describes shared-resource activity and clock/cache controls for reproducible mea
 Its recommendations are measurement guidance, not a prohibition on ordinary concurrent CUDA
 execution. This project uses a separate CUDA-graph evaluator, not Nsight Compute itself.
 
-## Current versus intended architecture
+## Two implemented execution modes
 
 The frozen guarded campaign uses the deliberately conservative policy documented in
 `measurement-guard.md`: wait for a nearly empty device and reject foreign PIDs at evaluator
 boundaries. This can reject an idle resident model. It cannot detect all short-lived
 interference. Neither property should be presented as perfect resource isolation.
 
-The more resource-efficient next architecture separates numerical validation from timing:
-allow shared generation/compilation/correctness work, then queue timing for a controlled
-measurement window. Alternatively, fix and record an explicit co-running workload and
-report shared-environment performance as its own experimental condition. Those measurements
-must not be described as standalone kernel speedups. This separation is not yet implemented
-in the frozen campaign, whose source/runtime plan must not change mid-experiment.
+The new deferred mode separates numerical validation from timing: shared generation and
+search correctness checks produce a durable candidate queue, then a different invocation
+performs guarded search measurements and the final veto. Its implementation, tradeoff and
+separate pilot are described in `deferred-evaluation.md`. The model receives numerical
+feedback only in this mode. It does not receive delayed timing or final-data feedback.
+
+The original integrated campaign remains frozen and uses its original immediate performance
+feedback and conservative occupancy policy. Its source/runtime plan is not changed to make
+remaining jobs easier to run. The two modes' results are not pooled. A controlled co-running
+workload could be another experimental condition, but shared-environment timings would need
+their own label and must not be called standalone kernel speedups.

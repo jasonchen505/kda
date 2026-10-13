@@ -1,0 +1,1 @@
+Allocate output (rows,) same dtype/device. Launch kernel with BLOCK_SIZE=1024. Kernel: row=pid(0), loop cols in steps of BLOCK, load masked, sum in fp32, store once.

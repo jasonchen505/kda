@@ -1,0 +1,439 @@
+[
+  {
+    "iteration": 1,
+    "parent_sha256": null,
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns stable row softmax on the last dimension of a contiguous 2D CUDA tensor, dtype float32 or bfloat16. Reference: torch.softmax(x.float(), dim=-1).to(x.dtype). Preserve dtype, shape and input. Rows 1..256; columns 1..2048, including non-power-of-two columns. FP32 reductions.\nVisible examples: [[16, 128], [64, 512]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef softmax_kernel(output_ptr, input_ptr, input_row_stride, output_row_stride, n_rows, n_cols, BLOCK_SIZE: tl.constexpr,\n                   num_stages: tl.constexpr):\n    # starting row of the program\n    row_start = tl.program_id(0)\n    row_step = tl.num_programs(0)\n    for row_idx in tl.range(row_start, n_rows, row_step, num_stages=num_stages):\n        # The stride represents how much we need to increase the pointer to advance 1 row\n        row_start_ptr = input_ptr + row_idx * input_row_stride\n        # The block size is the next power of two greater than n_cols, so we can fit each\n        # row in a single block\n        col_offsets = tl.arange(0, BLOCK_SIZE)\n        input_ptrs = row_start_ptr + col_offsets\n        # Load the row into SRAM, using a mask since BLOCK_SIZE may be > than n_cols\n        mask = col_offsets < n_cols\n        row = tl.load(input_ptrs, mask=mask, other=-float('inf'))\n        # Subtract maximum for numerical stability\n        row_minus_max = row - tl.max(row, axis=0)\n        # Note that exponentiation in Triton is fast but approximate (i.e., think __expf in CUDA)\n        numerator = tl.exp(row_minus_max)\n        denominator = tl.sum(numerator, axis=0)\n        softmax_output = numerator / denominator\n        # Write back output to DRAM\n        output_row_start_ptr = output_ptr + row_idx * output_row_stride\n        output_ptrs = output_row_start_ptr + col_offsets\n        tl.store(output_ptrs, softmax_output, mask=mask)\n\nProposal 1 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Row-wise softmax on last dim for 2D contiguous CUDA tensors (FP32/BF16). One Triton kernel per row, BLOCK_SIZE = next_pow2(n_cols). Load with mask (other=-inf), subtract max, exp, sum, divide, store masked. FP32 math internally. Host run() allocates output, launches grid=(n_rows,), returns output.\",\n  \"plan\": \"1. run(x): validate 2D contiguous, get n_rows, n_cols, dtype. 2. Allocate out = torch.empty_like(x). 3. BLOCK_SIZE = triton.next_power_of_2(n_cols). 4. Launch softmax_kernel with grid=(n_rows,), passing x, out, strides, n_cols, BLOCK_SIZE. 5. Kernel: program_id(0) = row, load row with mask, max, exp, sum, divide, store. 6. Return out.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"\",\n    \"@triton.jit\",\n    \"def _softmax_kernel(\",\n    \"    input_ptr,\",\n    \"    output_ptr,\",\n    \"    input_row_stride,\",\n    \"    output_row_stride,\",\n    \"    n_cols,\",\n    \"    BLOCK_SIZE: tl.constexpr,\",\n    \"):\",\n    \"    row_idx = tl.program_id(0)\",\n    \"    col_offsets = tl.arange(0, BLOCK_SIZE)\",\n    \"    mask = col_offsets < n_cols\",\n    \"    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\",\n    \"    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\",\n    \"    row_max = tl.max(row, axis=0)\",\n    \"    numerator = tl.exp(row - row_max)\",\n    \"    denominator = tl.sum(numerator, axis=0)\",\n    \"    softmax_output = numerator / denominator\",\n    \"    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\",\n    \"    tl.store(output_ptrs, softmax_output, mask=mask)\",\n    \"\",\n    \"\",\n    \"def run(x: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda, \\\"input must be a CUDA tensor\\\"\",\n    \"    assert x.dim() == 2, \\\"input must be 2D\\\"\",\n    \"    assert x.is_contiguous(), \\\"input must be contiguous\\\"\",\n    \"    assert x.dtype in (torch.float32, torch.bfloat16), \\\"dtype must be float32 or bfloat16\\\"\",\n    \"\",\n    \"    n_rows, n_cols = x.shape\",\n    \"    out = torch.empty_like(x)\",\n    \"\",\n    \"    BLOCK_SIZE = triton.next_power_of_2(n_cols)\",\n    \"\",\n    \"    _softmax_kernel[(n_rows,)](\",\n    \"        x,\",\n    \"        out,\",\n    \"        x.stride(0),\",\n    \"        out.stride(0),\",\n    \"        n_cols,\",\n    \"        BLOCK_SIZE=BLOCK_SIZE,\",\n    \"    )\",\n    \"\",\n    \"    return out\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _softmax_kernel(\n    input_ptr,\n    output_ptr,\n    input_row_stride,\n    output_row_stride,\n    n_cols,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row_idx = tl.program_id(0)\n    col_offsets = tl.arange(0, BLOCK_SIZE)\n    mask = col_offsets < n_cols\n    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\n    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\n    row_max = tl.max(row, axis=0)\n    numerator = tl.exp(row - row_max)\n    denominator = tl.sum(numerator, axis=0)\n    softmax_output = numerator / denominator\n    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\n    tl.store(output_ptrs, softmax_output, mask=mask)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda, \"input must be a CUDA tensor\"\n    assert x.dim() == 2, \"input must be 2D\"\n    assert x.is_contiguous(), \"input must be contiguous\"\n    assert x.dtype in (torch.float32, torch.bfloat16), \"dtype must be float32 or bfloat16\"\n\n    n_rows, n_cols = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(n_cols)\n\n    _softmax_kernel[(n_rows,)](\n        x,\n        out,\n        x.stride(0),\n        out.stride(0),\n        n_cols,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n\n    return out\n",
+    "source_sha256": "0343106a44209311bb2cc0abad85414a4694ed0241539266abc5528a542f3627",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _softmax_kernel(\n    input_ptr,\n    output_ptr,\n    input_row_stride,\n    output_row_stride,\n    n_cols,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row_idx = tl.program_id(0)\n    col_offsets = tl.arange(0, BLOCK_SIZE)\n    mask = col_offsets < n_cols\n    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\n    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\n    row_max = tl.max(row, axis=0)\n    numerator = tl.exp(row - row_max)\n    denominator = tl.sum(numerator, axis=0)\n    softmax_output = numerator / denominator\n    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\n    tl.store(output_ptrs, softmax_output, mask=mask)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda, \"input must be a CUDA tensor\"\n    assert x.dim() == 2, \"input must be 2D\"\n    assert x.is_contiguous(), \"input must be contiguous\"\n    assert x.dtype in (torch.float32, torch.bfloat16), \"dtype must be float32 or bfloat16\"\n\n    n_rows, n_cols = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(n_cols)\n\n    _softmax_kernel[(n_rows,)](\n        x,\n        out,\n        x.stride(0),\n        out.stride(0),\n        n_cols,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "0343106a44209311bb2cc0abad85414a4694ed0241539266abc5528a542f3627",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.2431986397132277,
+          "candidate_us": 1.2271578889340162,
+          "samples_us": {
+            "compiled": [
+              1.2455465039238334,
+              1.2431986397132277,
+              1.241470454260707
+            ],
+            "candidate": [
+              1.2271578889340162,
+              1.2211281573399901,
+              1.2322606053203344
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.0503464620560408,
+          "candidate_us": 1.546366373077035,
+          "samples_us": {
+            "compiled": [
+              2.0503464620560408,
+              2.0416167099028826,
+              2.0589616615325212
+            ],
+            "candidate": [
+              1.546366373077035,
+              1.5475789550691843,
+              1.5407073078677058
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            2048
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.677404787391424,
+          "candidate_us": 1.765143359079957,
+          "samples_us": {
+            "compiled": [
+              2.6765037328004837,
+              2.677404787391424,
+              2.678294898942113
+            ],
+            "candidate": [
+              1.765143359079957,
+              1.7655916744843125,
+              1.7578568076714873
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T14:12:42.852516+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T14:12:53.115997+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": true,
+      "geomean_speedup": 1.2677384536108403,
+      "worst_speedup": 1.0130714644984644,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 186.00543234869838,
+    "usage": {
+      "duration": "PT2M55.627418S",
+      "cost": 0.0,
+      "output_tokens": 722
+    }
+  },
+  {
+    "iteration": 2,
+    "parent_sha256": "0343106a44209311bb2cc0abad85414a4694ed0241539266abc5528a542f3627",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns stable row softmax on the last dimension of a contiguous 2D CUDA tensor, dtype float32 or bfloat16. Reference: torch.softmax(x.float(), dim=-1).to(x.dtype). Preserve dtype, shape and input. Rows 1..256; columns 1..2048, including non-power-of-two columns. FP32 reductions.\nVisible examples: [[16, 128], [64, 512]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef softmax_kernel(output_ptr, input_ptr, input_row_stride, output_row_stride, n_rows, n_cols, BLOCK_SIZE: tl.constexpr,\n                   num_stages: tl.constexpr):\n    # starting row of the program\n    row_start = tl.program_id(0)\n    row_step = tl.num_programs(0)\n    for row_idx in tl.range(row_start, n_rows, row_step, num_stages=num_stages):\n        # The stride represents how much we need to increase the pointer to advance 1 row\n        row_start_ptr = input_ptr + row_idx * input_row_stride\n        # The block size is the next power of two greater than n_cols, so we can fit each\n        # row in a single block\n        col_offsets = tl.arange(0, BLOCK_SIZE)\n        input_ptrs = row_start_ptr + col_offsets\n        # Load the row into SRAM, using a mask since BLOCK_SIZE may be > than n_cols\n        mask = col_offsets < n_cols\n        row = tl.load(input_ptrs, mask=mask, other=-float('inf'))\n        # Subtract maximum for numerical stability\n        row_minus_max = row - tl.max(row, axis=0)\n        # Note that exponentiation in Triton is fast but approximate (i.e., think __expf in CUDA)\n        numerator = tl.exp(row_minus_max)\n        denominator = tl.sum(numerator, axis=0)\n        softmax_output = numerator / denominator\n        # Write back output to DRAM\n        output_row_start_ptr = output_ptr + row_idx * output_row_stride\n        output_ptrs = output_row_start_ptr + col_offsets\n        tl.store(output_ptrs, softmax_output, mask=mask)\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _softmax_kernel(\n    input_ptr,\n    output_ptr,\n    input_row_stride,\n    output_row_stride,\n    n_cols,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row_idx = tl.program_id(0)\n    col_offsets = tl.arange(0, BLOCK_SIZE)\n    mask = col_offsets < n_cols\n    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\n    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\n    row_max = tl.max(row, axis=0)\n    numerator = tl.exp(row - row_max)\n    denominator = tl.sum(numerator, axis=0)\n    softmax_output = numerator / denominator\n    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\n    tl.store(output_ptrs, softmax_output, mask=mask)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda, \"input must be a CUDA tensor\"\n    assert x.dim() == 2, \"input must be 2D\"\n    assert x.is_contiguous(), \"input must be contiguous\"\n    assert x.dtype in (torch.float32, torch.bfloat16), \"dtype must be float32 or bfloat16\"\n\n    n_rows, n_cols = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(n_cols)\n\n    _softmax_kernel[(n_rows,)](\n        x,\n        out,\n        x.stride(0),\n        out.stride(0),\n        n_cols,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n\n    return out\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nProposal 2 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Single-pass row softmax. One program per row. Load row as FP32 with -inf mask, subtract max, exp, sum, divide, store. BLOCK_SIZE is next power of two of n_cols. Handles odd sizes via mask. Preserves dtype and shape.\",\n  \"plan\": \"1. Allocate output with torch.empty_like. 2. Compute BLOCK_SIZE = next_power_of_2(n_cols). 3. Launch grid (n_rows,). 4. Kernel: load row to FP32, mask invalid cols with -inf. 5. Compute max, exp(x-max), sum, divide. 6. Store result cast to output dtype. 7. Return output.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"\",\n    \"@triton.jit\",\n    \"def _softmax_kernel(\",\n    \"    input_ptr,\",\n    \"    output_ptr,\",\n    \"    input_row_stride,\",\n    \"    output_row_stride,\",\n    \"    n_cols,\",\n    \"    BLOCK_SIZE: tl.constexpr,\",\n    \"):\",\n    \"    row_idx = tl.program_id(0)\",\n    \"    col_offsets = tl.arange(0, BLOCK_SIZE)\",\n    \"    mask = col_offsets < n_cols\",\n    \"    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\",\n    \"    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\",\n    \"    row_max = tl.max(row, axis=0)\",\n    \"    numerator = tl.exp(row - row_max)\",\n    \"    denominator = tl.sum(numerator, axis=0)\",\n    \"    softmax_output = numerator / denominator\",\n    \"    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\",\n    \"    tl.store(output_ptrs, softmax_output, mask=mask)\",\n    \"\",\n    \"\",\n    \"def run(x: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda, \\\"input must be a CUDA tensor\\\"\",\n    \"    assert x.dim() == 2, \\\"input must be 2D\\\"\",\n    \"    assert x.is_contiguous(), \\\"input must be contiguous\\\"\",\n    \"    assert x.dtype in (torch.float32, torch.bfloat16), \\\"dtype must be float32 or bfloat16\\\"\",\n    \"\",\n    \"    n_rows, n_cols = x.shape\",\n    \"    out = torch.empty_like(x)\",\n    \"\",\n    \"    BLOCK_SIZE = triton.next_power_of_2(n_cols)\",\n    \"\",\n    \"    _softmax_kernel[(n_rows,)](\",\n    \"        x,\",\n    \"        out,\",\n    \"        x.stride(0),\",\n    \"        out.stride(0),\",\n    \"        n_cols,\",\n    \"        BLOCK_SIZE=BLOCK_SIZE,\",\n    \"    )\",\n    \"\",\n    \"    return out\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _softmax_kernel(\n    input_ptr,\n    output_ptr,\n    input_row_stride,\n    output_row_stride,\n    n_cols,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row_idx = tl.program_id(0)\n    col_offsets = tl.arange(0, BLOCK_SIZE)\n    mask = col_offsets < n_cols\n    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\n    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\n    row_max = tl.max(row, axis=0)\n    numerator = tl.exp(row - row_max)\n    denominator = tl.sum(numerator, axis=0)\n    softmax_output = numerator / denominator\n    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\n    tl.store(output_ptrs, softmax_output, mask=mask)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda, \"input must be a CUDA tensor\"\n    assert x.dim() == 2, \"input must be 2D\"\n    assert x.is_contiguous(), \"input must be contiguous\"\n    assert x.dtype in (torch.float32, torch.bfloat16), \"dtype must be float32 or bfloat16\"\n\n    n_rows, n_cols = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(n_cols)\n\n    _softmax_kernel[(n_rows,)](\n        x,\n        out,\n        x.stride(0),\n        out.stride(0),\n        n_cols,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n\n    return out\n",
+    "source_sha256": "0343106a44209311bb2cc0abad85414a4694ed0241539266abc5528a542f3627",
+    "duplicate_of": 1,
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _softmax_kernel(\n    input_ptr,\n    output_ptr,\n    input_row_stride,\n    output_row_stride,\n    n_cols,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row_idx = tl.program_id(0)\n    col_offsets = tl.arange(0, BLOCK_SIZE)\n    mask = col_offsets < n_cols\n    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\n    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\n    row_max = tl.max(row, axis=0)\n    numerator = tl.exp(row - row_max)\n    denominator = tl.sum(numerator, axis=0)\n    softmax_output = numerator / denominator\n    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\n    tl.store(output_ptrs, softmax_output, mask=mask)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda, \"input must be a CUDA tensor\"\n    assert x.dim() == 2, \"input must be 2D\"\n    assert x.is_contiguous(), \"input must be contiguous\"\n    assert x.dtype in (torch.float32, torch.bfloat16), \"dtype must be float32 or bfloat16\"\n\n    n_rows, n_cols = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(n_cols)\n\n    _softmax_kernel[(n_rows,)](\n        x,\n        out,\n        x.stride(0),\n        out.stride(0),\n        n_cols,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "0343106a44209311bb2cc0abad85414a4694ed0241539266abc5528a542f3627",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.2431986397132277,
+          "candidate_us": 1.2271578889340162,
+          "samples_us": {
+            "compiled": [
+              1.2455465039238334,
+              1.2431986397132277,
+              1.241470454260707
+            ],
+            "candidate": [
+              1.2271578889340162,
+              1.2211281573399901,
+              1.2322606053203344
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.0503464620560408,
+          "candidate_us": 1.546366373077035,
+          "samples_us": {
+            "compiled": [
+              2.0503464620560408,
+              2.0416167099028826,
+              2.0589616615325212
+            ],
+            "candidate": [
+              1.546366373077035,
+              1.5475789550691843,
+              1.5407073078677058
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            2048
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.677404787391424,
+          "candidate_us": 1.765143359079957,
+          "samples_us": {
+            "compiled": [
+              2.6765037328004837,
+              2.677404787391424,
+              2.678294898942113
+            ],
+            "candidate": [
+              1.765143359079957,
+              1.7655916744843125,
+              1.7578568076714873
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T14:12:42.852516+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T14:12:53.115997+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": true,
+      "geomean_speedup": 1.2677384536108403,
+      "worst_speedup": 1.0130714644984644,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 199.543911639601,
+    "usage": {
+      "duration": "PT3M19.507724S",
+      "cost": 0.0,
+      "output_tokens": 674
+    }
+  },
+  {
+    "iteration": 3,
+    "parent_sha256": "0343106a44209311bb2cc0abad85414a4694ed0241539266abc5528a542f3627",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns stable row softmax on the last dimension of a contiguous 2D CUDA tensor, dtype float32 or bfloat16. Reference: torch.softmax(x.float(), dim=-1).to(x.dtype). Preserve dtype, shape and input. Rows 1..256; columns 1..2048, including non-power-of-two columns. FP32 reductions.\nVisible examples: [[16, 128], [64, 512]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef softmax_kernel(output_ptr, input_ptr, input_row_stride, output_row_stride, n_rows, n_cols, BLOCK_SIZE: tl.constexpr,\n                   num_stages: tl.constexpr):\n    # starting row of the program\n    row_start = tl.program_id(0)\n    row_step = tl.num_programs(0)\n    for row_idx in tl.range(row_start, n_rows, row_step, num_stages=num_stages):\n        # The stride represents how much we need to increase the pointer to advance 1 row\n        row_start_ptr = input_ptr + row_idx * input_row_stride\n        # The block size is the next power of two greater than n_cols, so we can fit each\n        # row in a single block\n        col_offsets = tl.arange(0, BLOCK_SIZE)\n        input_ptrs = row_start_ptr + col_offsets\n        # Load the row into SRAM, using a mask since BLOCK_SIZE may be > than n_cols\n        mask = col_offsets < n_cols\n        row = tl.load(input_ptrs, mask=mask, other=-float('inf'))\n        # Subtract maximum for numerical stability\n        row_minus_max = row - tl.max(row, axis=0)\n        # Note that exponentiation in Triton is fast but approximate (i.e., think __expf in CUDA)\n        numerator = tl.exp(row_minus_max)\n        denominator = tl.sum(numerator, axis=0)\n        softmax_output = numerator / denominator\n        # Write back output to DRAM\n        output_row_start_ptr = output_ptr + row_idx * output_row_stride\n        output_ptrs = output_row_start_ptr + col_offsets\n        tl.store(output_ptrs, softmax_output, mask=mask)\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _softmax_kernel(\n    input_ptr,\n    output_ptr,\n    input_row_stride,\n    output_row_stride,\n    n_cols,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row_idx = tl.program_id(0)\n    col_offsets = tl.arange(0, BLOCK_SIZE)\n    mask = col_offsets < n_cols\n    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\n    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\n    row_max = tl.max(row, axis=0)\n    numerator = tl.exp(row - row_max)\n    denominator = tl.sum(numerator, axis=0)\n    softmax_output = numerator / denominator\n    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\n    tl.store(output_ptrs, softmax_output, mask=mask)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda, \"input must be a CUDA tensor\"\n    assert x.dim() == 2, \"input must be 2D\"\n    assert x.is_contiguous(), \"input must be contiguous\"\n    assert x.dtype in (torch.float32, torch.bfloat16), \"dtype must be float32 or bfloat16\"\n\n    n_rows, n_cols = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(n_cols)\n\n    _softmax_kernel[(n_rows,)](\n        x,\n        out,\n        x.stride(0),\n        out.stride(0),\n        n_cols,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n\n    return out\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nProposal 3 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Single-pass row softmax. One program per row. Load row as FP32 with -inf mask, subtract max, exp, sum, divide, store. BLOCK_SIZE is next power of two of columns. Preserves dtype and shape.\",\n  \"plan\": \"1. Validate input. 2. Allocate output. 3. Compute BLOCK_SIZE. 4. Launch kernel with grid (n_rows,). 5. Kernel loads row, computes softmax in FP32, stores. 6. Return output.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"\",\n    \"@triton.jit\",\n    \"def _softmax_kernel(\",\n    \"    input_ptr,\",\n    \"    output_ptr,\",\n    \"    input_row_stride,\",\n    \"    output_row_stride,\",\n    \"    n_cols,\",\n    \"    BLOCK_SIZE: tl.constexpr,\",\n    \"):\",\n    \"    row_idx = tl.program_id(0)\",\n    \"    col_offsets = tl.arange(0, BLOCK_SIZE)\",\n    \"    mask = col_offsets < n_cols\",\n    \"    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\",\n    \"    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\",\n    \"    row_max = tl.max(row, axis=0)\",\n    \"    numerator = tl.exp(row - row_max)\",\n    \"    denominator = tl.sum(numerator, axis=0)\",\n    \"    softmax_output = numerator / denominator\",\n    \"    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\",\n    \"    tl.store(output_ptrs, softmax_output, mask=mask)\",\n    \"\",\n    \"\",\n    \"def run(x: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda, \\\"input must be a CUDA tensor\\\"\",\n    \"    assert x.dim() == 2, \\\"input must be 2D\\\"\",\n    \"    assert x.is_contiguous(), \\\"input must be contiguous\\\"\",\n    \"    assert x.dtype in (torch.float32, torch.bfloat16), \\\"dtype must be float32 or bfloat16\\\"\",\n    \"\",\n    \"    n_rows, n_cols = x.shape\",\n    \"    out = torch.empty_like(x)\",\n    \"\",\n    \"    BLOCK_SIZE = triton.next_power_of_2(n_cols)\",\n    \"\",\n    \"    _softmax_kernel[(n_rows,)](\",\n    \"        x,\",\n    \"        out,\",\n    \"        x.stride(0),\",\n    \"        out.stride(0),\",\n    \"        n_cols,\",\n    \"        BLOCK_SIZE=BLOCK_SIZE,\",\n    \"    )\",\n    \"\",\n    \"    return out\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _softmax_kernel(\n    input_ptr,\n    output_ptr,\n    input_row_stride,\n    output_row_stride,\n    n_cols,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row_idx = tl.program_id(0)\n    col_offsets = tl.arange(0, BLOCK_SIZE)\n    mask = col_offsets < n_cols\n    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\n    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\n    row_max = tl.max(row, axis=0)\n    numerator = tl.exp(row - row_max)\n    denominator = tl.sum(numerator, axis=0)\n    softmax_output = numerator / denominator\n    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\n    tl.store(output_ptrs, softmax_output, mask=mask)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda, \"input must be a CUDA tensor\"\n    assert x.dim() == 2, \"input must be 2D\"\n    assert x.is_contiguous(), \"input must be contiguous\"\n    assert x.dtype in (torch.float32, torch.bfloat16), \"dtype must be float32 or bfloat16\"\n\n    n_rows, n_cols = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(n_cols)\n\n    _softmax_kernel[(n_rows,)](\n        x,\n        out,\n        x.stride(0),\n        out.stride(0),\n        n_cols,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n\n    return out\n",
+    "source_sha256": "0343106a44209311bb2cc0abad85414a4694ed0241539266abc5528a542f3627",
+    "duplicate_of": 1,
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _softmax_kernel(\n    input_ptr,\n    output_ptr,\n    input_row_stride,\n    output_row_stride,\n    n_cols,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row_idx = tl.program_id(0)\n    col_offsets = tl.arange(0, BLOCK_SIZE)\n    mask = col_offsets < n_cols\n    input_ptrs = input_ptr + row_idx * input_row_stride + col_offsets\n    row = tl.load(input_ptrs, mask=mask, other=-float('inf')).to(tl.float32)\n    row_max = tl.max(row, axis=0)\n    numerator = tl.exp(row - row_max)\n    denominator = tl.sum(numerator, axis=0)\n    softmax_output = numerator / denominator\n    output_ptrs = output_ptr + row_idx * output_row_stride + col_offsets\n    tl.store(output_ptrs, softmax_output, mask=mask)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda, \"input must be a CUDA tensor\"\n    assert x.dim() == 2, \"input must be 2D\"\n    assert x.is_contiguous(), \"input must be contiguous\"\n    assert x.dtype in (torch.float32, torch.bfloat16), \"dtype must be float32 or bfloat16\"\n\n    n_rows, n_cols = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(n_cols)\n\n    _softmax_kernel[(n_rows,)](\n        x,\n        out,\n        x.stride(0),\n        out.stride(0),\n        n_cols,\n        BLOCK_SIZE=BLOCK_SIZE,\n    )\n\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "0343106a44209311bb2cc0abad85414a4694ed0241539266abc5528a542f3627",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.2431986397132277,
+          "candidate_us": 1.2271578889340162,
+          "samples_us": {
+            "compiled": [
+              1.2455465039238334,
+              1.2431986397132277,
+              1.241470454260707
+            ],
+            "candidate": [
+              1.2271578889340162,
+              1.2211281573399901,
+              1.2322606053203344
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.0503464620560408,
+          "candidate_us": 1.546366373077035,
+          "samples_us": {
+            "compiled": [
+              2.0503464620560408,
+              2.0416167099028826,
+              2.0589616615325212
+            ],
+            "candidate": [
+              1.546366373077035,
+              1.5475789550691843,
+              1.5407073078677058
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            2048
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.677404787391424,
+          "candidate_us": 1.765143359079957,
+          "samples_us": {
+            "compiled": [
+              2.6765037328004837,
+              2.677404787391424,
+              2.678294898942113
+            ],
+            "candidate": [
+              1.765143359079957,
+              1.7655916744843125,
+              1.7578568076714873
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "resource_audit": {
+        "gpu_index": 4,
+        "method": "foreign CUDA PID checks before and after the evaluator",
+        "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease",
+        "before_utc": "2026-10-13T14:12:42.852516+00:00",
+        "before_pids": [],
+        "after_utc": "2026-10-13T14:12:53.115997+00:00",
+        "after_pids": []
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": true,
+      "geomean_speedup": 1.2677384536108403,
+      "worst_speedup": 1.0130714644984644,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 171.98589977249503,
+    "usage": {
+      "duration": "PT2M51.981731S",
+      "cost": 0.0,
+      "output_tokens": 636
+    }
+  }
+]

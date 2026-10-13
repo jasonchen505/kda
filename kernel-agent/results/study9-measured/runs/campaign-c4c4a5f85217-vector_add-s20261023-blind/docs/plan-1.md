@@ -1,0 +1,1 @@
+Allocate output like x. Launch 1D grid with BLOCK_SIZE 1024. Kernel loads with mask, promotes to fp32, adds, casts to out dtype, stores masked.

@@ -1,0 +1,1 @@
+1. Add ROWS_PER_BLOCK constexpr to process multiple rows per CTA. 2. Compute 2D offsets for rows and cols. 3. Load with 2D mask, compute row-wise max/sum/exp. 4. Store with 2D mask. 5. Tune ROWS_PER_BLOCK based on n_rows and n_cols.

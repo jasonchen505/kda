@@ -1,0 +1,1 @@
+1. Increase BLOCK_M and BLOCK_N to 128 for matrices >= 512x512. 2. Keep 64x64 for medium, 32x32 for small. 3. Verify masking logic handles odd sizes correctly. 4. Test on visible examples and edge cases.

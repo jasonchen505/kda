@@ -1,0 +1,1 @@
+Row-sum kernel: one program per row, loop over columns in power-of-two blocks, accumulate in FP32, store once cast to input dtype. Handles odd column counts via masking. Output allocated as contiguous (rows,) on same device/dtype.

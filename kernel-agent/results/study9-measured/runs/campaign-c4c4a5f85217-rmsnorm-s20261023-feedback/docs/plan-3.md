@@ -1,0 +1,1 @@
+1. Use SINGLE_BLOCK for width <= 2048. 2. For width > 2048, use BLOCK_SIZE=4096 to reduce loop iterations. 3. Keep FP32 accumulation for sum of squares. 4. Cast normalized values to input dtype before multiplying by weight.

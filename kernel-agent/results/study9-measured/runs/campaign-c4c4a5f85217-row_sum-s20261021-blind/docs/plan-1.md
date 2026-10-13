@@ -1,0 +1,1 @@
+Allocate output (rows,). Launch grid (rows,). Kernel: row=program_id(0), base=X+row*cols. Loop off in 0..cols step BLOCK. Load masked, cast fp32, tl.sum, add to acc. Store acc.to(out_dtype) at Y+row.

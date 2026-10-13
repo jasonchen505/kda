@@ -1,0 +1,1 @@
+Row-sum kernel: one program per row, loop over column blocks, accumulate in FP32, store cast to input dtype. Handles odd sizes via masking. Grid = (rows,).

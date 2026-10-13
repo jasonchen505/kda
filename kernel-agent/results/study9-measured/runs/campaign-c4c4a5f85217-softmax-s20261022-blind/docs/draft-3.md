@@ -1,0 +1,1 @@
+Row-parallel softmax with one program per row. Load masked row in FP32, subtract max, exp, sum, divide, store. Use next_power_of_2 block size. No torch compute.

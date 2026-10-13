@@ -1,0 +1,1 @@
+Load x,y as fp32, compute sigmoid via exp, multiply, store with auto-cast to output dtype. Use BLOCK_SIZE=1024, num_warps=8 for coalesced access across all shapes up to 1M elements.

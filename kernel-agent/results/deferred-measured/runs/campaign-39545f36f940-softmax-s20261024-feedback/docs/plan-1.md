@@ -1,0 +1,1 @@
+1. Allocate output tensor with same shape/dtype as input. 2. Launch grid with one program per row. 3. Kernel loads row with mask, computes max in FP32, subtracts max, computes exp, sums in FP32, divides. 4. Store result with mask. 5. Return output tensor.

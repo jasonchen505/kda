@@ -1,0 +1,1 @@
+Kernel: pid_m, pid_n; offs_m, offs_n; mask 2D; load x[offs_m, offs_n] using strides; tl.trans; store to out[offs_n, offs_m]. run(): validate, empty_like transposed, launch grid (cdiv(M,BM), cdiv(N,BN)), return out.
