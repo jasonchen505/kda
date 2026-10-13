@@ -1,0 +1,588 @@
+{
+  "schema_version": 1,
+  "status": "incomplete",
+  "execution_status": "waiting_for_resources",
+  "captured_utc": "2026-10-13T07:26:22.316064+00:00",
+  "plan_sha256": "c4c4a5f852179e6b59674540860de8e8905197389858bc2ce085950958a31864",
+  "checkpoint_sha256": "ee35abd6b0f2cf5c5d4855aadad12cca0ce01dffcf9b965a12835b630a8fd53d",
+  "scheduled": 36,
+  "statuses": {
+    "pending": 36
+  },
+  "terminal": 0,
+  "arms": [
+    {
+      "policy": "blind",
+      "scheduled": 18,
+      "started": 0,
+      "terminal": 0,
+      "result_available": 0,
+      "pending": 18,
+      "running": 0,
+      "correct": 0,
+      "promoted": 0,
+      "correct_per_scheduled": null,
+      "promoted_per_scheduled": null,
+      "reported_output_tokens": 0,
+      "usage_missing_jobs": 18,
+      "reported_elapsed_seconds": 0,
+      "proposals": 0,
+      "unique_source_sha_per_job_sum": 0,
+      "duplicate_proposals": 0,
+      "failures": {}
+    },
+    {
+      "policy": "feedback",
+      "scheduled": 18,
+      "started": 0,
+      "terminal": 0,
+      "result_available": 0,
+      "pending": 18,
+      "running": 0,
+      "correct": 0,
+      "promoted": 0,
+      "correct_per_scheduled": null,
+      "promoted_per_scheduled": null,
+      "reported_output_tokens": 0,
+      "usage_missing_jobs": 18,
+      "reported_elapsed_seconds": 0,
+      "proposals": 0,
+      "unique_source_sha_per_job_sum": 0,
+      "duplicate_proposals": 0,
+      "failures": {}
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "vector_add",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "softmax",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "rmsnorm",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "transpose",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "row_sum",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "silu_mul",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "task_id": "vector_add",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "vector_add",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "vector_add",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "softmax",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "softmax",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "softmax",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "rmsnorm",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "rmsnorm",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "rmsnorm",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "transpose",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "transpose",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "transpose",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "row_sum",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "row_sum",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "row_sum",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "silu_mul",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "silu_mul",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "silu_mul",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    }
+  ],
+  "resolved_pairs": 0,
+  "contrasts": null,
+  "budget_allocations": {
+    "duration_seconds": 0,
+    "output_tokens": 0
+  },
+  "runtime": {
+    "evaluator_runtime": {
+      "executable": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+      "invocation": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+      "prefix": "/data/home/chenyizhou/kda-humanize-portfolio/.venv",
+      "python": "3.12.14",
+      "torch": "2.6.0+cu124",
+      "triton": "3.2.0"
+    },
+    "gpu_index": 4,
+    "gpu_python": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+    "hmz_public_source_sha256": {
+      "Agent": "047f24f6422e62e66a275ec3c57e9da4118bcce64f607884af9e05d1845bb344",
+      "Hmz": "7b3dfac95346447a58ad26faa60ea616dcb95c723d2720d50f2e45d0486660cf"
+    },
+    "hmz_version": "0.0.0",
+    "opencode_version": "1.19.0",
+    "service": {
+      "adapter_requested": null,
+      "base_model": "qwen38-27b-fp8",
+      "command_sha256": "afd012f6954d11063ef56b0ba5d47f37758a376fc39395b96fbeeeae1a71c7b9",
+      "generation_gpus": "2,3",
+      "model_root": "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/models/Qwen3.8-27B-FP8",
+      "pid": 3813970,
+      "port": 8005,
+      "process_start_ticks": "3314007449",
+      "vllm_version": "0.27.1+cu129",
+      "weight_identity_scope": "metadata hashes plus shard sizes/mtimes; full weight hashes unverified"
+    },
+    "workspace": "/data/home/chenyizhou/kernel-agent"
+  },
+  "generation": {
+    "adapter_requested": null,
+    "evaluation_guard": "pre_post_foreign_cuda_pid_check",
+    "max_tokens_per_request": 4096,
+    "mode": "reference_guided",
+    "proposal_format": "lines",
+    "rounds": 3,
+    "selection_policy": "gate_first",
+    "temperature": 0.2
+  },
+  "scope": "Reference-assisted development-task replication; dependent proposals are not trials. Pending/running jobs have no verdict; failed/unknown terminal jobs stay in the denominator. Task-cluster intervals appear only after all scheduled jobs terminate. Paired seeds do not imply matched initial candidates or causal attribution.",
+  "resource_wait": {
+    "job_id": "softmax-s20261022-feedback",
+    "observed_utc": "2026-10-13T07:26:07.223754+00:00",
+    "reason": "evaluation GPU 4 is occupied (5685 MiB)",
+    "remaining_seconds": 10605,
+    "waiting": true
+  }
+}

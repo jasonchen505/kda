@@ -6,9 +6,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT))
 from kernel_agent.line_protocol import proposal
 from kernel_agent.protocol import decision, prefers
 from kernel_agent.transport import PROPOSER_PREFIX
+from scripts.summarize_campaign import audit_state
 
 
 def require(condition, message):
@@ -102,6 +104,48 @@ def check_recovery(evidence, root):
             "scope": "CPU fault injection using fake model/GPU drivers; no new GPU success counts"}
 
 
+def check_campaigns(root):
+    pilot_path = root / "results/multiseed-gpu4-pilot-checkpoint.json"
+    if not pilot_path.exists():
+        return None
+    pilot = json.loads(pilot_path.read_text())
+    frozen = root / "results/multiseed-gpu4-pilot-measured"
+    audit_state(pilot, frozen)
+    completed = [row for row in pilot["jobs"] if row["status"] == "completed"]
+    require(len(completed) == 1, "pilot denominator changed")
+    run = completed[0]["result"]
+    for attempt in run["attempts"]:
+        require(digest(frozen / "runs" / run["run_id"] / f"candidate-{attempt['iteration']}.py") ==
+                attempt["source_sha256"], "pilot candidate file changed")
+    traces = [json.loads(p.read_text()) for p in (root / "evidence/multiseed-gpu4-pilot-requests").rglob("*.json")]
+    require(len(traces) == 6, "pilot request denominator changed")
+    proposer = []
+    for trace in traces:
+        require(trace["model"] == pilot["plan"]["runtime"]["service"]["base_model"]
+                and trace["seed"] == completed[0]["job"]["seed"] and trace["temperature"] == .2,
+                "pilot request model/settings changed")
+        if trace.get("response_format"):
+            require(not trace.get("tools")
+                    and trace["response_format"]["json_schema"]["schema"]["properties"]["code_lines"]["type"] == "array",
+                    "pilot proposer schema changed")
+            proposer.append(trace)
+    require(len(proposer) == 3, "pilot proposer count changed")
+    qualification = json.loads((root / "results/multiseed-gpu4-pilot-qualification.json").read_text())
+    require(qualification["clean_performance_qualified"] is False
+            and qualification["process_owned_by_this_user"] is False
+            and qualification["job_started_utc"] < qualification["process_started_utc"] < qualification["job_committed_utc"],
+            "pilot interference qualification changed")
+    current = json.loads((root / "results/agent-multiseed-checkpoint.json").read_text())
+    audit_state(current, root / "results/study9-measured")
+    require(current["plan"]["generation"]["evaluation_guard"] == "pre_post_foreign_cuda_pid_check",
+            "guarded campaign lost measurement qualification")
+    return {"pilot_completed": len(completed), "pilot_proposer_requests": len(proposer),
+            "pilot_clean_performance_qualified": False,
+            "guarded_scheduled": len(current["jobs"]),
+            "guarded_terminal": sum(r["status"] in {"completed", "failed", "interrupted_unknown"} for r in current["jobs"]),
+            "scope": "separate integration pilot and guarded campaign snapshot; no pooling with historical GPU scores"}
+
+
 def verify(root=ROOT):
     raw = root / "results/agent-selector-validation.json"
     study = json.loads(raw.read_text())
@@ -136,6 +180,7 @@ def verify(root=ROOT):
     recovery_path = root / "results/campaign-recovery-validation.json"
     recovery = check_recovery(json.loads(recovery_path.read_text()), root) if recovery_path.exists() else None
     return {"status": "verified", "study_sha256": digest(raw), "recovery_validation": recovery,
+            "multiseed_campaigns": check_campaigns(root),
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

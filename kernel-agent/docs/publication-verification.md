@@ -1,5 +1,26 @@
 # Publication verification
 
+## Guarded multi-seed follow-up, 2026-10-13
+
+The current installed CPU suite passes **99 tests** on both pinned Humanize environments,
+plus Ruff, shell syntax and offline integrity checks. Outputs are preserved separately in
+`results/multiseed-checks.json`. New checks cover actual symlinked-venv binding, resource
+waiting, before/after GPU occupancy vetoes, infrastructure-stop behavior and paired analysis.
+
+A real local Qwen GPU4 pilot executed three proposals and passed Softmax final numerical
+checks. A foreign CUDA process started during the job; next-task readiness stopped the run.
+Original candidate files, six request bodies and the raw evaluator verdict are preserved,
+with an explicit interference qualification. Its recorded promotion is not added to clean
+performance results or pooled with historical campaigns.
+
+The guarded full 36-job plan is independently frozen at
+`c4c4a5f852179e6b59674540860de8e8905197389858bc2ce085950958a31864`.
+The user chose GPU4; a one-shot supervisor waits up to 10800 seconds per pending job for
+readiness. An actual busy-GPU wrapper preflight rejected the evaluator before CUDA execution;
+recorded in `results/evaluation-guard-real-preflight.json`. The published checkpoint is an
+offline progress snapshot, not a claim that the full comparison has completed. Existing
+measured sources/raw GPU outcomes remain immutable. See `multiseed-execution.md`.
+
 ## Harness reliability follow-up, 2026-10-12 local date
 
 The follow-up adds task-boundary campaign recovery and a prepared multi-seed design.

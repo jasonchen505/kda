@@ -1,0 +1,23 @@
+{
+  "captured_utc": "2026-10-13T07:16:48.920789+00:00",
+  "gpu_index": 4,
+  "observed_foreign_pid": 104752,
+  "actual_gpu4_pids": [
+    104752
+  ],
+  "scope": "v2 pilot timing quality qualification; raw evaluator verdict preserved",
+  "clean_performance_qualified": false,
+  "process_started_utc": "2026-10-13T06:59:27.360000+00:00",
+  "process_owned_by_this_user": false,
+  "job_started_utc": "2026-10-13T06:56:16.030248+00:00",
+  "job_committed_utc": "2026-10-13T07:06:26.513464+00:00",
+  "next_readiness_event": {
+    "error": "evaluation GPU 4 is occupied (5685 MiB)",
+    "job_id": "softmax-s20261022-blind",
+    "kind": "resource_blocked",
+    "previous_sha256": "f5869d08a54cc57aff84d2bc29f9dac0aa811b206ccc34e625f09d9e164d76a3",
+    "sequence": 3,
+    "sha256": "afc1eaca5f0807c5e25d45fa9d5dab25b59c0367fe53cf2822aa8a774f1a9478",
+    "utc": "2026-10-13T07:06:28.549944+00:00"
+  }
+}

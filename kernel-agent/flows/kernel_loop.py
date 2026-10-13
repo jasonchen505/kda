@@ -161,6 +161,9 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
         row["usage"] = session.usage.model_dump(mode="json")
         records.append(row)
         await working.write("trace.json", json.dumps(records, indent=2).encode())
+        if result.get("status") in {"resource_busy", "resource_contended", "resource_monitor_error"}:
+            terminal = "resource_unavailable"
+            break  # Infrastructure failures must not be misrepresented as code-repair feedback.
         if prefers(row["decision"], best["decision"] if best else None, params.selection_policy):
             best = row
         if row["decision"]["promoted"] and not fixed_study:

@@ -12,7 +12,7 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#architecture">系统</a><a href="#results">结果</a><a href="#recovery">恢复调度</a><a href="#trajectory">轨迹</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#architecture">系统</a><a href="#multiseed">多种子对照</a><a href="#results">既有结果</a><a href="#recovery">恢复调度</a><a href="#evidence">证据</a></nav>
 <main>
 <header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.12</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
@@ -26,6 +26,15 @@
 <p class="small" id="model-info"></p>
 <p class="small" id="runtime-note"></p>
 
+<section id="multiseed" hidden><div class="section-top"><h2>多种子对照 · 状态与结果</h2><span class="tag" id="multiseed-status"></span></div>
+<p>验证评测反馈是否让 kernel agent 更稳定：六类开发任务 × 三种随机种子 × 无反馈／有反馈，共 36 次运行。两组使用同模型、门槛优先选择和三个提案机会。</p>
+<div class="cards" id="multiseed-metrics"></div><p class="small" id="multiseed-snapshot"></p>
+<div class="notice" id="multiseed-pilot-note" hidden></div><p id="multiseed-wait"></p>
+<div class="two" id="multiseed-arms"></div>
+<div class="table-wrap" style="margin-top:20px"><table><thead><tr><th>任务族</th><th>无反馈 · 最终正确 / 已终止</th><th>有反馈 · 最终正确 / 已终止</th><th>无反馈 / 有反馈 · 晋升</th></tr></thead><tbody id="multiseed-tasks"></tbody></table></div>
+<p id="multiseed-conclusion"></p><p class="small">每组每任务预定 3 次运行。待运行和运行中没有最终结论；未知中断和失败在终止后的分母中保留。仅在全部 36 次终止后给出完整比例与按任务计算的探索性区间。任务均参与过开发，配对种子也不保证首轮候选相同。</p>
+<div class="controls"><button class="secondary" id="download-multiseed">下载对照分析</button><button class="secondary" id="download-checkpoint">下载运行检查点</button></div>
+<details><summary>本次实际运行环境、检查与分析范围</summary><pre id="multiseed-provenance"></pre></details></section>
 <section id="architecture"><h2>01 · 谁负责生成，谁负责判断</h2>
 <p>KDA 提供工作流与提示参考。Humanize 提供真实的 <code>Agent.spawn/run</code> 与环境执行。下游控制器把模型提案落盘，再调用独立评测器。模型的“完成了”不是验收证据。</p>
 <div class="flow" aria-label="任务通过KDA提示、Humanize和OpenCode到达本地Qwen"><div class="node"><b>任务合约</b><span>输入 / 数值语义 / 约束</span></div><div class="node"><b>KDA 提示</b><span>草案 → 计划 → 候选</span></div><div class="node"><b>Humanize + OpenCode</b><span>真实 coding-agent 会话</span></div><div class="node"><b>本地 Qwen</b><span>输出计划与完整代码</span></div></div>
@@ -92,7 +101,7 @@
 
 <section id="recovery" hidden><div class="section-top"><h2>06 · 从一次运行，到可恢复实验</h2><span class="tag">CPU 故障注入 · 单独计数</span></div>
 <p>这轮改进实验调度器。任务开始前先持久化预算预留；完成后提交独立裁决与源码 SHA。进程中断时复用已提交的任务，未知调用保留为未知，不自动重跑。</p>
-<div class="cards"><div class="card"><div class="metric">SIGKILL</div><p>真实杀进程再启动</p></div><div class="card"><div class="metric" id="recovery-replay">—</div><p>重复调用已完成任务</p></div><div class="card"><div class="metric" id="recovery-unknown">—</div><p>未知结果仍保留在分母</p></div><div class="card"><div class="metric" id="new-plan-count">—</div><p>计划运行 · 尚未生成</p></div></div>
+<div class="cards"><div class="card"><div class="metric">SIGKILL</div><p>真实杀进程再启动</p></div><div class="card"><div class="metric" id="recovery-replay">—</div><p>重复调用已完成任务</p></div><div class="card"><div class="metric" id="recovery-unknown">—</div><p>未知结果仍保留在分母</p></div><div class="card"><div class="metric" id="new-plan-count">—</div><p id="new-plan-label">计划运行 · 尚未生成</p></div></div>
 <div class="controls"><label for="recovery-phase">查看恢复步骤</label><select id="recovery-phase"><option value="before">① 进程中断前</option><option value="after">② 恢复后</option></select><button class="secondary" id="download-recovery">下载故障证据</button></div>
 <div class="table-wrap"><table><thead><tr><th>任务</th><th>状态</th><th>累计预算预留</th><th>再次启动的动作</th></tr></thead><tbody id="recovery-table"></tbody></table></div><p id="recovery-note"></p>
 <div class="two"><div class="card"><h3>已经验证的工程能力</h3><p id="upgrade-checks"></p><p>单写者锁、原子检查点、计划漂移拒绝、结果 SHA 绑定、失败分母及预算不重置。A/C 执行真实 Humanize 流程，但模型回复与 GPU 裁决使用测试驱动。</p></div><div class="card"><h3>下一项实证：反馈有多可靠</h3><p id="multiseed-note"></p><p>六类任务已用于开发，不能当作未见任务。三种随机种子、两组各三次提案，温度 0.2；固定同一运行环境，按任务分组报告。资源预检通过后才会开始。</p></div></div>
@@ -226,12 +235,29 @@ $('wire-audit').textContent=JSON.stringify(DATA.wire_audit||null,null,2);
 $('line-study').textContent=DATA.line_study?DATA.line_study.metadata.transport_policies.map(p=>{const rs=DATA.line_study.runs.filter(r=>r.transport_policy===p),as=rs.flatMap(r=>r.attempts);return `${transportNames[p]}：${as.filter(a=>a.source_sha256).length}/${as.length} 回复通过基础源码准入，${rs.filter(r=>r.correct).length}/${rs.length} 最终正确。`}).join(' '):'暂无记录。';
 $('download-lines').addEventListener('click',()=>{if(DATA.line_study)download(DATA.line_study,'agent-pilot-lines.json')});
 $('capacity-study').textContent=DATA.capacity_study?`此前较大模型试验：${DATA.capacity_study.runs.filter(r=>r.correct).length}/${DATA.capacity_study.runs.length} 最终正确，${DATA.capacity_study.runs.filter(r=>r.promoted).length} 次晋升。它改变了模型能力配置，不能证明控制器单独有效。`:'暂无记录。';
+const multiseed=DATA.multiseed_summary;
+if(multiseed){
+ $('multiseed').hidden=false;
+ const s=multiseed.statuses;
+ $('multiseed-status').textContent=multiseed.status==='complete'?'已完成':multiseed.execution_status==='waiting_for_resources'?'等待 GPU4 · 未完成':'运行进度快照 · 未完成';
+ for(const [value,label] of [[`${multiseed.terminal}/${multiseed.scheduled}`,'已终止任务'],[`${multiseed.resolved_pairs}/18`,'已完成的种子配对'],[String(s.running||0),'运行中'],[String(s.pending||0),'待运行']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('multiseed-metrics').append(card)}
+ $('multiseed-snapshot').textContent=`快照时间 ${multiseed.captured_utc}；生成 GPU ${multiseed.runtime.service.generation_gpus}，评测 GPU ${multiseed.runtime.gpu_index}，温度 ${multiseed.generation.temperature}。报告文件是离线快照，服务端实验独立运行。`;
+ if(DATA.multiseed_pilot_qualification){$('multiseed-pilot-note').hidden=false;$('multiseed-pilot-note').textContent='此前 GPU4 集成试跑完成一次 Softmax 数值检查，但其他用户的 CUDA 进程在途中启动；原评测器记录的性能晋升不算干净测量。原始轨迹、候选与干扰记录保留在完整 JSON 和仓库中，不合并到下面的新对照。';}
+ $('multiseed-wait').textContent=multiseed.resource_wait?.waiting?`资源观察：${multiseed.resource_wait.reason}。最多等待 3 小时；等待不调用模型、不预留任务预算。评测前后还会检查其他 CUDA 进程，发现干扰就否决速度证据。`:'每次评测前后检查 GPU 上的其他 CUDA 进程；发现干扰不采纳速度证据。边界检查不能排除短暂的中途干扰。';
+ for(const arm of multiseed.arms){const card=node('div',undefined,'card');card.append(node('h3',arm.policy==='blind'?'无反馈修订':'实际评测反馈'),node('p',`已终止 ${arm.terminal}/${arm.scheduled}；最终正确 ${arm.correct}，性能晋升 ${arm.promoted}。`),node('p',`运行中 ${arm.running}，待运行 ${arm.pending}；已记录 ${arm.proposals} 次提案，${arm.duplicate_proposals} 次重复。`,'small'));$('multiseed-arms').append(card)}
+ for(const row of multiseed.tasks){const a=row.arms.blind,b=row.arms.feedback,tr=node('tr');const cell=r=>`${r.terminal?`${r.correct}/${r.terminal}`:'—'}；待 ${r.pending} / 运行中 ${r.running}`;for(const text of [taskNames[row.task_id]||row.task_id,cell(a),cell(b),`${a.promoted} / ${b.promoted}`])tr.append(node('td',text));$('multiseed-tasks').append(tr)}
+ $('multiseed-conclusion').textContent=multiseed.status==='complete'?`全部 ${multiseed.scheduled} 次已终止。按任务平均的反馈－无反馈差异：正确性 ${(multiseed.contrasts.correct.macro_task_difference*100).toFixed(1)} 个百分点；晋升 ${(multiseed.contrasts.promoted.macro_task_difference*100).toFixed(1)} 个百分点。探索性区间和每种子差异见下载；不能单独作因果归因。`:'本轮尚未完成，暂不计算反馈收益、完整成功率或区间。首轮、每次修订与最终裁决均单独保留，后续失败不会选择性重跑。';
+ $('multiseed-provenance').textContent=JSON.stringify({runtime:multiseed.runtime,generation:multiseed.generation,plan_sha256:multiseed.plan_sha256,budget_allocations:multiseed.budget_allocations,resource_wait:multiseed.resource_wait,checks:DATA.multiseed_checks,scope:multiseed.scope},null,2);
+ $('download-multiseed').addEventListener('click',()=>download(multiseed,'agent-multiseed-summary.json'));
+ $('download-checkpoint').addEventListener('click',()=>download(DATA.multiseed_checkpoint,'agent-multiseed-checkpoint.json'));
+}
 const recovery=DATA.recovery_validation, nextPlan=DATA.multiseed_preflight;
 if(recovery){
  $('recovery').hidden=false;
  $('recovery-replay').textContent=String(recovery.worker_calls.filter(c=>c.job_id==='A').length-1);
  $('recovery-unknown').textContent=String(recovery.summary.interrupted_unknown);
- $('new-plan-count').textContent=nextPlan?String(nextPlan.summary.scheduled):'待计划';
+ $('new-plan-count').textContent=multiseed?`${multiseed.terminal}/${multiseed.scheduled}`:nextPlan?String(nextPlan.summary.scheduled):'待计划';
+ if(multiseed)$('new-plan-label').textContent='扩展实验 · 已终止';
  const statusNames={completed:'已提交',running:'调用中 · 结果未知',pending:'待启动',interrupted_unknown:'未知 · 不重放'};
  function showRecovery(){
   const phase=$('recovery-phase').value, state=recovery[phase];let seconds=0,tokens=0;
@@ -245,7 +271,7 @@ if(recovery){
  }
  const check=DATA.upgrade_checks;
  $('upgrade-checks').textContent=check?`${check.passed_tests} 项机制与证据检查通过；lint、脚本语法和离线审计通过。`:'SIGKILL 场景与恢复断言通过；机制检查详见项目测试记录。';
- $('multiseed-note').textContent=nextPlan?`冻结 ${nextPlan.summary.scheduled} 次运行、108 次提案机会；已启动 ${nextPlan.summary.terminal} 次。状态：等待资源。预检记录：${nextPlan.last_event.error}。预算预留仍为 0。`:'扩展实验尚未启动。';
+ $('multiseed-note').textContent=multiseed?`旧 GPU6 计划保留为零启动的预检记录；修正评测解释器后，新计划在 GPU${multiseed.runtime.gpu_index} 上运行。已终止 ${multiseed.terminal}/${multiseed.scheduled}，结果与进度见上方多种子章节。`:nextPlan?`冻结 ${nextPlan.summary.scheduled} 次运行、108 次提案机会；已启动 ${nextPlan.summary.terminal} 次。状态：等待资源。预检记录：${nextPlan.last_event.error}。预算预留仍为 0。`:'扩展实验尚未启动。';
  $('recovery-detail').textContent=JSON.stringify({assertions:recovery.assertions,summary:recovery.summary,next_plan:nextPlan},null,2);
  $('recovery-phase').addEventListener('change',showRecovery);
  $('download-recovery').addEventListener('click',()=>download(recovery,'campaign-recovery-validation.json'));

@@ -17,9 +17,15 @@ never hand-corrected. Negative experiments and the original selector defect rema
 The next harness improvement adds [durable task-boundary scheduling](docs/campaign-recovery.md):
 immutable plans, atomic checkpoints, single-owner locks and budgets that survive restarts.
 A real SIGKILL recovery test passed using the actual Humanize flow with fake model/GPU
-drivers. A [36-job multi-seed feedback study](docs/multiseed-study-plan.md) is prepared;
-its resource preflight stopped before any model call. These are separate engineering
-evidence and pending research, not additions to the real GPU headline above.
+drivers. A GPU4 pilot then executed three real Qwen proposals and passed Softmax numerical
+checks, but another user's GPU process appeared during the job; its raw performance verdict
+is retained without a clean-performance claim. The [guarded 36-job multi-seed study](docs/multiseed-execution.md)
+now has evaluator boundary checks and finite readiness waiting on user-selected GPU4.
+Its independent checkpoint is waiting for resources. These records are separate from
+the historical GPU headline above, and do not yet establish a feedback benefit.
+The current strict occupancy gate is a conservative measurement policy, not a CUDA
+requirement. [GPU sharing and a future split between correctness and timing](docs/gpu-sharing-policy.md)
+explains the distinction and the limits of PID/VRAM-based checks.
 
 ```text
 Task contract → local Qwen proposal → protocol / AST admission → independent GPU process
@@ -40,6 +46,8 @@ python3 -m http.server 8765 --bind 127.0.0.1
 The standard-library evidence verifier checks 18 frozen measured files, nine proposed
 candidate files, the recorded selection/final verdicts and nine local proposer requests.
 It also verifies the separate CPU SIGKILL recovery artifact and its frozen sources.
+The new pilot's candidate/request artifacts, interference qualification and guarded
+campaign snapshot are checked separately; pending jobs do not become failed trials.
 It verifies recorded artifacts; it does not execute the model or recompute GPU timings.
 
 For controller development, use Python 3.12+ in this directory:

@@ -1,0 +1,1 @@
+1. Modify kernel to handle ROWS_PER_BLOCK rows per program. 2. Compute 2D offsets for rows and columns. 3. Load with 2D mask. 4. Perform row-wise max and sum reductions. 5. Store with 2D mask. 6. Update grid to (ceil(n_rows/ROWS_PER_BLOCK),). 7. Choose ROWS_PER_BLOCK based on n_cols to balance occupancy.

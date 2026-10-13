@@ -23,6 +23,10 @@ evaluator. The work targets LLM research engineering and agent evaluation for sy
   immutable source/runtime plans, persistent budget allocations and conservative unknown
   outcomes. A real SIGKILL/restart test reuses completed results and does not replay an
   uncertain call; it uses actual Humanize flows with fake model/GPU drivers.
+- **Measurement qualification:** preserve the evaluation virtualenv invocation, reject
+  foreign CUDA occupancy before/after measurements, stop repair on infrastructure faults,
+  and wait for resources without charging a pending job. Analyze paired seeds by task,
+  withhold complete rates/intervals until all scheduled jobs terminate.
 
 The novel engineering work is the orchestration and evidence contract. KDA, Humanize,
 OpenCode, Triton and Qwen are reused components; this project does not claim to implement
@@ -67,7 +71,8 @@ This is a resume-ready harness prototype, with working code and real evidence. I
 a production sandbox or a demonstrated general-purpose kernel optimizer. The task set is
 small, repeated families are used, seeds are not replicated, and the cached 27B weights'
 upstream revision is unverified. The next fixed-runtime study is prepared: six development
-families × three stochastic seeds × two arms, 36 jobs. Its readiness check recorded zero
-started jobs because shared resources were occupied. This remains pending empirical work;
-durable scheduling is the completed engineering improvement. Profiler-assisted repair
-remains a later research question.
+families × three stochastic seeds × two arms, 36 jobs. A preceding one-job real integration
+pilot exposed shared-GPU interference, so its numerical pass is retained but its recorded
+promotion is not qualified as clean performance. The new guarded plan is waiting on
+user-selected GPU4 in a finite one-shot process. The complete feedback comparison remains
+pending empirical work. Profiler-assisted repair remains a later research question.

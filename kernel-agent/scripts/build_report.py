@@ -42,6 +42,11 @@ payload = {"study": study, "generated_utc": datetime.now(timezone.utc).isoformat
            "startup_files": [p.name for p in sorted((ROOT / "results").glob("*failed*"))]}
 for key, name in (("recovery_validation", "campaign-recovery-validation.json"),
                   ("multiseed_preflight", "multiseed-preflight.json"),
+                  ("multiseed_summary", "agent-multiseed-summary.json"),
+                  ("multiseed_checkpoint", "agent-multiseed-checkpoint.json"),
+                  ("multiseed_checks", "multiseed-checks.json"),
+                  ("multiseed_pilot", "multiseed-gpu4-pilot-checkpoint.json"),
+                  ("multiseed_pilot_qualification", "multiseed-gpu4-pilot-qualification.json"),
                   ("upgrade_checks", "harness-upgrade-checks.json")):
     path = ROOT / "results" / name
     payload[key] = json.loads(path.read_text()) if path.exists() else None

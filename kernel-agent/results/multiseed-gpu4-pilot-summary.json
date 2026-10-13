@@ -1,0 +1,581 @@
+{
+  "schema_version": 1,
+  "status": "incomplete",
+  "execution_status": "awaiting_resources",
+  "captured_utc": "2026-10-13T07:15:56.210123+00:00",
+  "plan_sha256": "d293bda782f3ba3d12159fcbe51bf4a7f7720c32da7fa1f717ae7df61b2fe1f8",
+  "checkpoint_sha256": "3a2a942d4b0861ed2693489ffc2b1a2ce18c4412385152c1e00956917d44e549",
+  "scheduled": 36,
+  "statuses": {
+    "completed": 1,
+    "pending": 35
+  },
+  "terminal": 1,
+  "arms": [
+    {
+      "policy": "blind",
+      "scheduled": 18,
+      "started": 0,
+      "terminal": 0,
+      "result_available": 0,
+      "pending": 18,
+      "running": 0,
+      "correct": 0,
+      "promoted": 0,
+      "correct_per_scheduled": null,
+      "promoted_per_scheduled": null,
+      "reported_output_tokens": 0,
+      "usage_missing_jobs": 18,
+      "reported_elapsed_seconds": 0,
+      "proposals": 0,
+      "unique_source_sha_per_job_sum": 0,
+      "duplicate_proposals": 0,
+      "failures": {}
+    },
+    {
+      "policy": "feedback",
+      "scheduled": 18,
+      "started": 1,
+      "terminal": 1,
+      "result_available": 1,
+      "pending": 17,
+      "running": 0,
+      "correct": 1,
+      "promoted": 1,
+      "correct_per_scheduled": null,
+      "promoted_per_scheduled": null,
+      "reported_output_tokens": 2095,
+      "usage_missing_jobs": 17,
+      "reported_elapsed_seconds": 609.0799118988216,
+      "proposals": 3,
+      "unique_source_sha_per_job_sum": 3,
+      "duplicate_proposals": 0,
+      "failures": {}
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "vector_add",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "softmax",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 2,
+          "running": 0,
+          "correct": 1,
+          "promoted": 1,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 2095,
+          "usage_missing_jobs": 2,
+          "reported_elapsed_seconds": 609.0799118988216,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "rmsnorm",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "transpose",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "row_sum",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "silu_mul",
+      "arms": {
+        "blind": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 3,
+          "started": 0,
+          "terminal": 0,
+          "result_available": 0,
+          "pending": 3,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": null,
+          "promoted_per_scheduled": null,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 3,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "failures": {}
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "task_id": "vector_add",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "vector_add",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "vector_add",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "softmax",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "softmax",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "feedback": "completed",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "softmax",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "rmsnorm",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "rmsnorm",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "rmsnorm",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "transpose",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "transpose",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "transpose",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "row_sum",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "row_sum",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "feedback": "pending",
+        "blind": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "row_sum",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "silu_mul",
+      "seed": 20261021,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "silu_mul",
+      "seed": 20261022,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    },
+    {
+      "task_id": "silu_mul",
+      "seed": 20261023,
+      "resolved": false,
+      "statuses": {
+        "blind": "pending",
+        "feedback": "pending"
+      },
+      "outcomes": null,
+      "first_source_matches": null,
+      "feedback_minus_blind": null
+    }
+  ],
+  "resolved_pairs": 0,
+  "contrasts": null,
+  "budget_allocations": {
+    "duration_seconds": 900,
+    "output_tokens": 20000
+  },
+  "runtime": {
+    "evaluator_runtime": {
+      "executable": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+      "invocation": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+      "prefix": "/data/home/chenyizhou/kda-humanize-portfolio/.venv",
+      "python": "3.12.14",
+      "torch": "2.6.0+cu124",
+      "triton": "3.2.0"
+    },
+    "gpu_index": 4,
+    "gpu_python": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+    "hmz_public_source_sha256": {
+      "Agent": "047f24f6422e62e66a275ec3c57e9da4118bcce64f607884af9e05d1845bb344",
+      "Hmz": "7b3dfac95346447a58ad26faa60ea616dcb95c723d2720d50f2e45d0486660cf"
+    },
+    "hmz_version": "0.0.0",
+    "opencode_version": "1.19.0",
+    "service": {
+      "adapter_requested": null,
+      "base_model": "qwen38-27b-fp8",
+      "command_sha256": "afd012f6954d11063ef56b0ba5d47f37758a376fc39395b96fbeeeae1a71c7b9",
+      "generation_gpus": "2,3",
+      "model_root": "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/models/Qwen3.8-27B-FP8",
+      "pid": 3813970,
+      "port": 8005,
+      "process_start_ticks": "3314007449",
+      "vllm_version": "0.27.1+cu129",
+      "weight_identity_scope": "metadata hashes plus shard sizes/mtimes; full weight hashes unverified"
+    },
+    "workspace": "/data/home/chenyizhou/kernel-agent"
+  },
+  "generation": {
+    "adapter_requested": null,
+    "max_tokens_per_request": 4096,
+    "mode": "reference_guided",
+    "proposal_format": "lines",
+    "rounds": 3,
+    "selection_policy": "gate_first",
+    "temperature": 0.2
+  },
+  "scope": "Reference-assisted development-task replication; dependent proposals are not trials. Pending/running jobs have no verdict; failed/unknown terminal jobs stay in the denominator. Task-cluster intervals appear only after all scheduled jobs terminate. Paired seeds do not imply matched initial candidates or causal attribution."
+}

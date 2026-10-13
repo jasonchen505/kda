@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "captured_utc": "2026-10-13T07:40:29.627460+00:00",
+  "html_sha256": "1108185cb2daf3a952753482dc0c6a4201e606b565b3855fb621dac95de5df4b",
+  "screenshot_sha256": "5ab596b5c20b55b09f034eb289d99bdf225dd66251473d6618e46adab55ba1ec",
+  "desktop": {
+    "width": 1280,
+    "body_width": 1280,
+    "task_rows": 6,
+    "warnings_or_errors": []
+  },
+  "mobile": {
+    "width": 390,
+    "body_width": 390,
+    "task_rows": 6
+  },
+  "guarded_headline": {
+    "terminal": 0,
+    "scheduled": 36,
+    "waiting_for_resources": true
+  },
+  "pilot_qualification_visible": true,
+  "historical_gpu_headline": {
+    "runs": 3,
+    "correct": 3,
+    "promoted": 2
+  },
+  "scope": "observed browser snapshot and responsive layout; not live completion or new GPU execution"
+}

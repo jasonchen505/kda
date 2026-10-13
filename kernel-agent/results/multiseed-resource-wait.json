@@ -1,0 +1,1 @@
+{"job_id":"softmax-s20261022-feedback","observed_utc":"2026-10-13T07:26:07.223754+00:00","reason":"evaluation GPU 4 is occupied (5685 MiB)","remaining_seconds":10605,"waiting":true}

@@ -1,0 +1,1 @@
+{"status": "resource_busy", "message": "GPU occupied; evaluator was not started", "resource_audit": {"gpu_index": 4, "method": "foreign CUDA PID checks before and after the evaluator", "scope": "boundary observations, not continuous monitoring or an exclusive hardware lease", "before_utc": "2026-10-13T07:23:39.690925+00:00", "before_pids": [104752]}}

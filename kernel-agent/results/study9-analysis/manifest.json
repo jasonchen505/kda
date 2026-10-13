@@ -1,0 +1,6 @@
+{
+  "scripts/summarize_campaign.py": "da0a07a9396f9e5b278059ec8f63fec11a4bc297f3dfe356332f5fbc227913b2",
+  "scripts/verify_evidence.py": "f2aab7fd473976619168d68d9d07df67cd77b6ef9019806aa0bfd6ab1d11863e",
+  "scripts/build_report.py": "ed356ebcedc15f5b522ed363d15153ca4a9ab0f91479b096f15a4864a5f99d2e",
+  "reports/template.html": "5852b046ebfd07522ad4ea6989aac05394cfab3a3bb504d28c96a81bcd8d143c"
+}

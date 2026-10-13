@@ -1,0 +1,1 @@
+1. Replace 2D kernel with 1D row kernel. 2. Launch grid = n_rows. 3. Use tl.arange(0, BLOCK_SIZE) for columns. 4. Mask load/store with col_offsets < n_cols. 5. Compute max, exp, sum in FP32. 6. Store result in original dtype. 7. Keep run wrapper with contiguous check and empty_like allocation.

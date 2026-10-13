@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "captured_utc": "2026-10-13T07:27:49.306918+00:00",
+  "passed_tests": 99,
+  "checks": [
+    {
+      "command": [
+        "bash",
+        "scripts/check.sh"
+      ],
+      "returncode": 0,
+      "stdout": "........................................................................ [ 72%]\n...........................                                              [100%]\n99 passed in 2.75s\nAll checks passed!\n{\n  \"status\": \"verified\",\n  \"study_sha256\": \"ead614f0f5fbf25e8a743790539b68e4749e037c689bfdb845f72616e029543f\",\n  \"recovery_validation\": {\n    \"status\": \"verified\",\n    \"signal\": \"SIGKILL\",\n    \"jobs\": 3,\n    \"unknown_outcomes\": 1,\n    \"scope\": \"CPU fault injection using fake model/GPU drivers; no new GPU success counts\"\n  },\n  \"multiseed_campaigns\": {\n    \"pilot_completed\": 1,\n    \"pilot_proposer_requests\": 3,\n    \"pilot_clean_performance_qualified\": false,\n    \"guarded_scheduled\": 36,\n    \"guarded_terminal\": 0,\n    \"scope\": \"separate integration pilot and guarded campaign snapshot; no pooling with historical GPU scores\"\n  },\n  \"measured_files\": 18,\n  \"candidate_files\": 9,\n  \"proposer_requests\": 9,\n  \"background_requests\": 9,\n  \"correct\": 3,\n  \"promoted\": 2,\n  \"scope\": \"artifact integrity and recorded decisions; no new GPU or model execution\"\n}\n",
+      "stderr": "Checked 34 packages in 0.97ms\n"
+    },
+    {
+      "command": [
+        "/data/home/chenyizhou/humanize/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "returncode": 0,
+      "stdout": "........................................................................ [ 72%]\n...........................                                              [100%]\n99 passed in 3.05s\n",
+      "stderr": ""
+    }
+  ],
+  "scope": "CPU runtime binding, pre/post occupancy guard, resource waiting, analysis and published evidence; model/GPU outcomes separate"
+}

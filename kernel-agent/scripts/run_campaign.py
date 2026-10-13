@@ -9,8 +9,10 @@ import random
 import subprocess
 import sys
 import threading
+import time
 import urllib.request
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,7 +29,8 @@ ALIAS = "kernel-qwen-local-27b"
 
 def source_hashes():
     paths = ["flows/kernel_loop.py", "scripts/run_campaign.py", "scripts/local_proxy.py",
-             "scripts/evaluate_candidate.py", "data/tasks.json", "data/opencode-qwen27.json",
+             "scripts/evaluate_candidate.py", "scripts/evaluate_checked.py", "docs/measurement-guard.md",
+             "data/tasks.json", "data/opencode-qwen27.json",
              "results/qwen27-asset-manifest.json", "docs/multiseed-study-plan.md", "pyproject.toml", "uv.lock"]
     paths += [str(p.relative_to(ROOT)) for folder in ("src/kernel_agent", "references")
               for p in sorted((ROOT / folder).rglob("*"))
@@ -84,23 +87,34 @@ def runtime_identity(args):
     if str(args.gpu_index) in service["generation_gpus"].split(","):
         raise ValueError("evaluation GPU must be separate from model GPUs")
     paths = {"Agent": Path(inspect.getfile(Agent)), "Hmz": Path(inspect.getfile(Hmz))}
-    versions = json.loads(subprocess.check_output([args.gpu_python, "-c",
-                         "import json,torch,triton; print(json.dumps({'torch':torch.__version__,'triton':triton.__version__}))"],
-                         text=True, timeout=30))
-    if versions != {"torch": "2.6.0+cu124", "triton": "3.2.0"}:
-        raise ValueError("evaluation requires the recorded Torch 2.6.0+cu124 / Triton 3.2.0 runtime")
+    evaluator = evaluator_identity(args.gpu_python)
     return {"service": service, "hmz_version": importlib.metadata.version("hmz"),
             "hmz_public_source_sha256": {k: hashlib.sha256(p.read_bytes()).hexdigest() for k, p in paths.items()},
             "opencode_version": subprocess.check_output(["opencode", "--version"], text=True, timeout=20).strip(),
-            "gpu_index": args.gpu_index, "gpu_python": str(Path(args.gpu_python).resolve()),
-            "evaluator_versions": versions, "workspace": str(ROOT)}
+            "gpu_index": args.gpu_index, "gpu_python": evaluator["invocation"],
+            "evaluator_runtime": evaluator, "workspace": str(ROOT)}
 
 
-def make_plan(runtime, sources, *, tasks=TASKS, seeds=SEEDS):
+def evaluator_identity(executable):
+    # Resolving bin/python's symlink discards the virtualenv and its installed packages.
+    # Normalize only the invocation path; verify that exact path in a fresh process.
+    invocation = os.path.abspath(os.path.expanduser(executable))
+    captured = json.loads(subprocess.check_output([invocation, "-c",
+                         "import json,sys,torch,triton; print(json.dumps({'python':sys.version.split()[0],"
+                         "'prefix':sys.prefix,'executable':sys.executable,'torch':torch.__version__,"
+                         "'triton':triton.__version__}))"], text=True, timeout=30))
+    if (captured["torch"], captured["triton"]) != ("2.6.0+cu124", "3.2.0"):
+        raise ValueError("evaluation requires the recorded Torch 2.6.0+cu124 / Triton 3.2.0 runtime")
+    return {"invocation": invocation, **captured}
+
+
+def make_plan(runtime, sources, *, tasks=TASKS, seeds=SEEDS, resource_wait_seconds=0):
     if not tasks or len(set(tasks)) != len(tasks) or any(t not in TASKS for t in tasks):
         raise ValueError("tasks must be unique members of the six contracted families")
     if len(set(seeds)) != len(seeds) or not seeds:
         raise ValueError("seeds must be nonempty and unique")
+    if type(resource_wait_seconds) is not int or not 0 <= resource_wait_seconds <= 86400:
+        raise ValueError("resource wait must be integer seconds between 0 and 86400")
     jobs = []
     for task in tasks:
         for seed in seeds:
@@ -111,11 +125,13 @@ def make_plan(runtime, sources, *, tasks=TASKS, seeds=SEEDS):
     random.Random(20261020).shuffle(jobs)
     return {"schema_version": 1, "study_kind": "multiseed_feedback", "jobs": jobs,
             "runtime": runtime, "source_sha256": sources, "seeds": list(seeds), "tasks": list(tasks),
+            "scheduling": {"resource_wait_seconds": resource_wait_seconds, "poll_seconds": 30},
             "per_job_budget": {"duration_seconds": 900, "output_tokens": 20000},
             "campaign_budget": {"duration_seconds": 900 * len(jobs), "output_tokens": 20000 * len(jobs)},
             "generation": {"temperature": 0.2, "max_tokens_per_request": 4096, "rounds": 3,
                            "selection_policy": "gate_first", "proposal_format": "lines",
-                           "mode": "reference_guided", "adapter_requested": None},
+                           "mode": "reference_guided", "adapter_requested": None,
+                           "evaluation_guard": "pre_post_foreign_cuda_pid_check"},
             "scope": "development-task replication, not held-out generalization; task-clustered descriptive contrasts"}
 
 
@@ -124,6 +140,8 @@ def readiness(plan):
     service = runtime["service"]
     if source_hashes() != plan["source_sha256"]:
         raise ValueError("campaign sources changed; use a new campaign instead of resuming")
+    if evaluator_identity(runtime["gpu_python"]) != runtime["evaluator_runtime"]:
+        raise ValueError("evaluation Python environment changed")
     if service_identity(service["port"], service["pid"]) != service:
         raise ValueError("model service identity changed")
     with urllib.request.urlopen(f"http://127.0.0.1:{service['port']}/metrics", timeout=5) as response:
@@ -140,6 +158,25 @@ def readiness(plan):
                                    text=True, timeout=10).strip()
     if int(used) >= 256:
         raise RuntimeError(f"evaluation GPU {runtime['gpu_index']} is occupied ({used} MiB)")
+
+
+def wait_until_ready(plan, job, path):
+    """Retry only resource readiness, never a failed/unknown model job; no allocation yet."""
+    deadline = time.monotonic() + plan["scheduling"]["resource_wait_seconds"]
+    while True:
+        try:
+            readiness(plan)
+            atomic_json(path, {"waiting": False, "job_id": job["id"]})
+            return
+        except RuntimeError as error:
+            remaining = deadline - time.monotonic()
+            atomic_json(path, {"waiting": True, "job_id": job["id"], "reason": str(error),
+                               "remaining_seconds": max(0, int(remaining)),
+                               "observed_utc": datetime.now(timezone.utc).isoformat()})
+            if remaining <= 0:
+                raise
+            print(json.dumps({"waiting_for_resources": str(error), "job_id": job["id"]}), flush=True)
+            time.sleep(min(plan["scheduling"]["poll_seconds"], remaining))
 
 
 @contextmanager
@@ -187,7 +224,8 @@ def execute(plan, job, trace_root):
                                       "proposal_format": generation["proposal_format"],
                                       "selection_policy": generation["selection_policy"],
                                       "evaluator": [plan["runtime"]["gpu_python"],
-                                                    str(ROOT / "scripts/evaluate_candidate.py")]}).run()
+                                                    str(ROOT / "scripts/evaluate_checked.py"), "--gpu-index",
+                                                    str(plan["runtime"]["gpu_index"])]}).run()
     if source_hashes() != plan["source_sha256"]:
         raise ValueError("measured sources changed during a job")
     result.update(seed=job["seed"], transport_policy="json-lines", job_id=job["id"])
@@ -219,13 +257,16 @@ def main():
     parser.add_argument("--gpu-index", type=int, default=6)
     parser.add_argument("--gpu-python", default="/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python")
     parser.add_argument("--max-new-runs", type=int, help="stop at a task boundary after N new jobs")
+    parser.add_argument("--resource-wait-seconds", type=int, default=0,
+                        help="bounded readiness waiting per pending job; never retries a model job")
     args = parser.parse_args()
-    plan = make_plan(runtime_identity(args), source_hashes())
+    plan = make_plan(runtime_identity(args), source_hashes(), resource_wait_seconds=args.resource_wait_seconds)
     with Campaign(args.checkpoint, plan) as campaign:
         freeze_sources(args.checkpoint, plan["source_sha256"])
         if args.run:
             campaign.run(lambda job: execute(plan, job, args.checkpoint.parent / "wire"),
-                         ready=lambda job: readiness(plan), max_new_jobs=args.max_new_runs)
+                         ready=lambda job: wait_until_ready(plan, job, args.checkpoint.parent / "resource-wait.json"),
+                         max_new_jobs=args.max_new_runs)
         summary = campaign.summary()
         atomic_json(args.checkpoint.parent / "summary.json", summary)
         print(json.dumps(summary, indent=2))

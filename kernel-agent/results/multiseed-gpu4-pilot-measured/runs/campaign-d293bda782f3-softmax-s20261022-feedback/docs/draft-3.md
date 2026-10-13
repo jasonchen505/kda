@@ -1,0 +1,1 @@
+Optimize row-parallel softmax by processing one row per program to maximize occupancy and reduce register pressure. Use a single 1D block per row with masked load/store. Tune BLOCK_SIZE to next power of two. This avoids 2D tiling overhead and improves latency for small-to-medium rows.
