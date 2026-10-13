@@ -10,7 +10,8 @@ import pytest
 from scripts import local_proxy
 
 
-def test_existing_service_receives_only_explicit_base_model_and_seed(monkeypatch, tmp_path):
+@pytest.mark.parametrize("temperature", [0.0, 0.2])
+def test_existing_service_receives_only_explicit_base_model_and_seed(monkeypatch, tmp_path, temperature):
     received = []
     real_urlopen = urllib.request.urlopen
 
@@ -26,6 +27,7 @@ def test_existing_service_receives_only_explicit_base_model_and_seed(monkeypatch
     monkeypatch.setattr(local_proxy, "UPSTREAM_MODEL_ID", "qwen38-27b-fp8")
     monkeypatch.setattr(local_proxy, "UPSTREAM", "http://127.0.0.1:8016")
     monkeypatch.setattr(local_proxy, "SEED", 20261012)
+    monkeypatch.setattr(local_proxy, "TEMPERATURE", temperature)
     monkeypatch.setattr(local_proxy, "TRACE_DIR", tmp_path)
     monkeypatch.setattr(urllib.request, "urlopen", upstream)
     server = ThreadingHTTPServer(("127.0.0.1", 0), local_proxy.Handler)
@@ -47,7 +49,7 @@ def test_existing_service_receives_only_explicit_base_model_and_seed(monkeypatch
         assert len(received) == 1
         body = received[0]
         assert body["model"] == "qwen38-27b-fp8" and body["seed"] == 20261012
-        assert body["max_tokens"] == 4096 and body["temperature"] == 0 and "tools" not in body
+        assert body["max_tokens"] == 4096 and body["temperature"] == temperature and "tools" not in body
         assert body["response_format"]["json_schema"]["schema"]["properties"]["code_lines"]["type"] == "array"
         trace = json.loads(next(tmp_path.glob("*.json")).read_text())
         assert trace["model"] == "qwen38-27b-fp8" and trace["proxy_model_id"] == "kernel-qwen-local-27b"

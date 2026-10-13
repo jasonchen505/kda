@@ -1,5 +1,25 @@
 # Publication verification
 
+## Harness reliability follow-up, 2026-10-12 local date
+
+The follow-up adds task-boundary campaign recovery and a prepared multi-seed design.
+Installed frozen CPU checks pass **85 tests**, Ruff, shell syntax and the expanded offline
+evidence audit. The same 85 tests pass on the archived original Humanize environment.
+Raw command outputs are in `results/harness-upgrade-checks.json`.
+
+A real SIGKILL/restart test passed with the actual Humanize flow and synthetic model/GPU
+drivers; completed task A is reused, uncertain task B is not replayed, and task C runs once.
+Its frozen evidence is separate in `results/campaign-recovery-validation.json`. Historical
+GPU studies and snapshots retain their original hashes and 3/3 correct / 2/3 promotion.
+
+The six-family × three-seed × two-arm plan has 36 pending jobs / 108 proposal opportunities.
+The server prepared the plan and then blocked at readiness: GPU6 occupied (10037 MiB),
+zero model jobs started and zero budget allocated. `results/multiseed-preflight.json`
+preserves that exact plan and event. It is not a completed model experiment. No model
+service was started, stopped or modified. See `docs/campaign-recovery.md` for boundaries.
+
+The existing optional CI template remains inactive; no hosted harness CI run is claimed.
+
 Release target: the user-owned `jasonchen505/kda` fork, independent branch
 `codex/kernel-agent-harness`, with the downstream project in `kernel-agent/`.
 The original KDA workflow files retain their scope and license; the branch landing README

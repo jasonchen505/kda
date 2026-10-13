@@ -19,6 +19,10 @@ evaluator. The work targets LLM research engineering and agent evaluation for sy
   request traces and an interactive offline report.
 - **Maintenance:** compatibility with two pinned Humanize APIs, install metadata/lockfile,
   CPU mechanism checks and a standard-library published-evidence verifier.
+- **Durable experiments:** atomic task-boundary checkpoints, single-owner scheduling,
+  immutable source/runtime plans, persistent budget allocations and conservative unknown
+  outcomes. A real SIGKILL/restart test reuses completed results and does not replay an
+  uncertain call; it uses actual Humanize flows with fake model/GPU drivers.
 
 The novel engineering work is the orchestration and evidence contract. KDA, Humanize,
 OpenCode, Triton and Qwen are reused components; this project does not claim to implement
@@ -55,11 +59,15 @@ to the selector alone. This distinction is part of the result, not an omitted ca
 3. Open `reports/kernel-agent-report.html` for experiments, trajectory and the selector defect.
 4. Read `tests/integration/test_strategy_study.py` for failure retention and no final-data leakage.
 5. Check `docs/publication-verification.md` and `docs/humanize-update.md` for delivery status.
+6. Read `docs/campaign-recovery.md` and run the CPU fault-injection regression for durability.
 
 ## Limits and next research question
 
 This is a resume-ready harness prototype, with working code and real evidence. It is not
 a production sandbox or a demonstrated general-purpose kernel optimizer. The task set is
 small, repeated families are used, seeds are not replicated, and the cached 27B weights'
-upstream revision is unverified. Broader tasks/multiple seeds and profiler-assisted repair
-are the next experiments; they are not presented as completed work.
+upstream revision is unverified. The next fixed-runtime study is prepared: six development
+families × three stochastic seeds × two arms, 36 jobs. Its readiness check recorded zero
+started jobs because shared resources were occupied. This remains pending empirical work;
+durable scheduling is the completed engineering improvement. Profiler-assisted repair
+remains a later research question.

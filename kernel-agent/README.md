@@ -14,6 +14,13 @@ Start with [the project summary](docs/project-summary.md),
 [the offline HTML report](reports/kernel-agent-report.html). Generated candidates are
 never hand-corrected. Negative experiments and the original selector defect remain visible.
 
+The next harness improvement adds [durable task-boundary scheduling](docs/campaign-recovery.md):
+immutable plans, atomic checkpoints, single-owner locks and budgets that survive restarts.
+A real SIGKILL recovery test passed using the actual Humanize flow with fake model/GPU
+drivers. A [36-job multi-seed feedback study](docs/multiseed-study-plan.md) is prepared;
+its resource preflight stopped before any model call. These are separate engineering
+evidence and pending research, not additions to the real GPU headline above.
+
 ```text
 Task contract → local Qwen proposal → protocol / AST admission → independent GPU process
                          ↑                                         ↓
@@ -32,6 +39,7 @@ python3 -m http.server 8765 --bind 127.0.0.1
 
 The standard-library evidence verifier checks 18 frozen measured files, nine proposed
 candidate files, the recorded selection/final verdicts and nine local proposer requests.
+It also verifies the separate CPU SIGKILL recovery artifact and its frozen sources.
 It verifies recorded artifacts; it does not execute the model or recompute GPU timings.
 
 For controller development, use Python 3.12+ in this directory:
@@ -40,6 +48,8 @@ For controller development, use Python 3.12+ in this directory:
 uv sync --extra dev --frozen
 uv run pytest
 uv run ruff check flows scripts src tests
+# Separate CPU fault-injection evidence (refuses to overwrite an existing artifact):
+uv run python scripts/validate_recovery.py --output runs/recovery-check/validation.json
 ```
 
 `pyproject.toml` and `uv.lock` pin the updated Humanize source. GPU evaluation remains in
@@ -71,6 +81,12 @@ unverified. The recorded metadata hashes and weight-shard inventory identify the
 asset without asserting an official release or full weight digest.
 Paths in the scripts target this server. Allocate equivalent devices and adjust runtime
 paths before porting elsewhere.
+
+For the new recoverable campaign, `scripts/run_campaign.py --prepare --pid SERVICE_PID`
+freezes the source/runtime plan without model generation; `--run` resumes pending tasks.
+Use the same arguments and source for every restart. The runner checks the existing owned
+base service and separate evaluation GPU before allocating a job, and exits 2 if work is
+pending. It never starts or kills the model service. See the study plan for exact commands.
 
 ## Usage
 

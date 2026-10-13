@@ -15,6 +15,14 @@ spec.loader.exec_module(audit)
 def test_published_evidence_is_self_contained():
     result = audit.verify(ROOT)
     assert result["candidate_files"] == 9 and result["promoted"] == 2
+    assert result["recovery_validation"]["unknown_outcomes"] == 1
+
+
+def test_recovery_artifact_cannot_drop_uncertain_job():
+    recovery = json.loads((ROOT / "results/campaign-recovery-validation.json").read_text())
+    recovery["summary"]["scheduled"] = 2
+    with pytest.raises(ValueError, match="recovery evidence changed"):
+        audit.check_recovery(recovery, ROOT)
 
 
 def test_headline_cannot_override_independent_final_verdict():

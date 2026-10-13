@@ -20,6 +20,10 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def object_digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+
+
 def check_run(run, frozen):
     best = None
     candidates = 0
@@ -49,6 +53,53 @@ def check_run(run, frozen):
     require(run["correct"] == final["decision"]["correct"] and run["promoted"] == final["decision"]["promoted"],
             "headline result differs from evaluator verdict")
     return candidates
+
+
+def check_recovery(evidence, root):
+    require(evidence["status"] == "passed", "recovery validation failed")
+    require(evidence["evidence_sha256"] == object_digest({k: v for k, v in evidence.items()
+                                                        if k != "evidence_sha256"}), "recovery evidence changed")
+    for name, expected in evidence["source_sha256"].items():
+        require(digest(root / "results" / evidence["snapshot_directory"] / name) == expected,
+                f"frozen recovery source changed: {name}")
+    for state in (evidence["before"], evidence["after"]):
+        require(state["state_sha256"] == object_digest({k: v for k, v in state.items() if k != "state_sha256"}),
+                "checkpoint integrity changed")
+        require(state["plan_sha256"] == object_digest(state["plan"]), "checkpoint plan changed")
+        for index, event in enumerate(state["events"]):
+            require(event["sequence"] == index and event["previous_sha256"] ==
+                    (state["events"][index - 1]["sha256"] if index else None), "checkpoint event chain changed")
+            require(event["sha256"] == object_digest({k: v for k, v in event.items() if k != "sha256"}),
+                    "checkpoint event hash changed")
+        for row in state["jobs"]:
+            if row["status"] == "completed":
+                require(row["result_sha256"] == object_digest(row["result"]), "committed recovery result changed")
+                result = row["result"]
+                require(result["task_id"] == row["job"]["task_id"]
+                        and result["study_policy"] == row["job"]["study_policy"], "recovery result job changed")
+                final = decision(result["final_evaluation"])
+                require((result["correct"], result["promoted"]) == (final["correct"], final["promoted"]),
+                        "recovery headline changed")
+                selected = result["selected_sha256"]
+                require(result["final_evaluation"]["source_sha256"] == selected
+                        and any(hashlib.sha256(a.get("code", "").encode()).hexdigest() == selected
+                                for a in result["attempts"]), "recovery final SHA changed")
+        allocated = sum(r["status"] != "pending" for r in state["jobs"])
+        require(state["reservations"] == {k: allocated * v for k, v in state["plan"]["per_job_budget"].items()},
+                "recovery allocations changed")
+    require(evidence["before"]["plan"] == evidence["after"]["plan"], "recovery changed the plan")
+    require([r["status"] for r in evidence["before"]["jobs"]] == ["completed", "running", "pending"]
+            and [r["status"] for r in evidence["after"]["jobs"]] == ["completed", "interrupted_unknown", "completed"],
+            "recovery transition changed")
+    require(evidence["before"]["jobs"][0]["result_sha256"] == evidence["after"]["jobs"][0]["result_sha256"],
+            "completed recovery result not reused")
+    require(evidence["worker_calls"] == [{"job_id": n} for n in "ABC"]
+            and evidence["killed_process_returncode"] == -9, "fault execution trace changed")
+    require(evidence["summary"] == evidence["repeated_resume_summary"]
+            and evidence["summary"]["scheduled"] == evidence["summary"]["terminal"] == 3
+            and evidence["summary"]["interrupted_unknown"] == 1, "recovery denominator changed")
+    return {"status": "verified", "signal": "SIGKILL", "jobs": 3, "unknown_outcomes": 1,
+            "scope": "CPU fault injection using fake model/GPU drivers; no new GPU success counts"}
 
 
 def verify(root=ROOT):
@@ -82,7 +133,9 @@ def verify(root=ROOT):
                     "proposal schema changed")
             proposer.append(trace)
     require(len(traces) == 18 and len(proposer) == candidates == 9, "request/candidate denominator mismatch")
-    return {"status": "verified", "study_sha256": digest(raw),
+    recovery_path = root / "results/campaign-recovery-validation.json"
+    recovery = check_recovery(json.loads(recovery_path.read_text()), root) if recovery_path.exists() else None
+    return {"status": "verified", "study_sha256": digest(raw), "recovery_validation": recovery,
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

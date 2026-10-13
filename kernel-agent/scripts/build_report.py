@@ -40,6 +40,11 @@ payload = {"study": study, "generated_utc": datetime.now(timezone.utc).isoformat
            "line_study": json.loads((ROOT / "results/agent-pilot-lines.json").read_text()) if (ROOT / "results/agent-pilot-lines.json").exists() else None,
            "probe": json.loads((ROOT / "results/proposer-probe.json").read_text()) if (ROOT / "results/proposer-probe.json").exists() else None,
            "startup_files": [p.name for p in sorted((ROOT / "results").glob("*failed*"))]}
+for key, name in (("recovery_validation", "campaign-recovery-validation.json"),
+                  ("multiseed_preflight", "multiseed-preflight.json"),
+                  ("upgrade_checks", "harness-upgrade-checks.json")):
+    path = ROOT / "results" / name
+    payload[key] = json.loads(path.read_text()) if path.exists() else None
 metrics = {}
 for run in study["runs"]:
     replies = parsed = admitted = 0

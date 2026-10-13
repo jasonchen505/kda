@@ -15,6 +15,7 @@ MODEL_ID = "kernel-qwen3-4b"
 UPSTREAM_MODEL_ID = None
 TRACE_DIR = None
 SEED = 20261011
+TEMPERATURE = 0.0
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -44,7 +45,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         body["chat_template_kwargs"] = {"enable_thinking": False}
         body["max_tokens"] = min(body.pop("max_completion_tokens", body.get("max_tokens", 4096)), 4096)
-        body["temperature"] = 0
+        body["temperature"] = TEMPERATURE
         body["seed"] = SEED
         policy = paths[self.path]
         tools_before = len(body.get("tools", []))
@@ -86,9 +87,12 @@ if __name__ == "__main__":
     parser.add_argument("--upstream", default=UPSTREAM)
     parser.add_argument("--model-id", choices=("kernel-qwen3-4b", "kernel-qwen-local-27b"), default=MODEL_ID)
     parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--temperature", type=float, default=TEMPERATURE)
     parser.add_argument("--upstream-model-id", choices=("qwen38-27b-fp8",),
                         help="Explicit base-model alias of an existing local service; adapters are excluded")
     args = parser.parse_args()
+    if not 0 <= args.temperature <= 1:
+        parser.error("temperature must be between 0 and 1")
     endpoint = urllib.parse.urlparse(args.upstream)
     if (endpoint.scheme != "http" or endpoint.hostname not in ("127.0.0.1", "localhost", "::1")
             or endpoint.path not in ("", "/") or endpoint.username or endpoint.password):
@@ -98,6 +102,7 @@ if __name__ == "__main__":
     UPSTREAM_MODEL_ID = args.upstream_model_id
     TRACE_DIR = args.trace_dir
     SEED = args.seed
+    TEMPERATURE = args.temperature
     if TRACE_DIR is not None:
         TRACE_DIR.mkdir(parents=True, exist_ok=True)
     ThreadingHTTPServer(("127.0.0.1", 18116), Handler).serve_forever()

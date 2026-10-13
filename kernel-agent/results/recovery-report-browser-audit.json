@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "captured_utc": "2026-10-13T06:34:40.414945+00:00",
+  "html_sha256": "fc9f14bf432de23abb0d130de8b182f4fb18f930ef64e995bd8089194cd0241a",
+  "screenshot_sha256": "0b768666b3794b32cfd1487f8b8b84f4cf363102d29ffb91f3e44553cde37b8f",
+  "desktop": {
+    "viewport_width": 1280,
+    "body_width": 1280,
+    "recovery_visible": true,
+    "after_rows": [
+      "completed",
+      "interrupted_unknown",
+      "completed"
+    ],
+    "error_or_warning_logs": []
+  },
+  "mobile": {
+    "viewport_width": 390,
+    "body_width": 390,
+    "table_rows": 3,
+    "before_rows": [
+      "completed",
+      "running",
+      "pending"
+    ]
+  },
+  "historical_gpu_headline": {
+    "runs": 3,
+    "correct": 3,
+    "promoted": 2
+  },
+  "scope": "observed browser UI, responsive layout and recovery toggle; no GPU/model execution"
+}

@@ -18,6 +18,8 @@ handwritten kernels as agent successes. The original KDA documentation is preser
 - [Interactive offline HTML report](kernel-agent/reports/kernel-agent-report.html)
 - [Humanize upstream update and compatibility](kernel-agent/docs/humanize-update.md)
 - [Publication verification](kernel-agent/docs/publication-verification.md)
+- [Durable scheduling and SIGKILL recovery](kernel-agent/docs/campaign-recovery.md)
+- [Prepared 36-job multi-seed study](kernel-agent/docs/multiseed-study-plan.md)
 
 ```bash
 git clone --branch codex/kernel-agent-harness https://github.com/jasonchen505/kda.git
@@ -42,10 +44,17 @@ feedback/blind study produced 3/3 correct and 0/3 promoted in each arm.
 These are separate small, reference-assisted studies, not a stable success-rate estimate.
 Inference configuration changed between campaigns. The selector defect, fixed-source
 rechecks, negative trials and causal limits are documented alongside the positive result.
-The updated controller passes 57 mechanism/interface/artifact checks; the original measured
-campaign passed 54. Tests are distinct from model-generation trials.
+The recovery-enabled harness passes **85 mechanism/interface/artifact checks** on both
+pinned Humanize environments; the original measured campaign passed 54. A real SIGKILL
+test reuses completed jobs, preserves unknown outcomes and allocations, and starts only
+pending tasks. It uses synthetic model/GPU drivers, not additional generation trials.
+
+The six-family × three-stochastic-seed × two-arm study is prepared (36 jobs), but its
+GPU readiness check stopped before model calls. Multi-seed results remain pending.
 
 ![Offline report preview](kernel-agent/reports/report-preview.png)
+
+![Task-boundary recovery preview](kernel-agent/reports/recovery-preview.png)
 
 ## License
 
