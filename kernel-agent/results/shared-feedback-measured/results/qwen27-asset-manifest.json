@@ -1,0 +1,355 @@
+{
+  "directory_alias": "Qwen3.8-27B-FP8",
+  "directory": "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/models/Qwen3.8-27B-FP8",
+  "upstream_revision": null,
+  "weight_hashes_verified": false,
+  "model_type": "qwen3_5",
+  "architectures": [
+    "Qwen3_5ForConditionalGeneration"
+  ],
+  "text_config": {
+    "num_hidden_layers": 64,
+    "hidden_size": 5120,
+    "intermediate_size": 17408
+  },
+  "quantization_method": "fp8",
+  "metadata_sha256": {
+    "config.json": "74227dd615bf1ea975aa676bdf355a0379858c12f394b5365cd9dfa5fc2c70bc",
+    "generation_config.json": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+    "tokenizer_config.json": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+    "tokenizer.json": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+    "model.safetensors.index.json": "f0838c766951bdfe76d6afbdb2771a8f67aaa2231dedb3d33cebd817729843a2"
+  },
+  "weight_shards": [
+    {
+      "name": "layers-0.safetensors",
+      "bytes": 383865448,
+      "mtime_ns": 1788266706228302117
+    },
+    {
+      "name": "layers-1.safetensors",
+      "bytes": 383865448,
+      "mtime_ns": 1788266706564305579
+    },
+    {
+      "name": "layers-10.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266720818452203
+    },
+    {
+      "name": "layers-11.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266718918432682
+    },
+    {
+      "name": "layers-12.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266732488571940
+    },
+    {
+      "name": "layers-13.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266733640583745
+    },
+    {
+      "name": "layers-14.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266744969699700
+    },
+    {
+      "name": "layers-15.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266746425714584
+    },
+    {
+      "name": "layers-16.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266757255825169
+    },
+    {
+      "name": "layers-17.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266759255845567
+    },
+    {
+      "name": "layers-18.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266769743952410
+    },
+    {
+      "name": "layers-19.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266771563970930
+    },
+    {
+      "name": "layers-2.safetensors",
+      "bytes": 383865448,
+      "mtime_ns": 1788266782280079852
+    },
+    {
+      "name": "layers-20.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266783766094940
+    },
+    {
+      "name": "layers-21.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266794799206840
+    },
+    {
+      "name": "layers-22.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266795990218906
+    },
+    {
+      "name": "layers-23.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266806760327910
+    },
+    {
+      "name": "layers-24.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266808372344208
+    },
+    {
+      "name": "layers-25.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266819855460178
+    },
+    {
+      "name": "layers-26.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266820878470499
+    },
+    {
+      "name": "layers-27.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266832865591305
+    },
+    {
+      "name": "layers-28.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266834462607382
+    },
+    {
+      "name": "layers-29.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266849254756098
+    },
+    {
+      "name": "layers-3.safetensors",
+      "bytes": 372313744,
+      "mtime_ns": 1788266847704740530
+    },
+    {
+      "name": "layers-30.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266862443888406
+    },
+    {
+      "name": "layers-31.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266864619910209
+    },
+    {
+      "name": "layers-32.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266875739021508
+    },
+    {
+      "name": "layers-33.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266877334037458
+    },
+    {
+      "name": "layers-34.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266888517149184
+    },
+    {
+      "name": "layers-35.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266889071154714
+    },
+    {
+      "name": "layers-36.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266901305276721
+    },
+    {
+      "name": "layers-37.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266901602279680
+    },
+    {
+      "name": "layers-38.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266915961422603
+    },
+    {
+      "name": "layers-39.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266914689409954
+    },
+    {
+      "name": "layers-4.safetensors",
+      "bytes": 383865448,
+      "mtime_ns": 1788266928431546492
+    },
+    {
+      "name": "layers-40.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266929350555614
+    },
+    {
+      "name": "layers-41.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266942231683351
+    },
+    {
+      "name": "layers-42.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266942837689355
+    },
+    {
+      "name": "layers-43.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266954949809257
+    },
+    {
+      "name": "layers-44.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266957054830076
+    },
+    {
+      "name": "layers-45.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266968210940318
+    },
+    {
+      "name": "layers-46.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266969999957982
+    },
+    {
+      "name": "layers-47.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788266982238078711
+    },
+    {
+      "name": "layers-48.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266982875084990
+    },
+    {
+      "name": "layers-49.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788266996198216205
+    },
+    {
+      "name": "layers-5.safetensors",
+      "bytes": 383865448,
+      "mtime_ns": 1788266998432238187
+    },
+    {
+      "name": "layers-50.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267010381355660
+    },
+    {
+      "name": "layers-51.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788267010658358382
+    },
+    {
+      "name": "layers-52.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267027077519530
+    },
+    {
+      "name": "layers-53.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267024523494482
+    },
+    {
+      "name": "layers-54.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267038392630407
+    },
+    {
+      "name": "layers-55.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788267040498651029
+    },
+    {
+      "name": "layers-56.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267052218765703
+    },
+    {
+      "name": "layers-57.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267053608779293
+    },
+    {
+      "name": "layers-58.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267066675906956
+    },
+    {
+      "name": "layers-59.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788267067497914981
+    },
+    {
+      "name": "layers-6.safetensors",
+      "bytes": 383865448,
+      "mtime_ns": 1788267080140038314
+    },
+    {
+      "name": "layers-60.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267080457041404
+    },
+    {
+      "name": "layers-61.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267094225175536
+    },
+    {
+      "name": "layers-62.safetensors",
+      "bytes": 383865472,
+      "mtime_ns": 1788267095255185563
+    },
+    {
+      "name": "layers-63.safetensors",
+      "bytes": 372313760,
+      "mtime_ns": 1788267106689296804
+    },
+    {
+      "name": "layers-7.safetensors",
+      "bytes": 372313744,
+      "mtime_ns": 1788267108031309852
+    },
+    {
+      "name": "layers-8.safetensors",
+      "bytes": 383865448,
+      "mtime_ns": 1788267120060426732
+    },
+    {
+      "name": "layers-9.safetensors",
+      "bytes": 383865448,
+      "mtime_ns": 1788267121997445540
+    },
+    {
+      "name": "mtp.safetensors",
+      "bytes": 477202224,
+      "mtime_ns": 1788267141018630051
+    },
+    {
+      "name": "outside.safetensors",
+      "bytes": 6007102112,
+      "mtime_ns": 1788267308238239506
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+1) Allocate output. 2) Launch grid=(rows,). 3) Kernel: load row in chunks, accumulate x*x in fp32. 4) rstd = rsqrt(mean_sq + eps). 5) Second pass: load x, w; compute x*rstd, cast to input dtype, multiply by w, store. Mask all loads/stores for odd widths.

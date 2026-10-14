@@ -74,9 +74,15 @@ class TimingQueue:
         verdict = decision(result)
         if verdict["correct"]:
             audit = result.get("resource_audit", {})
+            shared = self.plan.get("measurement_condition") == "shared_observed"
+            valid_condition = (result.get("measurement_condition") == "shared_observed"
+                               and audit.get("policy") == "shared_observed"
+                               and audit.get("before", {}).get("free_mib", 0) >= 1024
+                               and isinstance(audit.get("after", {}).get("pids"), list)
+                               and isinstance(audit.get("samples"), list)) if shared else (
+                               audit.get("before_pids") == [] and audit.get("after_pids") == [])
             if (result.get("source_sha256") != digest_ or
-                    audit.get("gpu_index") != self.plan["runtime"]["gpu_index"] or
-                    audit.get("before_pids") != [] or audit.get("after_pids") != []):
+                    audit.get("gpu_index") != self.plan["runtime"]["gpu_index"] or not valid_condition):
                 raise ValueError("timing lacks source binding or uncontended boundary evidence")
         return verdict
 

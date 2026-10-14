@@ -1,0 +1,1 @@
+Single-row-per-program softmax with FP32 accumulation, masked loads/stores, and power-of-two block padding. Preserves dtype and shape.

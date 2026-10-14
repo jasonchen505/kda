@@ -1,0 +1,1 @@
+Row-wise softmax on last dim of 2D contiguous CUDA tensor. One program per row. Load row with mask, compute max, exp, sum, divide. Store with mask. Preserve dtype by casting output to input dtype. FP32 reductions internally.

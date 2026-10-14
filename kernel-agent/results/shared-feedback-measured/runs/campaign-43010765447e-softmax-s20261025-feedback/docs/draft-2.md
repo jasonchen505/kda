@@ -1,0 +1,1 @@
+Optimize row softmax by using a persistent grid to reduce launch overhead for small row counts. The kernel processes multiple rows per program using a loop, which improves occupancy and reduces kernel launch latency. This targets the worst-case shape [7, 257] where launch overhead dominates.

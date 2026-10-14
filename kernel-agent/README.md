@@ -6,7 +6,7 @@ agent that generates kernels, not manually authored operator optimization.
 
 **Portfolio scope:** a working research-engineering harness, with local inference,
 independent GPU verdicts, bounded repair, search-only selection, frozen evidence and an
-interactive report. The latest three-task integration campaign is **3/3 final-correct,
+interactive report. The three-task integration campaign is **3/3 final-correct,
 2/3 promoted**; this is a small reference-assisted replication, not a general success rate.
 
 Start with [the project summary](docs/project-summary.md),
@@ -14,7 +14,7 @@ Start with [the project summary](docs/project-summary.md),
 [the offline HTML report](reports/kernel-agent-report.html). Generated candidates are
 never hand-corrected. Negative experiments and the original selector defect remain visible.
 
-The next harness improvement adds [durable task-boundary scheduling](docs/campaign-recovery.md):
+[Durable task-boundary scheduling](docs/campaign-recovery.md) adds
 immutable plans, atomic checkpoints, single-owner locks and budgets that survive restarts.
 A real SIGKILL recovery test passed using the actual Humanize flow with fake model/GPU
 drivers. A GPU4 pilot then executed three real Qwen proposals and passed Softmax numerical
@@ -32,6 +32,18 @@ queue. Measurement resumes without requesting the model again; search-only selec
 committed before the final veto. This is a different feedback contract (numerical results
 only), with a separate engineering pilot. [GPU sharing policy](docs/gpu-sharing-policy.md)
 explains why shared execution and qualified speedup evidence need different controls.
+
+**Observed GPU sharing is now an executable measurement condition.** The two committed
+Softmax generation jobs completed five independent evaluations, with **2/2 final-correct,
+2/2 passing the shared performance gate**, and zero new model calls. Their final geometric
+means are 1.240× / 1.232× against `torch.compile`. These are conditional shared-environment
+ratios for the same old proposals, not two new generation trials or isolated speedups.
+The [prospective sharing study](docs/shared-study-plan.md) has six task families, two arms,
+one fresh seed and all 12 jobs terminal. Blind refinement is **6/6 final-correct, 1/6 promoted**;
+measured feedback is **5/6 final-correct, 1/6 promoted**, with one 900-second budget stop
+without a final verdict. All 36 proposals / 72 request bodies are preserved, including that
+failed task’s three correct search records. It was not retried; the study does not establish
+a feedback benefit. Its evidence is separate from the incomplete old 36-job plan.
 
 ```text
 Task contract → local Qwen proposal → protocol / AST admission → independent GPU process
@@ -68,7 +80,8 @@ uv run python scripts/validate_recovery.py --output runs/recovery-check/validati
 
 `pyproject.toml` and `uv.lock` pin the updated Humanize source. GPU evaluation remains in
 a separate Linux environment with Torch 2.6.0+cu124 and Triton 3.2.0; vLLM 0.27.1 and
-OpenCode 1.18.32 are separate executables. No model weights are included.
+OpenCode are separate executables. The current shared study records OpenCode 1.19.0;
+earlier generation snapshots record 1.18.32. No model weights are included.
 
 ## Background
 
@@ -84,12 +97,13 @@ attributed to KDA's CC BY 4.0 documentation; this project does not redistribute 
 
 ## Install
 
-This server already contains the frozen environments. The measured Humanize environment
-remains pinned to the archived source worktree; the updated clone uses `.venv-current`.
+This server already contains the frozen environments. The old measured Humanize environment
+remains pinned to the archived source worktree; the installed project pins the updated SDK.
 The sibling `kda-humanize-portfolio` environment supplies Torch 2.6.0 and Triton
-3.2.0. The local vLLM runtime is 0.27.1. The 4B model revision is
-`cdbee75f17c01a7cc42f958dc650907174af0554`. GPU 5 serves the 4B model; GPU 6 evaluates kernels.
-The 27B service uses GPUs 4/5 after the 4B service stops. Its directory alias says
+3.2.0. The current shared study reuses an owned loopback vLLM 0.27.1 service on GPUs 2/3,
+port 8005, and evaluates on GPU4. Earlier dedicated services used different devices; their
+runtime records remain in their own frozen studies. The 4B model revision is
+`cdbee75f17c01a7cc42f958dc650907174af0554`. The cached 27B directory alias says
 `Qwen3.8-27B-FP8`, but the actual config is `qwen3_5`; the upstream weight revision is
 unverified. The recorded metadata hashes and weight-shard inventory identify the cached
 asset without asserting an official release or full weight digest.
@@ -107,8 +121,32 @@ The phase-split entry is `scripts/run_deferred.py generate|measure|summary`. See
 Generation-only completion cannot be interpreted as final correctness or promotion.
 On this server, prepend `/data/home/chenyizhou/.local/bin` to `PATH` so that the recorded
 OpenCode executable is available in a non-interactive SSH session.
+`scripts/finish_deferred.py` completes committed generation under a new frozen sharing
+plan; `scripts/run_shared_campaign.py` runs the prospective shared feedback study.
+`scripts/capture_shared.py --checkpoint PATH` exports a self-contained progress/result
+snapshot without GPU or model execution. It copies one atomic checkpoint read, committed
+sources, request bodies and the measured implementation before computing the report metrics.
 
 ## Usage
+
+Reviewers can run `bash scripts/check.sh` without starting a model or a GPU experiment.
+For a new observed-sharing experiment, provide the owned base-service PID, an evaluation
+device and a fresh checkpoint path:
+
+```bash
+uv run python scripts/run_shared_campaign.py --pid SERVICE_PID --port 8005 \
+  --gpu-index 4 --checkpoint runs/my-shared-study/checkpoint.json --prepare
+# Remove --prepare to execute the frozen twelve-job plan; requires the recorded runtime.
+# Export only committed evidence into a separate review directory:
+uv run python scripts/capture_shared.py --checkpoint runs/my-shared-study/checkpoint.json \
+  --output-root runs/my-shared-export
+```
+
+The completed experiment's frozen sources and checkpoint are evidence. Use a fresh plan
+for replication; do not overwrite those artifacts or switch a live plan's measurement policy.
+`scripts/build_report.py` rebuilds the packaged report from its `results/` evidence.
+The following entries reproduce earlier dedicated-service studies and have different
+runtime requirements:
 
 ```bash
 cd /data/home/chenyizhou/kernel-agent

@@ -1,0 +1,1 @@
+Grid over rows. Each program loads its row in chunks of BLOCK_SIZE (power of 2), accumulates sum of squares in FP32, computes rstd = rsqrt(mean_sq + eps). Then normalizes, casts to x.dtype, multiplies by weight, stores. Use tl.constexpr for BLOCK_SIZE and dtype.

@@ -1,0 +1,1 @@
+Optimize transpose by using larger 64x64 tiles to improve memory coalescing and reduce launch overhead for small shapes. Maintain masking for odd dimensions.

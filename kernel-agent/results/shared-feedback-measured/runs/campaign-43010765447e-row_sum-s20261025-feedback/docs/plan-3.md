@@ -1,0 +1,1 @@
+Use a single tl.load per row with BLOCK_SIZE = next_pow2(cols). Accumulate in FP32, tl.sum, store to output. Tune num_warps: 4 for small, 8 for large. Avoid loop overhead for small rows.

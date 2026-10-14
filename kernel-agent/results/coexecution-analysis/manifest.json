@@ -1,0 +1,20 @@
+{
+  "captured_utc": "2026-10-14T14:16:19.470903+00:00",
+  "analysis_source_sha256": {
+    "scripts/capture_shared.py": "d3587ed1e6f763caf30b81de52fc5624d45e4ecb7d667249976abb93631615e2",
+    "scripts/summarize_campaign.py": "a76ccca60222abffc9feef39db785d4d106b6f59edcbd04a910af85891c35514",
+    "scripts/verify_evidence.py": "f4c74b1786e1e69c916c4036ff69c2e6cd0a28bce41d40c983c6a626b951f6ed",
+    "scripts/build_report.py": "ab5af0cc7f90b9069a5d0b8ae70ae11773ab31331e3a22b52253e396df75a60e",
+    "reports/template.html": "fe5c4a48a21486341bbcdb9ad0d9fc40bbb41be79b37da0d580086233aa4ce5d",
+    "tests/integration/test_coexecution.py": "0493080fcf2371a51b60c727fb917e0039c919f83f6aeca4baa72f37e06e308e",
+    "tests/integration/test_published_evidence.py": "b0bb8b90694e26d533f5bf7fa98ff4267ec20aaeb912b2d17d8e6f8869b8c330",
+    "docs/project-summary.md": "5499b2c0862dc30d2f40a8a0b4fe78bd54fa054ca77dd1702642fdc66b852de7",
+    "docs/project-summary.zh.md": "445119bb7744b4ae8e83ffb6b31faad0c8da77572ffdd7dfbdc19cfcbc47d35c",
+    "docs/project-card.zh.md": "552d552e601e91f460680826719426955218da5a1f92d0eafb0bed268fde4f2a",
+    "docs/publication-verification.md": "97529574b56d7fe89a7800fca30c469aaac4de8911f2029f4d834a6d10991b4c",
+    "README.md": "1a495f50bbab13389a51895d1ed16f823acbc973405e310d4f2bc2567663e33b"
+  },
+  "checkpoint_file_sha256": "b2918a80e38c85ea85869e65411fe26686babb085e77f0caa22bfa78164240ea",
+  "measurement_completion_summary_sha256": "46f34ce609b999f47f1a8f548ca85f7412e13db42531d219e410df744928fd05",
+  "scope": "Frozen delivery analysis, distinct from generation-measured snapshots and historical analysis"
+}

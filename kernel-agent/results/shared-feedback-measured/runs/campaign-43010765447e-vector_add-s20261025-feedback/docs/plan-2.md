@@ -1,0 +1,1 @@
+Select BLOCK_SIZE based on n_elements: 256 if <16384, 1024 if <262144, else 4096. This reduces grid size and launch overhead for small tensors while maximizing memory throughput for large ones. Keep mask for odd sizes.

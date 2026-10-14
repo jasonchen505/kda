@@ -1,0 +1,1 @@
+Vectorized elementwise add for contiguous CUDA tensors. Load x and y as FP32, add, cast to input dtype, store. Masked loads/stores handle odd sizes. Single 1D grid over blocks.

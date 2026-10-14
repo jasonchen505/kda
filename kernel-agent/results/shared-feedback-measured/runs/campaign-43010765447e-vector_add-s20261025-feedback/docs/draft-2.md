@@ -1,0 +1,1 @@
+Tune block size per element count to reduce launch overhead on small shapes while keeping large shapes fast. Use 256 for small, 1024 for medium, 4096 for large. Preserve FP32 intermediate addition and dtype cast on store.

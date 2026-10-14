@@ -1,0 +1,1 @@
+1. Allocate output tensor. 2. Launch grid (rows,). 3. Kernel: load row in chunks, compute sum of squares in FP32. 4. Compute rstd = rsqrt(mean_sq + eps). 5. Normalize, cast to x.dtype, multiply by weight, store.

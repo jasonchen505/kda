@@ -1,0 +1,1 @@
+Fix dtype cast error by removing torch.dtype constexpr. Use pointer type for automatic cast. Single-pass sum-of-squares in FP32, then normalize with intermediate cast to input dtype before weight multiply.

@@ -1,0 +1,1 @@
+Implement vector addition using a 1D Triton kernel. Load x and y with masking for odd sizes, add in FP32, cast to input dtype, and store. Use a grid of blocks to cover all elements up to 1048576.

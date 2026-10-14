@@ -1,0 +1,1 @@
+1. Get M, N from x.shape. 2. Allocate output = torch.empty((N, M), dtype=x.dtype, device=x.device). 3. Define @triton.jit kernel with x_ptr, out_ptr, M, N, BLOCK_M, BLOCK_N as constexpr. 4. Compute pid_m, pid_n from 2D grid. 5. Load tile with masks for M and N. 6. Transpose via tl.trans or index swap. 7. Store to output with masks. 8. Return output.

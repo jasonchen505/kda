@@ -8,9 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 from kernel_agent.line_protocol import proposal
-from kernel_agent.protocol import decision, numeric_decision, prefers
+from kernel_agent.protocol import decision, numeric_decision, prefers, sha
 from kernel_agent.transport import PROPOSER_PREFIX
-from scripts.summarize_campaign import audit_state
+from scripts.summarize_campaign import audit_state, check_resource_evidence, same_decision
 
 
 def require(condition, message):
@@ -259,6 +259,124 @@ def check_deferred(root):
             "scope": "phase-split pilot; numerical eligibility alone is not a performance verdict"}
 
 
+def check_shared_completion(root):
+    folder = root / "results/shared-completion"
+    if not (folder / "summary.json").exists():
+        return None
+    summary = json.loads((folder / "summary.json").read_text())
+    plan = summary["plan"]
+    require(summary["plan_sha256"] == object_digest(plan) and summary["new_model_requests"] == 0,
+            "shared completion provenance/model-call count changed")
+    origin = json.loads((root / "results/deferred-generation-checkpoint.json").read_text())
+    require(plan["origin_checkpoint_sha256"] == origin["state_sha256"]
+            and plan["origin_source_sha256"] == origin["plan"]["source_sha256"], "shared completion changed origin")
+    for name, expected in plan["source_sha256"].items():
+        require(digest(folder / "sources" / name) == expected, f"shared measurement source changed: {name}")
+    resource_plan = {"runtime": plan["runtime"], "generation": {"measurement_condition": "shared_observed"}}
+    expected_runs = {r["job"]["id"]: r for r in origin["jobs"]}
+    require(len(summary["jobs"]) == len(expected_runs), "shared completion job denominator changed")
+    evaluations = 0
+    for job in summary["jobs"]:
+        parent = expected_runs[job["job"]["id"]]
+        queue_path = folder / "queues" / job["job"]["id"] / "checkpoint.json"
+        queue = json.loads(queue_path.read_text())
+        require(queue["state_sha256"] == object_digest({k: v for k, v in queue.items() if k != "state_sha256"})
+                and queue["plan_sha256"] == object_digest(queue["plan"]), "shared timing queue hash changed")
+        require(queue["plan"]["generation_result"] == parent["result"]
+                and queue["plan"]["generation_result_sha256"] == parent["result_sha256"]
+                and queue["plan"]["measurement_condition"] == "shared_observed", "shared queue changed original proposals or policy")
+        require([r["source_sha256"] for r in queue["search"]] == parent["result"]["timing_candidates"],
+                "shared candidate schedule changed")
+        best = None
+        for measured in queue["search"]:
+            require(digest(queue_path.parent / f"{measured['source_sha256']}.py") == measured["source_sha256"],
+                    "shared queued source changed")
+            if measured["status"] != "measured":
+                continue
+            value = measured["evaluation"]
+            verdict = decision(value)
+            require(same_decision(verdict, measured["decision"]), "shared search verdict changed")
+            if verdict["correct"]:
+                require(value["source_sha256"] == measured["source_sha256"], "shared search SHA mismatch")
+                check_resource_evidence(value, resource_plan)
+            if prefers(verdict, best["decision"] if best else None):
+                best = {"source_sha256": measured["source_sha256"], "decision": verdict}
+            evaluations += 1
+        if queue["selection_committed"]:
+            require(all(r["status"] == "measured" for r in queue["search"])
+                    and queue["selected_sha256"] == (best["source_sha256"] if best else None), "shared selection changed")
+        require(job["search"] == queue["search"] and job["final"] == queue["final"], "shared summary changed measurements")
+        require(job["selected_sha256"] == queue["selected_sha256"] and job["status"] == queue["status"],
+                "shared summary changed selection/status")
+        if queue["final"]["status"] == "measured":
+            value = queue["final"]["evaluation"]
+            verdict = decision(value)
+            require((queue["correct"], queue["promoted"]) == (job["correct"], job["promoted"])
+                    == (verdict["correct"], verdict["promoted"]), "shared final verdict changed")
+            if verdict["correct"]:
+                require(value["source_sha256"] == queue["selected_sha256"], "shared final SHA mismatch")
+                check_resource_evidence(value, resource_plan)
+            evaluations += 1
+    return {"status": summary["status"], "jobs": len(summary["jobs"]), "evaluations": evaluations,
+            "correct": sum(bool(j["correct"]) for j in summary["jobs"]),
+            "promoted": sum(bool(j["promoted"]) for j in summary["jobs"]), "new_model_requests": 0,
+            "scope": "existing proposals completed under observed sharing; no isolated speedup or new-generation claim"}
+
+
+def check_shared_study(root):
+    path = root / "results/shared-feedback-checkpoint.json"
+    if not path.exists():
+        return None
+    state = json.loads(path.read_text())
+    frozen = root / "results/shared-feedback-measured"
+    audit_state(state, frozen)
+    require(state["plan"]["generation"].get("measurement_condition") == "shared_observed",
+            "shared study lost its measurement condition")
+    candidates = requests = partial_candidates = partial_requests = 0
+    for row in state["jobs"]:
+        if row["status"] not in {"completed", "failed", "interrupted_unknown"}:
+            continue
+        committed = row["status"] == "completed"
+        if committed:
+            run = row["result"]
+        else:
+            run_id = f"campaign-{state['plan_sha256'][:12]}-{row['job']['id']}"
+            trace = frozen / "runs" / run_id / "trace.json"
+            run = {"run_id": run_id, "attempts": json.loads(trace.read_text()) if trace.exists() else []}
+        for attempt in run["attempts"]:
+            if attempt.get("source_sha256"):
+                require(sha(proposal(attempt["reply"])["code"]) == attempt["source_sha256"]
+                        and proposal(attempt["reply"])["code"] == attempt["code"],
+                        "shared partial trace source changed")
+                require(digest(frozen / "runs" / run["run_id"] / f"candidate-{attempt['iteration']}.py") ==
+                        attempt["source_sha256"], "shared study candidate changed")
+                candidates += 1
+                partial_candidates += not committed
+            if not committed and attempt.get("decision") is not None:
+                verdict = decision(attempt["evaluation"])
+                require(same_decision(verdict, attempt["decision"]), "shared partial search decision changed")
+                if verdict["correct"]:
+                    require(attempt["evaluation"]["source_sha256"] == attempt["source_sha256"],
+                            "shared partial search SHA changed")
+                    check_resource_evidence(attempt["evaluation"], state["plan"])
+        traces = [json.loads(p.read_text()) for p in
+                  (root / "evidence/shared-feedback-requests" / row["job"]["id"]).glob("*.json")]
+        proposer = [t for t in traces if t.get("response_format")]
+        replies = sum("reply" in a for a in run["attempts"])
+        require(len(proposer) == replies if committed else replies <= len(proposer) <= state["plan"]["generation"]["rounds"],
+                "shared proposer denominator changed")
+        require(all(t["seed"] == row["job"]["seed"] and t["temperature"] == .2
+                    and t["model"] == state["plan"]["runtime"]["service"]["base_model"] for t in traces),
+                "shared request settings changed")
+        requests += len(proposer)
+        partial_requests += len(proposer) if not committed else 0
+    return {"scheduled": len(state["jobs"]), "terminal": sum(r["status"] in {"completed", "failed", "interrupted_unknown"}
+                                                               for r in state["jobs"]),
+            "candidate_files": candidates, "proposer_requests": requests,
+            "uncommitted_candidate_files": partial_candidates, "uncommitted_proposer_requests": partial_requests,
+            "measurement_condition": "shared_observed"}
+
+
 def verify(root=ROOT):
     raw = root / "results/agent-selector-validation.json"
     study = json.loads(raw.read_text())
@@ -295,6 +413,7 @@ def verify(root=ROOT):
     return {"status": "verified", "study_sha256": digest(raw), "recovery_validation": recovery,
             "multiseed_campaigns": check_campaigns(root),
             "deferred_evaluation": check_deferred(root),
+            "shared_completion": check_shared_completion(root), "shared_feedback_study": check_shared_study(root),
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

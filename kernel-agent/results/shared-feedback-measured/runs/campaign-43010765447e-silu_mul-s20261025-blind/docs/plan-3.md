@@ -1,0 +1,1 @@
+1. Allocate contiguous output via empty_like. 2. Launch 1D grid with BLOCK_SIZE=1024. 3. Each program loads masked x,y, converts to float32, computes silu*x*y in FP32, stores to output (auto-cast). 4. Handle n_elements=0 edge case.

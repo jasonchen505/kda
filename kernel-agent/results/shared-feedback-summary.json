@@ -1,0 +1,621 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "execution_status": "complete",
+  "captured_utc": "2026-10-14T14:04:22.979919+00:00",
+  "plan_sha256": "43010765447ee3b0db97982f079ab3d4ab4836675cd808d58302a17dcaab9eb9",
+  "checkpoint_sha256": "fbea6f0680d95523a5b35a32566f8c8f66d9c9215b69f0a0d5a098dc269e29db",
+  "scheduled": 12,
+  "statuses": {
+    "completed": 11,
+    "failed": 1
+  },
+  "terminal": 12,
+  "arms": [
+    {
+      "policy": "blind",
+      "scheduled": 6,
+      "started": 6,
+      "terminal": 6,
+      "result_available": 6,
+      "pending": 0,
+      "running": 0,
+      "correct": 6,
+      "promoted": 1,
+      "correct_per_scheduled": 1.0,
+      "promoted_per_scheduled": 0.16666666666666666,
+      "reported_output_tokens": 10362,
+      "usage_missing_jobs": 0,
+      "reported_elapsed_seconds": 4092.3844093866646,
+      "proposals": 18,
+      "unique_source_sha_per_job_sum": 13,
+      "duplicate_proposals": 5,
+      "terminal_reasons": {
+        "fixed_budget_complete": 6
+      },
+      "resource_interrupted_jobs": 0,
+      "resource_affected_jobs": 0,
+      "failures": {}
+    },
+    {
+      "policy": "feedback",
+      "scheduled": 6,
+      "started": 6,
+      "terminal": 6,
+      "result_available": 5,
+      "pending": 0,
+      "running": 0,
+      "correct": 5,
+      "promoted": 1,
+      "correct_per_scheduled": 0.8333333333333334,
+      "promoted_per_scheduled": 0.16666666666666666,
+      "reported_output_tokens": 8838,
+      "usage_missing_jobs": 1,
+      "reported_elapsed_seconds": 3903.836083970964,
+      "proposals": 15,
+      "unique_source_sha_per_job_sum": 15,
+      "duplicate_proposals": 0,
+      "terminal_reasons": {
+        "fixed_budget_complete": 5
+      },
+      "resource_interrupted_jobs": 0,
+      "resource_affected_jobs": 0,
+      "failures": {
+        "failed": 1
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "vector_add",
+      "arms": {
+        "blind": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 1338,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 549.3657903559506,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 1386,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 671.3818827569485,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "softmax",
+      "arms": {
+        "blind": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 1,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 1.0,
+          "reported_output_tokens": 1689,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 699.5961419790983,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 2,
+          "duplicate_proposals": 1,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 1,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 1.0,
+          "reported_output_tokens": 2151,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 867.0018887445331,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "rmsnorm",
+      "arms": {
+        "blind": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 2457,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 848.2829502001405,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 2,
+          "duplicate_proposals": 1,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 2167,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 852.9747709669173,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "transpose",
+      "arms": {
+        "blind": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 2132,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 750.9111468270421,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 1,
+          "duplicate_proposals": 2,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 0,
+          "pending": 0,
+          "running": 0,
+          "correct": 0,
+          "promoted": 0,
+          "correct_per_scheduled": 0.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 0,
+          "usage_missing_jobs": 1,
+          "reported_elapsed_seconds": 0,
+          "proposals": 0,
+          "unique_source_sha_per_job_sum": 0,
+          "duplicate_proposals": 0,
+          "terminal_reasons": {},
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {
+            "failed": 1
+          }
+        }
+      }
+    },
+    {
+      "task_id": "row_sum",
+      "arms": {
+        "blind": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 1180,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 542.7085691019893,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 1493,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 805.8416757509112,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        }
+      }
+    },
+    {
+      "task_id": "silu_mul",
+      "arms": {
+        "blind": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 1566,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 701.5198109224439,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 2,
+          "duplicate_proposals": 1,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        },
+        "feedback": {
+          "scheduled": 1,
+          "started": 1,
+          "terminal": 1,
+          "result_available": 1,
+          "pending": 0,
+          "running": 0,
+          "correct": 1,
+          "promoted": 0,
+          "correct_per_scheduled": 1.0,
+          "promoted_per_scheduled": 0.0,
+          "reported_output_tokens": 1641,
+          "usage_missing_jobs": 0,
+          "reported_elapsed_seconds": 706.6358657516539,
+          "proposals": 3,
+          "unique_source_sha_per_job_sum": 3,
+          "duplicate_proposals": 0,
+          "terminal_reasons": {
+            "fixed_budget_complete": 1
+          },
+          "resource_interrupted_jobs": 0,
+          "resource_affected_jobs": 0,
+          "failures": {}
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "task_id": "vector_add",
+      "seed": 20261025,
+      "resolved": true,
+      "statuses": {
+        "feedback": "completed",
+        "blind": "completed"
+      },
+      "outcomes": {
+        "feedback": {
+          "correct": true,
+          "promoted": false
+        },
+        "blind": {
+          "correct": true,
+          "promoted": false
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 0,
+        "promoted": 0
+      }
+    },
+    {
+      "task_id": "softmax",
+      "seed": 20261025,
+      "resolved": true,
+      "statuses": {
+        "feedback": "completed",
+        "blind": "completed"
+      },
+      "outcomes": {
+        "feedback": {
+          "correct": true,
+          "promoted": true
+        },
+        "blind": {
+          "correct": true,
+          "promoted": true
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 0,
+        "promoted": 0
+      }
+    },
+    {
+      "task_id": "rmsnorm",
+      "seed": 20261025,
+      "resolved": true,
+      "statuses": {
+        "blind": "completed",
+        "feedback": "completed"
+      },
+      "outcomes": {
+        "blind": {
+          "correct": true,
+          "promoted": false
+        },
+        "feedback": {
+          "correct": true,
+          "promoted": false
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 0,
+        "promoted": 0
+      }
+    },
+    {
+      "task_id": "transpose",
+      "seed": 20261025,
+      "resolved": true,
+      "statuses": {
+        "blind": "completed",
+        "feedback": "failed"
+      },
+      "outcomes": {
+        "blind": {
+          "correct": true,
+          "promoted": false
+        },
+        "feedback": {
+          "correct": false,
+          "promoted": false
+        }
+      },
+      "first_source_matches": null,
+      "feedback_minus_blind": {
+        "correct": -1,
+        "promoted": 0
+      }
+    },
+    {
+      "task_id": "row_sum",
+      "seed": 20261025,
+      "resolved": true,
+      "statuses": {
+        "feedback": "completed",
+        "blind": "completed"
+      },
+      "outcomes": {
+        "feedback": {
+          "correct": true,
+          "promoted": false
+        },
+        "blind": {
+          "correct": true,
+          "promoted": false
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 0,
+        "promoted": 0
+      }
+    },
+    {
+      "task_id": "silu_mul",
+      "seed": 20261025,
+      "resolved": true,
+      "statuses": {
+        "blind": "completed",
+        "feedback": "completed"
+      },
+      "outcomes": {
+        "blind": {
+          "correct": true,
+          "promoted": false
+        },
+        "feedback": {
+          "correct": true,
+          "promoted": false
+        }
+      },
+      "first_source_matches": false,
+      "feedback_minus_blind": {
+        "correct": 0,
+        "promoted": 0
+      }
+    }
+  ],
+  "resolved_pairs": 6,
+  "contrasts": {
+    "correct": {
+      "macro_task_difference": -0.16666666666666666,
+      "task_differences": {
+        "vector_add": 0.0,
+        "softmax": 0.0,
+        "rmsnorm": 0.0,
+        "transpose": -1.0,
+        "row_sum": 0.0,
+        "silu_mul": 0.0
+      },
+      "exploratory_interval": {
+        "low": -0.5,
+        "high": 0.0,
+        "clusters": 6,
+        "resamples": 46656,
+        "method": "exact percentile task-cluster bootstrap; exploratory, development-task set"
+      }
+    },
+    "promoted": {
+      "macro_task_difference": 0.0,
+      "task_differences": {
+        "vector_add": 0.0,
+        "softmax": 0.0,
+        "rmsnorm": 0.0,
+        "transpose": 0.0,
+        "row_sum": 0.0,
+        "silu_mul": 0.0
+      },
+      "exploratory_interval": {
+        "low": 0.0,
+        "high": 0.0,
+        "clusters": 6,
+        "resamples": 46656,
+        "method": "exact percentile task-cluster bootstrap; exploratory, development-task set"
+      }
+    }
+  },
+  "budget_allocations": {
+    "duration_seconds": 10800,
+    "output_tokens": 240000
+  },
+  "runtime": {
+    "evaluator_runtime": {
+      "executable": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+      "invocation": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+      "prefix": "/data/home/chenyizhou/kda-humanize-portfolio/.venv",
+      "python": "3.12.14",
+      "torch": "2.6.0+cu124",
+      "triton": "3.2.0"
+    },
+    "gpu_index": 4,
+    "gpu_python": "/data/home/chenyizhou/kda-humanize-portfolio/.venv/bin/python",
+    "hmz_public_source_sha256": {
+      "Agent": "047f24f6422e62e66a275ec3c57e9da4118bcce64f607884af9e05d1845bb344",
+      "Hmz": "7b3dfac95346447a58ad26faa60ea616dcb95c723d2720d50f2e45d0486660cf"
+    },
+    "hmz_version": "0.0.0",
+    "opencode_version": "1.19.0",
+    "service": {
+      "adapter_requested": null,
+      "base_model": "qwen38-27b-fp8",
+      "command_sha256": "afd012f6954d11063ef56b0ba5d47f37758a376fc39395b96fbeeeae1a71c7b9",
+      "generation_gpus": "2,3",
+      "model_root": "/data/home/chenyizhou/my-research-project-v11/artifacts/p1/models/Qwen3.8-27B-FP8",
+      "pid": 3813970,
+      "port": 8005,
+      "process_start_ticks": "3314007449",
+      "vllm_version": "0.27.1+cu129",
+      "weight_identity_scope": "metadata hashes plus shard sizes/mtimes; full weight hashes unverified"
+    },
+    "workspace": "/data/home/chenyizhou/kernel-agent-coexecution"
+  },
+  "generation": {
+    "adapter_requested": null,
+    "evaluation_guard": "shared_observed",
+    "max_tokens_per_request": 4096,
+    "measurement_condition": "shared_observed",
+    "mode": "reference_guided",
+    "proposal_format": "lines",
+    "rounds": 3,
+    "selection_policy": "gate_first",
+    "temperature": 0.2
+  },
+  "measurement_condition": "shared_observed",
+  "scope": "Reference-assisted development-task replication; dependent proposals are not trials. Pending/running jobs have no verdict; failed/unknown terminal jobs stay in the denominator. Task-cluster intervals appear only after all scheduled jobs terminate. Paired seeds do not imply matched initial candidates or causal attribution."
+}

@@ -1,0 +1,1 @@
+1. Define @triton.jit transpose_kernel with x_ptr, out_ptr, M, N, strides, and constexpr BLOCK_M, BLOCK_N. 2. Compute 2D program IDs, build row/col offset tensors, mask for bounds. 3. Load tile from x, transpose, store to out. 4. run(x) allocates torch.empty((N, M), dtype=x.dtype, device=x.device), computes grid with triton.cdiv, launches kernel, returns output.

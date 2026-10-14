@@ -1,0 +1,1 @@
+Transpose via 2D tile load, tl.trans, masked store. Tune block size per shape to reduce launch overhead and improve coalescing on odd/small matrices.

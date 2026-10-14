@@ -1,0 +1,1 @@
+One program per row. Loop over columns in power-of-two blocks, load with mask, accumulate in FP32, store scalar sum cast to output dtype.

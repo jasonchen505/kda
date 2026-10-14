@@ -1,0 +1,37 @@
+"""Proposal-only transport policies; preserve unrelated OpenCode title requests."""
+import copy
+
+POLICIES = ("passthrough", "tool-free", "json-schema", "json-lines")
+PROPOSER_PREFIX = "You are a GPU kernel source-code proposer."
+PROPOSAL_SCHEMA = {"type": "object", "additionalProperties": False,
+                   "required": ["draft", "plan", "code"],
+                   "properties": {key: {"type": "string", "minLength": 1}
+                                  for key in ("draft", "plan", "code")}}
+LINE_SCHEMA = {"type": "object", "additionalProperties": False,
+               "required": ["draft", "plan", "code_lines"],
+               "properties": {"draft": {"type": "string", "minLength": 1},
+                              "plan": {"type": "string", "minLength": 1},
+                              "code_lines": {"type": "array", "minItems": 1, "maxItems": 2000,
+                                             "items": {"type": "string"}}}}
+
+
+def normalize(body, policy):
+    if policy not in POLICIES:
+        raise ValueError("unknown transport policy")
+    normalized = copy.deepcopy(body)
+    scoped = any(message.get("role") == "system"
+                 and isinstance(message.get("content"), str)
+                 and message["content"].startswith(PROPOSER_PREFIX)
+                 for message in body.get("messages", []))
+    if not scoped or policy == "passthrough":
+        return normalized
+    if any(message.get("role") == "tool" or message.get("tool_calls")
+           for message in normalized.get("messages", [])):
+        raise ValueError("proposal-only transport cannot resume a tool conversation")
+    for key in ("tools", "tool_choice", "parallel_tool_calls"):
+        normalized.pop(key, None)
+    if policy in ("json-schema", "json-lines"):
+        normalized["response_format"] = {"type": "json_schema", "json_schema": {
+            "name": "kernel_proposal", "strict": True,
+            "schema": copy.deepcopy(LINE_SCHEMA if policy == "json-lines" else PROPOSAL_SCHEMA)}}
+    return normalized

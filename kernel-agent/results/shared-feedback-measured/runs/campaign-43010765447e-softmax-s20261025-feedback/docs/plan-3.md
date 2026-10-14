@@ -1,0 +1,1 @@
+1. Remove tl.range loop; map program_id(0) directly to row index. 2. Launch grid with n_rows programs. 3. Keep BLOCK_SIZE as next power of two. 4. Maintain FP32 arithmetic for stability. 5. Return output tensor.

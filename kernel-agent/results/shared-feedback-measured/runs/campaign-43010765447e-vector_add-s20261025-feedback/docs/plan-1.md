@@ -1,0 +1,1 @@
+Allocate output with torch.empty_like. Launch 1D grid with BLOCK_SIZE=1024. Kernel: pid*BLOCK + arange offsets, mask < n, load x/y to fp32, add, cast to output dtype via tl.store auto-cast. Return output.

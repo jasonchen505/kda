@@ -1,0 +1,1 @@
+Select BLOCK_SIZE: 1024 if cols>1024 else next_pow2(cols). Set num_warps=8 for BLOCK_SIZE>=1024 else 4. Grid=(rows,). Kernel unchanged: loop over cols in BLOCK_SIZE steps, masked load, fp32 accumulate, tl.sum, store. This reduces iterations for large rows and gives more parallelism per program.

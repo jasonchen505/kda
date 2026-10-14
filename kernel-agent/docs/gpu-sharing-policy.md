@@ -35,3 +35,17 @@ feedback and conservative occupancy policy. Its source/runtime plan is not chang
 remaining jobs easier to run. The two modes' results are not pooled. A controlled co-running
 workload could be another experimental condition, but shared-environment timings would need
 their own label and must not be called standalone kernel speedups.
+
+## Observed sharing, authorized on 2026-10-14
+
+`evaluate_coexecuted.py` permits resident CUDA processes and measures both reference and
+candidate under the observed environment. It records memory, utilization, SM clock, power
+and PIDs at evaluator boundaries and nominally every 0.5 seconds during execution. It keeps
+the same numerical checks, interleaved CUDA-graph samples and final veto. Monitor faults or
+insufficient memory remain infrastructure failures. Presence of a process is no longer a veto.
+
+The record says `measurement_condition=shared_observed`. Neither the queue nor the offline
+auditor can import those measurements into an old uncontended plan. The existing strict
+queues are preserved; a newly frozen plan reuses committed proposals without model calls.
+This condition records ambient sharing rather than a controlled co-running workload, so
+uncontrolled load and observation overhead limit the interpretation. See `shared-study-plan.md`.

@@ -1,0 +1,1 @@
+Optimized vector add kernel with tuned block sizes and FP32 intermediate arithmetic for BF16/FP32 inputs.

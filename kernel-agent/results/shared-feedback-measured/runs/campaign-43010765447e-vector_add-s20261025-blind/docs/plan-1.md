@@ -1,0 +1,1 @@
+1. Define a Triton kernel that takes pointers to x, y, output, n_elements, and BLOCK_SIZE. 2. Compute offsets and mask for out-of-bounds. 3. Load x and y, convert to float32, add, cast back to input dtype. 4. Store result. 5. In run(), allocate output, compute grid, launch kernel, return output.

@@ -1,0 +1,1 @@
+1. Use a single BLOCK_SIZE = next_power_of_2(width) for all cases since width <= 4096. 2. Load x once into a vector, compute sum-of-squares in FP32. 3. Compute rstd. 4. Normalize, cast to input dtype, multiply by weight, store. 5. This reduces x reads from 2 to 1, improving bandwidth utilization. 6. Keep the same run wrapper and kernel structure, just remove the loops.

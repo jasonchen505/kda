@@ -1,0 +1,1 @@
+One program per row. Load full row in a single masked vector, accumulate in FP32, reduce, store once. Tuned block/warps per column count to minimize launch and memory overhead.

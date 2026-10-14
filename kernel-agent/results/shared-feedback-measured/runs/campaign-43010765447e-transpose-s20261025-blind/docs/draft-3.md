@@ -1,0 +1,1 @@
+Transpose 2D CUDA tensor via Triton. Load MxN tile, transpose, store to NxM output. Handles odd sizes with masks. 32x32 blocks for coalescing.

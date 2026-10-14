@@ -1,0 +1,1 @@
+Keep per-row grid. Use next_pow2(cols) as BLOCK_SIZE so most shapes fit in one iteration; odd cols masked. Accumulate in fp32, single cast at store. No torch compute.

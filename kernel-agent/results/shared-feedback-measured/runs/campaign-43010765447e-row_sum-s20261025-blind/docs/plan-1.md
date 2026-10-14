@@ -1,0 +1,1 @@
+Allocate output (rows,) in input dtype. Launch grid=(rows,). Kernel: row=program_id(0), base=X+row*cols. Loop off in 0..cols step BLOCK: load masked, to fp32, accumulate. Store sum.to(dtype).

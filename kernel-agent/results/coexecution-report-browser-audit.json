@@ -1,0 +1,14 @@
+{
+  "captured_utc": "2026-10-14T14:21:50.514Z",
+  "url": "http://127.0.0.1:8765/reports/kernel-agent-report.html#shared-study",
+  "checkpoint_sha256": "b2918a80e38c85ea85869e65411fe26686babb085e77f0caa22bfa78164240ea",
+  "raw_checkpoint_bytes_match": true,
+  "viewport_width": 426,
+  "body_width": 426,
+  "terminal_jobs": 12,
+  "final_correct": 11,
+  "promoted": 2,
+  "budget_stops": 1,
+  "failed_trace_selector_verified": true,
+  "console_errors": []
+}

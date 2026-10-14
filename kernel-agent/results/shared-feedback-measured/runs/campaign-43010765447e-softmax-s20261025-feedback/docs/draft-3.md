@@ -1,0 +1,1 @@
+Optimize small-row softmax by removing persistent loop overhead and using direct row mapping. Keep FP32 reductions and masked loads/stores for non-power-of-two columns. Preserve dtype and shape.

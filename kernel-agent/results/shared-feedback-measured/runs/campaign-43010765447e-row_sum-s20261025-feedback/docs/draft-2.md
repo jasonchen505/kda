@@ -1,0 +1,1 @@
+One program per row. Pick BLOCK_SIZE from cols to minimize loop iterations and register pressure. Use num_warps=8 for large blocks to improve load throughput on the worst 256x4096 case. Keep FP32 accumulation and single cast at store.

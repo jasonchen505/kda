@@ -1,0 +1,1 @@
+Use adaptive BLOCK_SIZE based on element count. Load inputs, cast to FP32, add, store with automatic dtype cast. Minimize launch overhead for small shapes.

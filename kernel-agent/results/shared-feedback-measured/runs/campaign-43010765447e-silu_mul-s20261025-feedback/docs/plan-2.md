@@ -1,0 +1,1 @@
+Increase BLOCK_SIZE to 2048 for better throughput on small tensors. Use lambda grid for flexibility. Maintain correctness for odd sizes via masking.

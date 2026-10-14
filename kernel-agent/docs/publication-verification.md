@@ -1,5 +1,40 @@
 # Publication verification
 
+## Explicit observed-sharing condition, 2026-10-14
+
+The current CPU suite passes **114 tests** on both pinned Humanize SDKs. A fresh installed
+copy also passes all 114 tests, Ruff, shell syntax and offline artifact verification through
+`bash scripts/check.sh`. Raw outputs are in `results/coexecution-checks.json` and
+`results/coexecution-installed-checks.json`. These checks are separate from model/GPU results.
+
+The added cases exercise actual child execution with resident CUDA PIDs, monitor-failure
+rejection, minimum-free-memory readiness, immutable measurement-policy boundaries and the
+search-selected source's final veto. The sharing wrapper records memory, utilization,
+clock, power and process observations; this qualifies conditional measurements, not isolation.
+
+An independently frozen completion plan reused the two committed Softmax generation jobs
+and their unedited sources. It executed five GPU evaluations with **zero new model calls**:
+**2/2 final-correct and 2/2 passing the shared performance gate**, means 1.240× / 1.232×.
+`results/shared-completion/` contains the separate plan, measured source files, queue
+checkpoints and exact candidate bytes. The original occupied-GPU rejection remains intact.
+These outcomes are not new generation trials, a feedback-benefit estimate or isolated speedups.
+
+The prospective paired replication uses six development families, two feedback arms and
+one new seed, with twelve scheduled jobs and three proposal opportunities each. Its plan
+was frozen before generation at
+`43010765447ee3b0db97982f079ab3d4ab4836675cd808d58302a17dcaab9eb9`.
+`results/shared-feedback-checkpoint.json`, `results/shared-feedback-measured/` and
+`evidence/shared-feedback-requests/` preserve the actual status and committed evidence.
+Final-data access does not enter repair prompts or replace the search-selected source.
+The old 23/36 guarded study is preserved separately; no pending or failed outcome is rewritten.
+
+All twelve scheduled jobs terminated: blind 6/6 final-correct and 1/6 promoted; feedback
+5/6 final-correct and 1/6 promoted. The feedback transpose job exhausted its 900-second
+flow budget after three correct search records. It has no committed final result, remains
+in the denominator and was not retried. All 36 candidate files and 72 request bodies are
+verified, including that failed task's uncommitted trace. This does not establish a feedback
+benefit. Complete-job SDK totals exclude the failed task's missing overall usage.
+
 ## Phase-split harness and partial multi-seed evidence, 2026-10-13
 
 The current CPU suite passes **107 tests** on both pinned Humanize environments, plus Ruff

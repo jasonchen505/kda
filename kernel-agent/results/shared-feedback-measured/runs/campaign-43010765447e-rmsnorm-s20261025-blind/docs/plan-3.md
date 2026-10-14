@@ -1,0 +1,1 @@
+1) Allocate output. 2) Launch grid=(rows,). 3) Kernel: load row in chunks, accumulate x*x in fp32. 4) rstd=rsqrt(mean+eps). 5) Second pass: load x, w; y=(x*rstd).to(dtype)*w; store. 6) BLOCK_SIZE=min(next_pow2(width),1024) to balance occupancy.

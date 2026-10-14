@@ -50,14 +50,32 @@ for key, name in (("recovery_validation", "campaign-recovery-validation.json"),
                   ("deferred_summary", "deferred-evaluation-summary.json"),
                   ("deferred_generation", "deferred-generation-checkpoint.json"),
                   ("delivery_checks", "deferred-checks.json"),
+                  ("shared_completion", "shared-completion/summary.json"),
+                  ("shared_feedback", "shared-feedback-summary.json"),
+                  ("shared_feedback_checkpoint", "shared-feedback-checkpoint.json"),
+                  ("coexecution_checks", "coexecution-checks.json"),
                   ("upgrade_checks", "harness-upgrade-checks.json")):
     path = ROOT / "results" / name
     payload[key] = json.loads(path.read_text()) if path.exists() else None
 checkpoint = ROOT / "results/agent-multiseed-checkpoint.json"
 payload["raw_multiseed_checkpoint"] = checkpoint.read_text() if checkpoint.exists() else None
 payload["raw_deferred_evidence"] = json.dumps(
-    {"summary": payload["deferred_summary"], "generation": payload["deferred_generation"]},
+    {"summary": payload["deferred_summary"], "generation": payload["deferred_generation"],
+     "shared_completion": payload["shared_completion"]},
     ensure_ascii=False, allow_nan=False)
+shared_checkpoint = ROOT / "results/shared-feedback-checkpoint.json"
+payload["raw_shared_checkpoint"] = shared_checkpoint.read_text() if shared_checkpoint.exists() else None
+payload["shared_failed_traces"] = []
+if shared_checkpoint.exists():
+    checkpoint = json.loads(shared_checkpoint.read_text())
+    for row in checkpoint["jobs"]:
+        if row["status"] not in {"failed", "interrupted_unknown"}:
+            continue
+        run_id = f"campaign-{checkpoint['plan_sha256'][:12]}-{row['job']['id']}"
+        trace = ROOT / "results/shared-feedback-measured/runs" / run_id / "trace.json"
+        payload["shared_failed_traces"].append({"job": row["job"], "status": row["status"],
+                                               "error": row.get("error"), "run_id": run_id,
+                                               "trace_attempts": json.loads(trace.read_text()) if trace.exists() else []})
 metrics = {}
 for run in study["runs"]:
     replies = parsed = admitted = 0

@@ -1,0 +1,1 @@
+1. Allocate output (N,M). 2. 2D grid over M,N blocks. 3. Load tile with row/col masks. 4. tl.trans. 5. Store with transposed mask. 6. Return output.

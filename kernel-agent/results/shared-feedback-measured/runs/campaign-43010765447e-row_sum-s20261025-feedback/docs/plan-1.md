@@ -1,0 +1,1 @@
+Allocate output (rows,). Launch grid (rows,). Kernel: row = program_id(0), base = row*cols. Loop off in range(0, cols, BLOCK): load masked, to fp32, sum. Store result cast to x.dtype.

@@ -1,0 +1,1 @@
+Optimized SiLU*mul kernel using exp2 for sigmoid and adaptive block sizing to improve small-shape latency and large-shape throughput.

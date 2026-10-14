@@ -1,0 +1,1 @@
+1. Replace tl.exp with tl.exp2 for faster sigmoid computation. 2. Use adaptive BLOCK_SIZE based on n_elements to balance occupancy and launch overhead. 3. Keep FP32 compute with single cast at store. 4. Maintain masking for odd sizes.

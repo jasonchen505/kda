@@ -1,0 +1,1 @@
+Use 32x32 blocks for small matrices to reduce wasted threads and launch overhead; 64x64 for larger. Keep 2D grid. Mask both load and store for odd sizes. Single kernel, no extra sync.

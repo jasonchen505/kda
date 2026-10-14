@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Launch 1D grid with BLOCK_SIZE=1024. 3. Kernel: load x,y as FP32, compute silu(x)=x*sigmoid(x) in FP32, multiply by y, cast to output dtype, store with mask. 4. Return output tensor.

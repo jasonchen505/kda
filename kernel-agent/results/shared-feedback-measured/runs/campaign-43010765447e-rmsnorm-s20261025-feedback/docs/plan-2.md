@@ -1,0 +1,1 @@
+1. Remove DTYPE constexpr parameter. 2. Compute sum of squares in FP32 with masked loads. 3. Compute rstd = rsqrt(mean_sq + eps). 4. In second pass, load x and w, compute normalized = (x * rstd).to(input_dtype) via pointer cast, then y = w * normalized. 5. Store with mask. Use next_power_of_2 for block size.

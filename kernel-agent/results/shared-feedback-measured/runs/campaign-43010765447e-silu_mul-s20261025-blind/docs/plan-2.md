@@ -1,0 +1,1 @@
+1D grid over flattened elements. Each program processes BLOCK_SIZE elements. Mask out-of-bounds. Compute in FP32, cast to output dtype on store. No PyTorch compute.

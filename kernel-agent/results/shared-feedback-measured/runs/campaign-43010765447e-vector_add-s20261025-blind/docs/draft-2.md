@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 accumulation and dtype-preserving store. Uses 1024-wide blocks, masked loads/stores for odd sizes, and direct tensor pointer args.

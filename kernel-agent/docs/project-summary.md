@@ -23,10 +23,11 @@ evaluator. The work targets LLM research engineering and agent evaluation for sy
   immutable source/runtime plans, persistent budget allocations and conservative unknown
   outcomes. A real SIGKILL/restart test reuses completed results and does not replay an
   uncertain call; it uses actual Humanize flows with fake model/GPU drivers.
-- **Measurement qualification:** preserve the evaluation virtualenv invocation, reject
-  foreign CUDA occupancy before/after measurements, stop repair on infrastructure faults,
-  and wait for resources without charging a pending job. Analyze paired seeds by task,
-  withhold complete rates/intervals until all scheduled jobs terminate.
+- **Measurement conditions:** preserve the evaluation virtualenv invocation and keep the
+  original uncontended-boundary studies frozen. The explicit sharing condition allows
+  resident CUDA processes while recording memory, utilization, clock, power and PIDs;
+  conditional ratios are separate from isolated speedups. Infrastructure faults stop
+  repair, and task-level rates require every scheduled job to terminate.
 - **Phase separation:** share the GPU for generation/search numerical validation, persist
   unedited eligible candidates in a timing queue, and resume pure measurements without
   repeating model calls. Search selection is persisted before final-data access; resource
@@ -44,6 +45,8 @@ them or to reproduce the complete original KDA research pipeline.
 | Equal-budget blind refinement, three tasks | 3/3 | 0/3 | One run per task, three proposal opportunities |
 | Equal-budget measured feedback, same tasks | 3/3 | 0/3 | Does not establish a feedback advantage |
 | Fresh repaired-controller integration, three tasks | 3/3 | 2/3 | SiLU 1.291×, RMSNorm 1.073×; changed service configuration |
+| Observed-sharing blind refinement, six families | 6/6 | 1/6 | One fresh seed, three opportunities each |
+| Observed-sharing measured feedback, six families | 5/6 | 1/6 | One 900-second budget stop, no final verdict; retained denominator |
 
 Speedups are geometric means over three BF16 shapes against `torch.compile`, on an
 RTX 4090 evaluator. Promotion requires mean ≥1.05× and worst shape ≥0.90×, plus correctness.
@@ -89,4 +92,20 @@ profiler-assisted repair remain research extensions.
 The phase-split pilot completed six real proposals with three unique numerically eligible
 sources while GPU4 had another resident CUDA process. All three unique checks passed;
 the actual timing preflight left the queue pending. It proves shared generation/checking
-and durable queue creation, with no claim about these sources' final performance.
+and durable queue creation. A subsequent separately frozen shared measurement plan reused
+those sources with zero new model calls: five independent evaluations, 2/2 final-correct and
+2/2 passing the shared performance gate. Means 1.240× / 1.232× are conditional ratios against
+`torch.compile`, not isolated speedups or new model-generation trials.
+
+The observed-sharing replication has terminated all twelve jobs across six families and
+two arms. Blind refinement is 6/6 final-correct and 1/6 promoted; feedback is 5/6 final-correct
+and 1/6 promoted. Its failed transpose task exhausted the 900-second flow budget after three
+correct search records; no final result is credited and no retry replaces it. All 36 candidate
+files and 72 request bodies, including the uncommitted trace, remain auditable. Complete-job
+SDK output totals are 19,200 tokens; the failed task lacks a complete total.
+
+Promotion difference is zero; end-to-end correctness difference is −1/6 due to the budget
+stop. Exploratory task-bootstrap intervals are [0, 0] and [−0.5, 0], respectively, not proof
+of equivalence or stable causal effects. The five pairs with complete results had different
+first sources. The old 23/36 study remains incomplete and is not patched with this condition.
+CPU checks pass 114 cases on both SDKs; model/GPU counts are separate.

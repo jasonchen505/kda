@@ -34,6 +34,21 @@ def same_decision(actual, recorded):
         for key, value in actual.items())
 
 
+def check_resource_evidence(result, plan):
+    audit = result.get("resource_audit") or {}
+    require(audit.get("gpu_index") == plan["runtime"]["gpu_index"],
+            "measurement GPU mismatch" if plan["generation"].get("measurement_condition") == "shared_observed" else
+            "guarded search evidence missing uncontended boundary checks")
+    if plan["generation"].get("measurement_condition") == "shared_observed":
+        require(result.get("measurement_condition") == "shared_observed" and audit.get("policy") == "shared_observed"
+                and audit.get("before", {}).get("free_mib", 0) >= 1024
+                and isinstance(audit.get("after", {}).get("pids"), list)
+                and isinstance(audit.get("samples"), list), "shared evidence missing occupancy telemetry")
+    else:
+        require(audit.get("before_pids") == audit.get("after_pids") == [],
+                "guarded search evidence missing uncontended boundary checks")
+
+
 def audit_state(state, sources=None):
     require(state["state_sha256"] == digest({k: v for k, v in state.items() if k != "state_sha256"}),
             "checkpoint hash mismatch")
@@ -73,10 +88,7 @@ def audit_state(state, sources=None):
                 require(same_decision(verdict, attempt["decision"]), "search decision mismatch")
             if verdict["correct"]:
                 if plan["generation"].get("evaluation_guard"):
-                    occupancy = attempt["evaluation"].get("resource_audit") or {}
-                    require(occupancy.get("gpu_index") == plan["runtime"]["gpu_index"]
-                            and occupancy.get("before_pids") == occupancy.get("after_pids") == [],
-                            "guarded search evidence missing uncontended boundary checks")
+                    check_resource_evidence(attempt["evaluation"], plan)
                 require(attempt["evaluation"].get("source_sha256") == attempt.get("source_sha256"),
                         "search result not bound to source")
                 if prefers(verdict, best["decision"] if best else None, plan["generation"]["selection_policy"]):
@@ -91,10 +103,7 @@ def audit_state(state, sources=None):
             require(run["final_evaluation"]["source_sha256"] == run["selected_sha256"],
                     "final result not bound to selected source")
             if plan["generation"].get("evaluation_guard"):
-                occupancy = run["final_evaluation"].get("resource_audit") or {}
-                require(occupancy.get("gpu_index") == plan["runtime"]["gpu_index"]
-                        and occupancy.get("before_pids") == occupancy.get("after_pids") == [],
-                        "guarded final evidence missing uncontended boundary checks")
+                check_resource_evidence(run["final_evaluation"], plan)
     return plan
 
 
@@ -185,6 +194,7 @@ def summarize(state, sources=None):
             "resolved_pairs": sum(p["resolved"] for p in pairs), "contrasts": contrasts,
             "budget_allocations": state["reservations"], "runtime": plan["runtime"],
             "generation": plan["generation"],
+            "measurement_condition": plan["generation"].get("measurement_condition", "uncontended_boundaries"),
             "scope": "Reference-assisted development-task replication; dependent proposals are not trials. "
                      "Pending/running jobs have no verdict; failed/unknown terminal jobs stay in the denominator. "
                      "Task-cluster intervals appear only after all scheduled jobs terminate. "

@@ -1,0 +1,1 @@
+RMSNorm kernel: one program per row. Load row in FP32, compute mean of squares, rsqrt, normalize, cast to input dtype, multiply by weight, store. Handles odd widths via masking.

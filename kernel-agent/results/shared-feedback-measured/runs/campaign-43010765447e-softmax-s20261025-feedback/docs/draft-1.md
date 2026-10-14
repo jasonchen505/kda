@@ -1,0 +1,1 @@
+Single-pass row softmax kernel. Each program handles one row. Load row with mask, compute max, exp, sum, divide. Store result. Handles odd column counts via masking. FP32 arithmetic internally for both FP32 and BF16 inputs.

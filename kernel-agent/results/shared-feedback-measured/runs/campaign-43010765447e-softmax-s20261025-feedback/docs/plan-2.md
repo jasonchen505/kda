@@ -1,0 +1,1 @@
+1. Change grid to min(n_rows, NUM_SMS) to limit total programs. 2. Add a loop in the kernel to process multiple rows per program. 3. Keep BLOCK_SIZE as next power of 2 for n_cols. 4. Maintain FP32 reduction and masking. 5. Return output tensor.

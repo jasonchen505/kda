@@ -1,0 +1,1 @@
+1. Allocate output tensor same shape/dtype as input. 2. Launch Triton kernel with grid=(n_rows,). 3. Kernel: each program handles one row. Load row with mask (other=-inf for max, 0 for sum). Compute max, subtract, exp, sum, divide. Store with mask. 4. Use BLOCK_SIZE = next_pow2(n_cols). 5. Return output tensor.

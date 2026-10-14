@@ -1,0 +1,1 @@
+Single-pass row softmax with one block per row. Load row as FP32, subtract max, exp, sum, divide, store. Masked lanes use -inf so they contribute zero to sum. Grid covers all rows; BLOCK_SIZE is next power of two of n_cols.

@@ -1,0 +1,1 @@
+Allocate output via empty_like. Launch 1D grid sized by cdiv(n, 1024). Kernel loads x/y as fp32, adds, casts to input element type, stores masked. No torch compute fallback.

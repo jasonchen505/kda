@@ -1,0 +1,1 @@
+Increase BLOCK_M and BLOCK_N to 64. This reduces the number of kernel launches for small matrices and improves DRAM throughput for larger ones. Keep the 2D grid and masking logic identical to ensure correctness for all shapes up to 1024x1024.

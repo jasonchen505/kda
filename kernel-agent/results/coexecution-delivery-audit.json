@@ -1,0 +1,80 @@
+{
+  "captured_utc": "2026-10-14T14:24:15.810453+00:00",
+  "status": "verified",
+  "target_branch": "codex/kernel-agent-harness",
+  "scheduled": 12,
+  "terminal": 12,
+  "committed_results": 11,
+  "budget_stopped_jobs": 1,
+  "final_correct": 11,
+  "promoted": 2,
+  "raw_candidate_files": 36,
+  "raw_request_bodies": 72,
+  "passed_tests": 114,
+  "artifact_verification": {
+    "status": "verified",
+    "study_sha256": "ead614f0f5fbf25e8a743790539b68e4749e037c689bfdb845f72616e029543f",
+    "recovery_validation": {
+      "status": "verified",
+      "signal": "SIGKILL",
+      "jobs": 3,
+      "unknown_outcomes": 1,
+      "scope": "CPU fault injection using fake model/GPU drivers; no new GPU success counts"
+    },
+    "multiseed_campaigns": {
+      "pilot_completed": 1,
+      "pilot_proposer_requests": 3,
+      "pilot_clean_performance_qualified": false,
+      "guarded_scheduled": 36,
+      "guarded_terminal": 23,
+      "guarded_candidate_files": 57,
+      "guarded_proposer_requests": 57,
+      "scope": "separate integration pilot and guarded campaign snapshot; no pooling with historical GPU scores"
+    },
+    "deferred_evaluation": {
+      "generation_status": "complete",
+      "scheduled": 2,
+      "proposer_requests": 6,
+      "eligible_sources": 3,
+      "numeric_passes_with_resident_cuda_pids": 3,
+      "scope": "phase-split pilot; numerical eligibility alone is not a performance verdict"
+    },
+    "shared_completion": {
+      "status": "complete",
+      "jobs": 2,
+      "evaluations": 5,
+      "correct": 2,
+      "promoted": 2,
+      "new_model_requests": 0,
+      "scope": "existing proposals completed under observed sharing; no isolated speedup or new-generation claim"
+    },
+    "shared_feedback_study": {
+      "scheduled": 12,
+      "terminal": 12,
+      "candidate_files": 36,
+      "proposer_requests": 36,
+      "uncommitted_candidate_files": 3,
+      "uncommitted_proposer_requests": 3,
+      "measurement_condition": "shared_observed"
+    },
+    "measured_files": 18,
+    "candidate_files": 9,
+    "proposer_requests": 9,
+    "background_requests": 9,
+    "correct": 3,
+    "promoted": 2,
+    "scope": "artifact integrity and recorded decisions; no new GPU or model execution"
+  },
+  "file_sha256": {
+    "results/shared-feedback-checkpoint.json": "b2918a80e38c85ea85869e65411fe26686babb085e77f0caa22bfa78164240ea",
+    "results/shared-feedback-summary.json": "8edd2a01765102d6492bbb8029c87d529c7bf824548ad55ebbde92528cacac5b",
+    "results/shared-completion/summary.json": "46f34ce609b999f47f1a8f548ca85f7412e13db42531d219e410df744928fd05",
+    "results/coexecution-checks.json": "8774a98418dc0843ec4288415b9689da4d609949bbd12d80cb1b6c1604e996cb",
+    "results/coexecution-installed-checks.json": "8d38c0d891a8e5b342704d42ffd120958f32ad17813d3c783c9ca363328a9d6c",
+    "results/coexecution-report-browser-audit.json": "9391dd593d746eb9d7f8a4b85a359d896e922595bdb5e7d884e4fcdae70c966a",
+    "reports/kernel-agent-report.html": "733d131675184ba3285e3ebdb575b68e8cec8572620f3dafdd0d31bbde858c11",
+    "reports/coexecution-preview.png": "0c3ed90436c6992aef8394334024c46d8749dc367e0a60fee1a62633a16ee7f7"
+  },
+  "analysis_manifest": "results/coexecution-analysis/manifest.json",
+  "scope": "End-to-end denominators preserve budget failure; no pooling across measurement policies or retry of failed model jobs"
+}

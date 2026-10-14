@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Launch Triton kernel with BLOCK_SIZE=1024. 3. Kernel loads x,y masked, computes silu in FP32, multiplies, stores. 4. Grid uses triton.cdiv for odd sizes. 5. Return output tensor.

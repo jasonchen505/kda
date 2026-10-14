@@ -1,0 +1,1 @@
+Keep one program per row. Pick BLOCK_SIZE = next_pow2(min(cols, 4096)) so most rows finish in 1-4 iterations. Mask loads for odd cols. Accumulate in fp32 vector, reduce, cast to output dtype via tl.store. Grid = rows.

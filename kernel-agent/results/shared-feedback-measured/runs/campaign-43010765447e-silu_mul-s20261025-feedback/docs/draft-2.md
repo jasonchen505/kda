@@ -1,0 +1,1 @@
+Optimize small-shape latency by using a larger block size to reduce kernel launch overhead and improve memory coalescing. Keep FP32 compute and single output cast.

@@ -1,0 +1,1 @@
+Row-sum kernel: one program per row, loop over columns in BLOCK_SIZE chunks, accumulate in FP32, store cast to input dtype. Handles odd sizes via masking.

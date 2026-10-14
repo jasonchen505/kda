@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 intermediates. Use larger block size (2048) and num_warps=8 for better occupancy on larger shapes. Mask handles odd sizes. Cast back to input dtype before store.

@@ -1,0 +1,1 @@
+1) Load x,y with mask, cast to float32. 2) Add in float32. 3) Cast to element dtype. 4) Store with mask. Use BLOCK_SIZE=2048, num_warps=8 for throughput. Grid via triton.cdiv.

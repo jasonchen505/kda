@@ -1,0 +1,2767 @@
+[
+  {
+    "iteration": 1,
+    "parent_sha256": null,
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns a newly allocated contiguous matrix equal to x.T for contiguous CUDA 2D float32/bfloat16 input. Input immutable. Each dimension 1..1024 including odd sizes. Must perform data movement using Triton, not just return a view.\nVisible examples: [[64, 64], [256, 128]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output\n\nProposal 1 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Transpose 2D CUDA tensor via Triton. Allocate contiguous output of shape (N, M). Launch 2D grid of blocks. Each program loads a BLOCK_M x BLOCK_N tile from x using row/col offsets and masks, transposes via tl.trans, and stores to output at transposed coordinates. Handles odd sizes and both dtypes.\",\n  \"plan\": \"1. Define @triton.jit transpose_kernel with x_ptr, out_ptr, M, N, strides, and constexpr BLOCK_M, BLOCK_N. 2. Compute 2D program IDs, build row/col offset tensors, mask for bounds. 3. Load tile from x, transpose, store to out. 4. run(x) allocates torch.empty((N, M), dtype=x.dtype, device=x.device), computes grid with triton.cdiv, launches kernel, returns output.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"@triton.jit\",\n    \"def _transpose_kernel(\",\n    \"    x_ptr,\",\n    \"    out_ptr,\",\n    \"    M,\",\n    \"    N,\",\n    \"    stride_xm,\",\n    \"    stride_xn,\",\n    \"    stride_om,\",\n    \"    stride_on,\",\n    \"    BLOCK_M: tl.constexpr,\",\n    \"    BLOCK_N: tl.constexpr,\",\n    \"):\",\n    \"    pid_m = tl.program_id(axis=0)\",\n    \"    pid_n = tl.program_id(axis=1)\",\n    \"    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\",\n    \"    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\",\n    \"    mask_m = offs_m < M\",\n    \"    mask_n = offs_n < N\",\n    \"    mask = mask_m[:, None] & mask_n[None, :]\",\n    \"    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\",\n    \"    tile = tl.load(x_ptrs, mask=mask, other=0.0)\",\n    \"    tile_t = tl.trans(tile)\",\n    \"    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\",\n    \"    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\",\n    \"\",\n    \"def run(x: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\",\n    \"    M, N = x.shape\",\n    \"    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\",\n    \"    BLOCK_M = 32\",\n    \"    BLOCK_N = 32\",\n    \"    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\",\n    \"    _transpose_kernel[grid](\",\n    \"        x, out,\",\n    \"        M, N,\",\n    \"        x.stride(0), x.stride(1),\",\n    \"        out.stride(0), out.stride(1),\",\n    \"        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\",\n    \"    )\",\n    \"    return out\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _transpose_kernel(\n    x_ptr,\n    out_ptr,\n    M,\n    N,\n    stride_xm,\n    stride_xn,\n    stride_om,\n    stride_on,\n    BLOCK_M: tl.constexpr,\n    BLOCK_N: tl.constexpr,\n):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\n    tile = tl.load(x_ptrs, mask=mask, other=0.0)\n    tile_t = tl.trans(tile)\n    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\n    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    _transpose_kernel[grid](\n        x, out,\n        M, N,\n        x.stride(0), x.stride(1),\n        out.stride(0), out.stride(1),\n        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\n    )\n    return out\n",
+    "source_sha256": "574f0d4ea38f219c716f6092bb4efd6a707545fb9b1ad6087262d36166815fc2",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _transpose_kernel(\n    x_ptr,\n    out_ptr,\n    M,\n    N,\n    stride_xm,\n    stride_xn,\n    stride_om,\n    stride_on,\n    BLOCK_M: tl.constexpr,\n    BLOCK_N: tl.constexpr,\n):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\n    tile = tl.load(x_ptrs, mask=mask, other=0.0)\n    tile_t = tl.trans(tile)\n    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\n    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    _transpose_kernel[grid](\n        x, out,\n        M, N,\n        x.stride(0), x.stride(1),\n        out.stride(0), out.stride(1),\n        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\n    )\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "574f0d4ea38f219c716f6092bb4efd6a707545fb9b1ad6087262d36166815fc2",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            33,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.8005939200520515,
+          "candidate_us": 2.14704149402678,
+          "samples_us": {
+            "compiled": [
+              1.9404444610700011,
+              0.9470327058807015,
+              1.8005939200520515
+            ],
+            "candidate": [
+              2.173092681914568,
+              2.14704149402678,
+              1.1631590314209461
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            512,
+            513
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.573502715677023,
+          "candidate_us": 2.484219614416361,
+          "samples_us": {
+            "compiled": [
+              2.573502715677023,
+              2.6175049133598804,
+              1.3637188822031021
+            ],
+            "candidate": [
+              2.484219614416361,
+              2.4806952569633722,
+              2.4856459349393845
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            1024,
+            1024
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.2217496298253536,
+          "candidate_us": 4.118078853935003,
+          "samples_us": {
+            "compiled": [
+              2.134817186743021,
+              4.101607948541641,
+              2.2217496298253536
+            ],
+            "candidate": [
+              2.1055731922388077,
+              4.118078853935003,
+              4.155104048550129
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "measurement_condition": "shared_observed",
+      "resource_audit": {
+        "gpu_index": 4,
+        "policy": "shared_observed",
+        "minimum_free_mib": 1024,
+        "sample_period_seconds": 0.5,
+        "samples": [
+          {
+            "observed_utc": "2026-10-14T12:16:10.563054+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.87,
+            "pids": [
+              558866
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:11.124817+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.76,
+            "pids": [
+              558866
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:11.732279+00:00",
+            "free_mib": 13760,
+            "used_mib": 10451,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.89,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:12.308909+00:00",
+            "free_mib": 13323,
+            "used_mib": 10888,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.14,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:12.908286+00:00",
+            "free_mib": 13303,
+            "used_mib": 10908,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.54,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:13.470996+00:00",
+            "free_mib": 13281,
+            "used_mib": 10930,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.77,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:14.052271+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.51,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:14.620200+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.86,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:15.208574+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:15.778624+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.33,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:16.352519+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.47,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:16.912996+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.5,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:17.479153+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:18.044872+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.5,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:18.616945+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.65,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:19.188112+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.61,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:19.756615+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.0,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:20.341291+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.46,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:20.923925+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 99.66,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:21.492438+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.78,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:22.073540+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.76,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:22.669990+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.03,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:23.255864+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:23.825773+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:24.389990+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 92.61,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:24.966841+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 105.49,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:25.546763+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 111.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:26.112687+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.71,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:26.682308+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 100.82,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:27.252714+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.25,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:27.816971+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 100.29,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:28.397581+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 120.52,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:28.961370+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 140.41,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:29.537521+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 96,
+            "sm_clock_mhz": 2700,
+            "power_watts": 120.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:30.111878+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.48,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:30.680617+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 125.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:31.242047+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 137.96,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:31.805926+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.23,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:32.383318+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.85,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:32.971834+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.58,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:33.533398+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 106.56,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:34.112013+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 134.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:34.679716+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 129.9,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:35.245956+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 95,
+            "sm_clock_mhz": 2700,
+            "power_watts": 108.6,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:35.830976+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 117.99,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:36.398960+00:00",
+            "free_mib": 12951,
+            "used_mib": 11260,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 135.57,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:36.971529+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.46,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:37.535549+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 99.9,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:38.112016+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 124.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:38.675275+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 96,
+            "sm_clock_mhz": 2700,
+            "power_watts": 136.23,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:39.259304+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.79,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:39.831330+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 104.42,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:40.411847+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 109.51,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:40.977288+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 161.65,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:41.553116+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 188.92,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:42.127471+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 136.72,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:42.723429+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 134.35,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:43.294513+00:00",
+            "free_mib": 12917,
+            "used_mib": 11294,
+            "utilization_percent": 95,
+            "sm_clock_mhz": 2700,
+            "power_watts": 170.43,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:43.865520+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 138.52,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:44.443468+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 108.14,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:45.030074+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 150.05,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:45.595231+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 155.03,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:46.180652+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.73,
+            "pids": [
+              558866
+            ]
+          }
+        ],
+        "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+        "before": {
+          "observed_utc": "2026-10-14T12:16:10.003134+00:00",
+          "free_mib": 13775,
+          "used_mib": 10437,
+          "utilization_percent": 100,
+          "sm_clock_mhz": 2715,
+          "power_watts": 95.99,
+          "pids": [
+            558866
+          ]
+        },
+        "after": {
+          "observed_utc": "2026-10-14T12:16:46.594406+00:00",
+          "free_mib": 13775,
+          "used_mib": 10437,
+          "utilization_percent": 94,
+          "sm_clock_mhz": 2700,
+          "power_watts": 102.47,
+          "pids": [
+            558866
+          ]
+        }
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 0.7767897412447345,
+      "worst_speedup": 0.5395111916573369,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 280.8079413585365,
+    "usage": {
+      "duration": "PT4M4.080979S",
+      "cost": 0.0,
+      "output_tokens": 764
+    }
+  },
+  {
+    "iteration": 2,
+    "parent_sha256": "574f0d4ea38f219c716f6092bb4efd6a707545fb9b1ad6087262d36166815fc2",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns a newly allocated contiguous matrix equal to x.T for contiguous CUDA 2D float32/bfloat16 input. Input immutable. Each dimension 1..1024 including odd sizes. Must perform data movement using Triton, not just return a view.\nVisible examples: [[64, 64], [256, 128]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _transpose_kernel(\n    x_ptr,\n    out_ptr,\n    M,\n    N,\n    stride_xm,\n    stride_xn,\n    stride_om,\n    stride_on,\n    BLOCK_M: tl.constexpr,\n    BLOCK_N: tl.constexpr,\n):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\n    tile = tl.load(x_ptrs, mask=mask, other=0.0)\n    tile_t = tl.trans(tile)\n    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\n    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    _transpose_kernel[grid](\n        x, out,\n        M, N,\n        x.stride(0), x.stride(1),\n        out.stride(0), out.stride(1),\n        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\n    )\n    return out\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nProposal 2 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Transpose 2D CUDA tensor via Triton. Load MxN tile, transpose, store to NxM output. Handle odd sizes with masks. 32x32 blocks for coalescing.\",\n  \"plan\": \"1. Allocate output (N,M). 2. 2D grid over M,N blocks. 3. Load tile with row/col masks. 4. tl.trans. 5. Store with transposed masks. 6. Return output.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"@triton.jit\",\n    \"def _transpose_kernel(\",\n    \"    x_ptr,\",\n    \"    out_ptr,\",\n    \"    M,\",\n    \"    N,\",\n    \"    stride_xm,\",\n    \"    stride_xn,\",\n    \"    stride_om,\",\n    \"    stride_on,\",\n    \"    BLOCK_M: tl.constexpr,\",\n    \"    BLOCK_N: tl.constexpr,\",\n    \"):\",\n    \"    pid_m = tl.program_id(axis=0)\",\n    \"    pid_n = tl.program_id(axis=1)\",\n    \"    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\",\n    \"    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\",\n    \"    mask_m = offs_m < M\",\n    \"    mask_n = offs_n < N\",\n    \"    mask = mask_m[:, None] & mask_n[None, :]\",\n    \"    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\",\n    \"    tile = tl.load(x_ptrs, mask=mask, other=0.0)\",\n    \"    tile_t = tl.trans(tile)\",\n    \"    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\",\n    \"    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\",\n    \"\",\n    \"def run(x: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\",\n    \"    M, N = x.shape\",\n    \"    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\",\n    \"    BLOCK_M = 32\",\n    \"    BLOCK_N = 32\",\n    \"    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\",\n    \"    _transpose_kernel[grid](\",\n    \"        x, out,\",\n    \"        M, N,\",\n    \"        x.stride(0), x.stride(1),\",\n    \"        out.stride(0), out.stride(1),\",\n    \"        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\",\n    \"    )\",\n    \"    return out\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _transpose_kernel(\n    x_ptr,\n    out_ptr,\n    M,\n    N,\n    stride_xm,\n    stride_xn,\n    stride_om,\n    stride_on,\n    BLOCK_M: tl.constexpr,\n    BLOCK_N: tl.constexpr,\n):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\n    tile = tl.load(x_ptrs, mask=mask, other=0.0)\n    tile_t = tl.trans(tile)\n    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\n    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    _transpose_kernel[grid](\n        x, out,\n        M, N,\n        x.stride(0), x.stride(1),\n        out.stride(0), out.stride(1),\n        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\n    )\n    return out\n",
+    "source_sha256": "574f0d4ea38f219c716f6092bb4efd6a707545fb9b1ad6087262d36166815fc2",
+    "duplicate_of": 1,
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _transpose_kernel(\n    x_ptr,\n    out_ptr,\n    M,\n    N,\n    stride_xm,\n    stride_xn,\n    stride_om,\n    stride_on,\n    BLOCK_M: tl.constexpr,\n    BLOCK_N: tl.constexpr,\n):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\n    tile = tl.load(x_ptrs, mask=mask, other=0.0)\n    tile_t = tl.trans(tile)\n    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\n    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    _transpose_kernel[grid](\n        x, out,\n        M, N,\n        x.stride(0), x.stride(1),\n        out.stride(0), out.stride(1),\n        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\n    )\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "574f0d4ea38f219c716f6092bb4efd6a707545fb9b1ad6087262d36166815fc2",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            33,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.8005939200520515,
+          "candidate_us": 2.14704149402678,
+          "samples_us": {
+            "compiled": [
+              1.9404444610700011,
+              0.9470327058807015,
+              1.8005939200520515
+            ],
+            "candidate": [
+              2.173092681914568,
+              2.14704149402678,
+              1.1631590314209461
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            512,
+            513
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.573502715677023,
+          "candidate_us": 2.484219614416361,
+          "samples_us": {
+            "compiled": [
+              2.573502715677023,
+              2.6175049133598804,
+              1.3637188822031021
+            ],
+            "candidate": [
+              2.484219614416361,
+              2.4806952569633722,
+              2.4856459349393845
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            1024,
+            1024
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.2217496298253536,
+          "candidate_us": 4.118078853935003,
+          "samples_us": {
+            "compiled": [
+              2.134817186743021,
+              4.101607948541641,
+              2.2217496298253536
+            ],
+            "candidate": [
+              2.1055731922388077,
+              4.118078853935003,
+              4.155104048550129
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "measurement_condition": "shared_observed",
+      "resource_audit": {
+        "gpu_index": 4,
+        "policy": "shared_observed",
+        "minimum_free_mib": 1024,
+        "sample_period_seconds": 0.5,
+        "samples": [
+          {
+            "observed_utc": "2026-10-14T12:16:10.563054+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.87,
+            "pids": [
+              558866
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:11.124817+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.76,
+            "pids": [
+              558866
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:11.732279+00:00",
+            "free_mib": 13760,
+            "used_mib": 10451,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.89,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:12.308909+00:00",
+            "free_mib": 13323,
+            "used_mib": 10888,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.14,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:12.908286+00:00",
+            "free_mib": 13303,
+            "used_mib": 10908,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.54,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:13.470996+00:00",
+            "free_mib": 13281,
+            "used_mib": 10930,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.77,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:14.052271+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.51,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:14.620200+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.86,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:15.208574+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:15.778624+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.33,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:16.352519+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.47,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:16.912996+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.5,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:17.479153+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:18.044872+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.5,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:18.616945+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.65,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:19.188112+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.61,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:19.756615+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.0,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:20.341291+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.46,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:20.923925+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 99.66,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:21.492438+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.78,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:22.073540+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.76,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:22.669990+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.03,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:23.255864+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:23.825773+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:24.389990+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 92.61,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:24.966841+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 105.49,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:25.546763+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 111.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:26.112687+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.71,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:26.682308+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 100.82,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:27.252714+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.25,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:27.816971+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 100.29,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:28.397581+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 120.52,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:28.961370+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 140.41,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:29.537521+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 96,
+            "sm_clock_mhz": 2700,
+            "power_watts": 120.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:30.111878+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.48,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:30.680617+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 125.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:31.242047+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 137.96,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:31.805926+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.23,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:32.383318+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.85,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:32.971834+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.58,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:33.533398+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 106.56,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:34.112013+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 134.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:34.679716+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 129.9,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:35.245956+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 95,
+            "sm_clock_mhz": 2700,
+            "power_watts": 108.6,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:35.830976+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 117.99,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:36.398960+00:00",
+            "free_mib": 12951,
+            "used_mib": 11260,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 135.57,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:36.971529+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.46,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:37.535549+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 99.9,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:38.112016+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 124.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:38.675275+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 96,
+            "sm_clock_mhz": 2700,
+            "power_watts": 136.23,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:39.259304+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.79,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:39.831330+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 104.42,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:40.411847+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 109.51,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:40.977288+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 161.65,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:41.553116+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 188.92,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:42.127471+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 136.72,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:42.723429+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 134.35,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:43.294513+00:00",
+            "free_mib": 12917,
+            "used_mib": 11294,
+            "utilization_percent": 95,
+            "sm_clock_mhz": 2700,
+            "power_watts": 170.43,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:43.865520+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 138.52,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:44.443468+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 108.14,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:45.030074+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 150.05,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:45.595231+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 155.03,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:46.180652+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.73,
+            "pids": [
+              558866
+            ]
+          }
+        ],
+        "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+        "before": {
+          "observed_utc": "2026-10-14T12:16:10.003134+00:00",
+          "free_mib": 13775,
+          "used_mib": 10437,
+          "utilization_percent": 100,
+          "sm_clock_mhz": 2715,
+          "power_watts": 95.99,
+          "pids": [
+            558866
+          ]
+        },
+        "after": {
+          "observed_utc": "2026-10-14T12:16:46.594406+00:00",
+          "free_mib": 13775,
+          "used_mib": 10437,
+          "utilization_percent": 94,
+          "sm_clock_mhz": 2700,
+          "power_watts": 102.47,
+          "pids": [
+            558866
+          ]
+        }
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 0.7767897412447345,
+      "worst_speedup": 0.5395111916573369,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 204.25179204717278,
+    "usage": {
+      "duration": "PT3M24.246576S",
+      "cost": 0.0,
+      "output_tokens": 684
+    }
+  },
+  {
+    "iteration": 3,
+    "parent_sha256": "574f0d4ea38f219c716f6092bb4efd6a707545fb9b1ad6087262d36166815fc2",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns a newly allocated contiguous matrix equal to x.T for contiguous CUDA 2D float32/bfloat16 input. Input immutable. Each dimension 1..1024 including odd sizes. Must perform data movement using Triton, not just return a view.\nVisible examples: [[64, 64], [256, 128]]\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef add_kernel(x_ptr,  # *Pointer* to first input vector.\n               y_ptr,  # *Pointer* to second input vector.\n               output_ptr,  # *Pointer* to output vector.\n               n_elements,  # Size of the vector.\n               BLOCK_SIZE: tl.constexpr,  # Number of elements each program should process.\n               # NOTE: `constexpr` so it can be used as a shape value.\n               ):\n    # There are multiple 'programs' processing different data. We identify which program\n    # we are here:\n    pid = tl.program_id(axis=0)  # We use a 1D launch grid so axis is 0.\n    # This program will process inputs that are offset from the initial data.\n    # For instance, if you had a vector of length 256 and block_size of 64, the programs\n    # would each access the elements [0:64, 64:128, 128:192, 192:256].\n    # Note that offsets is a list of pointers:\n    block_start = pid * BLOCK_SIZE\n    offsets = block_start + tl.arange(0, BLOCK_SIZE)\n    # Create a mask to guard memory operations against out-of-bounds accesses.\n    mask = offsets < n_elements\n    # Load x and y from DRAM, masking out any extra elements in case the input is not a\n    # multiple of the block size.\n    x = tl.load(x_ptr + offsets, mask=mask)\n    y = tl.load(y_ptr + offsets, mask=mask)\n    output = x + y\n    # Write x + y back to DRAM.\n    tl.store(output_ptr + offsets, output, mask=mask)\n\ndef add(x: torch.Tensor, y: torch.Tensor):\n    # We need to preallocate the output.\n    output = torch.empty_like(x)\n    assert x.is_cuda and y.is_cuda and output.is_cuda\n    n_elements = output.numel()\n    # The SPMD launch grid denotes the number of kernel instances that run in parallel.\n    # It is analogous to CUDA launch grids. It can be either Tuple[int], or Callable(metaparameters) -> Tuple[int].\n    # In this case, we use a 1D grid where the size is the number of blocks:\n    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']), )\n    # NOTE:\n    #  - Each torch.tensor object is implicitly converted into a pointer to its first element.\n    #  - `triton.jit`'ed functions can be indexed with a launch grid to obtain a callable GPU kernel.\n    #  - Don't forget to pass meta-parameters as keywords arguments.\n    add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)\n    # We return a handle to z but, since `torch.cuda.synchronize()` hasn't been called, the kernel is still\n    # running asynchronously at this point.\n    return output\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _transpose_kernel(\n    x_ptr,\n    out_ptr,\n    M,\n    N,\n    stride_xm,\n    stride_xn,\n    stride_om,\n    stride_on,\n    BLOCK_M: tl.constexpr,\n    BLOCK_N: tl.constexpr,\n):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\n    tile = tl.load(x_ptrs, mask=mask, other=0.0)\n    tile_t = tl.trans(tile)\n    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\n    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    _transpose_kernel[grid](\n        x, out,\n        M, N,\n        x.stride(0), x.stride(1),\n        out.stride(0), out.stride(1),\n        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\n    )\n    return out\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nProposal 3 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Transpose 2D CUDA tensor via Triton. Load MxN tile, transpose, store to NxM output. Handles odd sizes with masks. 32x32 blocks for coalescing.\",\n  \"plan\": \"1. Allocate output (N,M). 2. 2D grid over M,N blocks. 3. Load tile with row/col masks. 4. tl.trans. 5. Store with transposed mask. 6. Return output.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"@triton.jit\",\n    \"def _transpose_kernel(\",\n    \"    x_ptr,\",\n    \"    out_ptr,\",\n    \"    M,\",\n    \"    N,\",\n    \"    stride_xm,\",\n    \"    stride_xn,\",\n    \"    stride_om,\",\n    \"    stride_on,\",\n    \"    BLOCK_M: tl.constexpr,\",\n    \"    BLOCK_N: tl.constexpr,\",\n    \"):\",\n    \"    pid_m = tl.program_id(axis=0)\",\n    \"    pid_n = tl.program_id(axis=1)\",\n    \"    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\",\n    \"    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\",\n    \"    mask_m = offs_m < M\",\n    \"    mask_n = offs_n < N\",\n    \"    mask = mask_m[:, None] & mask_n[None, :]\",\n    \"    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\",\n    \"    tile = tl.load(x_ptrs, mask=mask, other=0.0)\",\n    \"    tile_t = tl.trans(tile)\",\n    \"    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\",\n    \"    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\",\n    \"\",\n    \"def run(x: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\",\n    \"    M, N = x.shape\",\n    \"    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\",\n    \"    BLOCK_M = 32\",\n    \"    BLOCK_N = 32\",\n    \"    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\",\n    \"    _transpose_kernel[grid](\",\n    \"        x, out,\",\n    \"        M, N,\",\n    \"        x.stride(0), x.stride(1),\",\n    \"        out.stride(0), out.stride(1),\",\n    \"        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\",\n    \"    )\",\n    \"    return out\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _transpose_kernel(\n    x_ptr,\n    out_ptr,\n    M,\n    N,\n    stride_xm,\n    stride_xn,\n    stride_om,\n    stride_on,\n    BLOCK_M: tl.constexpr,\n    BLOCK_N: tl.constexpr,\n):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\n    tile = tl.load(x_ptrs, mask=mask, other=0.0)\n    tile_t = tl.trans(tile)\n    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\n    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    _transpose_kernel[grid](\n        x, out,\n        M, N,\n        x.stride(0), x.stride(1),\n        out.stride(0), out.stride(1),\n        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\n    )\n    return out\n",
+    "source_sha256": "574f0d4ea38f219c716f6092bb4efd6a707545fb9b1ad6087262d36166815fc2",
+    "duplicate_of": 1,
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _transpose_kernel(\n    x_ptr,\n    out_ptr,\n    M,\n    N,\n    stride_xm,\n    stride_xn,\n    stride_om,\n    stride_on,\n    BLOCK_M: tl.constexpr,\n    BLOCK_N: tl.constexpr,\n):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * stride_xm + offs_n[None, :] * stride_xn\n    tile = tl.load(x_ptrs, mask=mask, other=0.0)\n    tile_t = tl.trans(tile)\n    out_ptrs = out_ptr + offs_n[:, None] * stride_om + offs_m[None, :] * stride_on\n    tl.store(out_ptrs, tile_t, mask=mask_n[:, None] & mask_m[None, :])\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    _transpose_kernel[grid](\n        x, out,\n        M, N,\n        x.stride(0), x.stride(1),\n        out.stride(0), out.stride(1),\n        BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,\n    )\n    return out\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "574f0d4ea38f219c716f6092bb4efd6a707545fb9b1ad6087262d36166815fc2",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            33,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.8005939200520515,
+          "candidate_us": 2.14704149402678,
+          "samples_us": {
+            "compiled": [
+              1.9404444610700011,
+              0.9470327058807015,
+              1.8005939200520515
+            ],
+            "candidate": [
+              2.173092681914568,
+              2.14704149402678,
+              1.1631590314209461
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            512,
+            513
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.573502715677023,
+          "candidate_us": 2.484219614416361,
+          "samples_us": {
+            "compiled": [
+              2.573502715677023,
+              2.6175049133598804,
+              1.3637188822031021
+            ],
+            "candidate": [
+              2.484219614416361,
+              2.4806952569633722,
+              2.4856459349393845
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            1024,
+            1024
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 2.2217496298253536,
+          "candidate_us": 4.118078853935003,
+          "samples_us": {
+            "compiled": [
+              2.134817186743021,
+              4.101607948541641,
+              2.2217496298253536
+            ],
+            "candidate": [
+              2.1055731922388077,
+              4.118078853935003,
+              4.155104048550129
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "measurement_condition": "shared_observed",
+      "resource_audit": {
+        "gpu_index": 4,
+        "policy": "shared_observed",
+        "minimum_free_mib": 1024,
+        "sample_period_seconds": 0.5,
+        "samples": [
+          {
+            "observed_utc": "2026-10-14T12:16:10.563054+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.87,
+            "pids": [
+              558866
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:11.124817+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.76,
+            "pids": [
+              558866
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:11.732279+00:00",
+            "free_mib": 13760,
+            "used_mib": 10451,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.89,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:12.308909+00:00",
+            "free_mib": 13323,
+            "used_mib": 10888,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.14,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:12.908286+00:00",
+            "free_mib": 13303,
+            "used_mib": 10908,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.54,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:13.470996+00:00",
+            "free_mib": 13281,
+            "used_mib": 10930,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.77,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:14.052271+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.51,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:14.620200+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.86,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:15.208574+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:15.778624+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.33,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:16.352519+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.47,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:16.912996+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.5,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:17.479153+00:00",
+            "free_mib": 13279,
+            "used_mib": 10932,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:18.044872+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.5,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:18.616945+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.65,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:19.188112+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.61,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:19.756615+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.0,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:20.341291+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.46,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:20.923925+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 99.66,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:21.492438+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 98.78,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:22.073540+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.76,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:22.669990+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 96.03,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:23.255864+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 97.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:23.825773+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 95.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:24.389990+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2715,
+            "power_watts": 92.61,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:24.966841+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 105.49,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:25.546763+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 111.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:26.112687+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.71,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:26.682308+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 100.82,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:27.252714+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.25,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:27.816971+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 100.29,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:28.397581+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 120.52,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:28.961370+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 140.41,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:29.537521+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 96,
+            "sm_clock_mhz": 2700,
+            "power_watts": 120.37,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:30.111878+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.48,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:30.680617+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 125.17,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:31.242047+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 137.96,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:31.805926+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.23,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:32.383318+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.85,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:32.971834+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 101.58,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:33.533398+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 106.56,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:34.112013+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 134.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:34.679716+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 129.9,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:35.245956+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 95,
+            "sm_clock_mhz": 2700,
+            "power_watts": 108.6,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:35.830976+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 117.99,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:36.398960+00:00",
+            "free_mib": 12951,
+            "used_mib": 11260,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 135.57,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:36.971529+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.46,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:37.535549+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 99.9,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:38.112016+00:00",
+            "free_mib": 12953,
+            "used_mib": 11258,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 124.26,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:38.675275+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 96,
+            "sm_clock_mhz": 2700,
+            "power_watts": 136.23,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:39.259304+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.79,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:39.831330+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 104.42,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:40.411847+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 99,
+            "sm_clock_mhz": 2700,
+            "power_watts": 109.51,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:40.977288+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 161.65,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:41.553116+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 188.92,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:42.127471+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 98,
+            "sm_clock_mhz": 2700,
+            "power_watts": 136.72,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:42.723429+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 134.35,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:43.294513+00:00",
+            "free_mib": 12917,
+            "used_mib": 11294,
+            "utilization_percent": 95,
+            "sm_clock_mhz": 2700,
+            "power_watts": 170.43,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:43.865520+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 138.52,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:44.443468+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 108.14,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:45.030074+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 100,
+            "sm_clock_mhz": 2700,
+            "power_watts": 150.05,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:45.595231+00:00",
+            "free_mib": 12937,
+            "used_mib": 11274,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 155.03,
+            "pids": [
+              558866,
+              1590116
+            ]
+          },
+          {
+            "observed_utc": "2026-10-14T12:16:46.180652+00:00",
+            "free_mib": 13775,
+            "used_mib": 10437,
+            "utilization_percent": 97,
+            "sm_clock_mhz": 2700,
+            "power_watts": 115.73,
+            "pids": [
+              558866
+            ]
+          }
+        ],
+        "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+        "before": {
+          "observed_utc": "2026-10-14T12:16:10.003134+00:00",
+          "free_mib": 13775,
+          "used_mib": 10437,
+          "utilization_percent": 100,
+          "sm_clock_mhz": 2715,
+          "power_watts": 95.99,
+          "pids": [
+            558866
+          ]
+        },
+        "after": {
+          "observed_utc": "2026-10-14T12:16:46.594406+00:00",
+          "free_mib": 13775,
+          "used_mib": 10437,
+          "utilization_percent": 94,
+          "sm_clock_mhz": 2700,
+          "power_watts": 102.47,
+          "pids": [
+            558866
+          ]
+        }
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 0.7767897412447345,
+      "worst_speedup": 0.5395111916573369,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 241.68558004498482,
+    "usage": {
+      "duration": "PT4M1.677631S",
+      "cost": 0.0,
+      "output_tokens": 684
+    }
+  }
+]

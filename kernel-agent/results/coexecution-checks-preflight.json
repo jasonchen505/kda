@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "mechanism_checks_passed_artifact_finalization_pending",
+  "captured_utc": "2026-10-14T12:32:19.172471+00:00",
+  "execution_workspace": "/data/home/chenyizhou/kernel-agent-coexecution",
+  "passed_tests": 113,
+  "checks": [
+    {
+      "command": [
+        "/data/home/chenyizhou/kernel-agent/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "returncode": 0,
+      "stdout": "........................................................................ [ 63%]\n.........................................                                [100%]\n113 passed in 3.02s\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/data/home/chenyizhou/humanize/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "returncode": 0,
+      "stdout": "........................................................................ [ 63%]\n.........................................                                [100%]\n113 passed in 3.87s\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/data/home/chenyizhou/kernel-agent/.venv/bin/ruff",
+        "check",
+        "flows",
+        "scripts",
+        "src",
+        "tests"
+      ],
+      "returncode": 0,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "bash",
+        "-n",
+        "scripts/reproduce.sh",
+        "scripts/reproduce_existing_selector.sh",
+        "scripts/start_cached_qwen27.sh",
+        "scripts/start_local_model.sh"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "scope": "CPU mechanisms on both pinned Humanize SDKs; actual model/GPU results and final artifact verification counted separately",
+  "fresh_install": {
+    "result_file": "results/coexecution-installed-checks.json",
+    "sha256": "967360a76a9b171e3ab441f171ea0cc51ca95645a3362d072a103032d0d98825",
+    "returncode": 0,
+    "passed_tests": 113
+  }
+}

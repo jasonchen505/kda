@@ -1,0 +1,1 @@
+Allocate output, compute next_power_of_2 block size, launch one program per row. Load row with -inf mask, subtract max, exp, sum, divide, store masked. Use FP32 arithmetic internally.

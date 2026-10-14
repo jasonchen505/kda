@@ -32,6 +32,8 @@ def source_hashes():
              "scripts/evaluate_candidate.py", "scripts/evaluate_checked.py", "docs/measurement-guard.md",
              "scripts/evaluate_shared.py", "scripts/run_deferred.py",
              "docs/deferred-evaluation.md",
+             "scripts/evaluate_coexecuted.py", "scripts/finish_deferred.py",
+             "scripts/run_shared_campaign.py", "docs/shared-study-plan.md",
              "data/tasks.json", "data/opencode-qwen27.json",
              "results/qwen27-asset-manifest.json", "docs/multiseed-study-plan.md", "pyproject.toml", "uv.lock"]
     paths += [str(p.relative_to(ROOT)) for folder in ("src/kernel_agent", "references")
@@ -155,6 +157,11 @@ def readiness(plan):
                 counts[name].append(float(line.rsplit(" ", 1)[1]))
     if any(not values or any(v != 0 for v in values) for values in counts.values()):
         raise RuntimeError("local model service has active or queued requests")
+    if plan.get("generation", {}).get("measurement_condition") == "shared_observed":
+        from scripts.evaluate_coexecuted import observe
+        if observe(runtime["gpu_index"])["free_mib"] < 1024:
+            raise RuntimeError("evaluation GPU has less than 1024 MiB free")
+        return
     used = subprocess.check_output(["nvidia-smi", "-i", str(runtime["gpu_index"]),
                                     "--query-gpu=memory.used", "--format=csv,noheader,nounits"],
                                    text=True, timeout=10).strip()
@@ -218,6 +225,8 @@ def execute(plan, job, trace_root):
         budget = plan["per_job_budget"]
         deferred = generation.get("evaluation_mode") == "deferred"
         evaluator_script = "evaluate_shared.py" if deferred else "evaluate_checked.py"
+        if generation.get("measurement_condition") == "shared_observed":
+            evaluator_script = "evaluate_coexecuted.py"
         result = Hmz(ROOT).run(str(ROOT / "flows/kernel_loop.py"),
                               fixture["contract"] + "\nVisible examples: " + json.dumps(fixture["examples"]),
                               agents={"builder": f"opencode/kernel-local/{ALIAS}"},
