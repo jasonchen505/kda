@@ -11,33 +11,30 @@ and auditable evidence. KDA, Humanize/OpenCode, Qwen and Triton are reused compo
 
 Start with [the project summary](docs/project-summary.md),
 [Chinese resume and interview notes](docs/project-summary.zh.md), and
-[the offline HTML report](reports/kernel-agent-report.html#pool-study).
+[the offline HTML report](reports/kernel-agent-report.html#repair-study).
 
-**Latest engineering validation: 24/24 jobs resolved**, six families × two seeds × two
-strategies; **20/24 final-correct, 6/24 conditionally promoted**. Three model-service request
-intervals overlapped while this project's GPU4 evaluations remained serialized. An endpoint
-restart reused **15 committed jobs** and resumed **nine untouched jobs**, preserving 178 old
-request/admission hashes and existing budget reservations. Four jobs had no eligible source
-and never ran final evaluation. Five pairs cross the restart, so pooled feedback effects
-and intervals are suppressed. This validates harness concurrency/recovery; no feedback
-advantage or end-to-end throughput gain is claimed.
+**Latest generation/repair evaluation: 64/64 terminal outcomes**, eight families ×
+two seeds × a 2×2 factorial. Contract planning is **11/16 first-proposal correct**
+versus **12/16** for ordinary prompting. Full contract+counterexample configuration
+is **13/16 final-correct**, versus **15/16** for ordinary generation+repair.
+Neither new policy improves final correctness here; keep ordinary generation/repair as the recommended configuration. Both repair arms share the identical initial source and verdict; 8 fully observed
+initial-failure pairs yield 5 versus 5 rescues. Actual calls: **152/160**. See
+[the frozen design](docs/repair-study-plan.md) and [results/limits](docs/repair-study-results.zh.md).
 
-- [Latest results](docs/service-pool-results.zh.md), [frozen plan](docs/service-pool-study-plan.md),
-  [recorded endpoint handoff](docs/service-pool-handoff.md), and `results/pool-study/`.
-- [Online-feedback durable finalization](docs/phased-study-plan.md): real SIGKILL recovery
-  reused six search measurements, with zero new model/search calls and two final checks.
-- [Historical feedback study](docs/shared-study-plan.md): 12/12 terminal, blind 6/6 correct
-  versus feedback 5/6, both 1/6 promoted; one budget stop preserved without a rerun.
-- [Selector repair](docs/selector-recheck.md): frozen-source contrast, old selection 0/3
-  promotions versus eligible alternative 3/3. Later 3/3 correct, 2/3 promoted integration
-  uses a changed service configuration and is not attributed to that fix alone.
-- [Older guarded study](docs/multiseed-execution.md) remains 23/36 terminal, 13 pending;
-  [sharing policy](docs/gpu-sharing-policy.md) keeps its condition distinct.
+The new native Chat backend, tokenizer-based context packing and dynamic Qwen discovery
+are common to all arms. Idle admission, process binding and latency-EWMA queue allocation
+cover 3 GPU groups. Independent GPU4 evaluations remain cooperatively serialized.
+No manually fixed kernels, model-call replay or final-data reselection. Tests pass **159 cases**
+on both pinned SDKs and a fresh locked installation; model/GPU evidence is counted separately.
 
-All task families have participated in development; references assist generation. Shared
-ratios against `torch.compile` are conditional measurements, not isolated-device speedups.
-Cached roots' weight equality is unverified. **134 CPU mechanism/evidence tests** pass on
-both pinned SDKs and a fresh locked install; these are separate from model/GPU experiments.
+Earlier evidence remains separate: the 24-job service-pool engineering validation,
+[recorded endpoint handoff](docs/service-pool-handoff.md), real SIGKILL final-stage recovery,
+[12-job feedback study](docs/shared-study-plan.md), [selector recheck](docs/selector-recheck.md)
+and the incomplete [23/36 guarded plan](docs/multiseed-execution.md). The legacy
+Humanize/OpenCode entry remains available; this native-backend study is not a causal
+comparison with its historical latencies. References assist generation; task-cluster
+intervals are exploratory, cross-root weight equality is unverified, and shared ratios
+against torch.compile are not isolated or end-to-end LLM speedups.
 
 ```text
 Task contract → local Qwen proposal → protocol / AST admission → independent GPU process

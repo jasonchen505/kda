@@ -1,0 +1,9 @@
+{
+  "status": "excluded_invalid_device_binding",
+  "dispatched_requests": 48,
+  "completed_requests": 45,
+  "unconfirmed_requests": 3,
+  "policy_source_sha256": "0cc84ed809d28258415ff2bb3a9b103dff09b830d001723de2bdcef7479cd9aa",
+  "policy_source_unchanged": true,
+  "scope": "Not pooled with corrected v2; original requests and budget allocations retained; unknown calls not replayed."
+}

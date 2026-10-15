@@ -5,7 +5,36 @@ It adapts KDA's contract → draft → plan → implementation workflow through 
 OpenCode, then adds a downstream controller whose verdict comes from a separate GPU
 evaluator. The work targets LLM research engineering and agent evaluation for systems.
 
-## Latest engineering evidence: a three-service pool (2026-10-15)
+## Generation and repair: paired factorial results (2026-10-15)
+
+The new native local-chat backend compares two generation policies and two repair
+policies on eight families × two seeds: **64/64 terminal arm outcomes**, **152/160
+actual dispatched calls**. Each generation condition runs once per block; both repair
+arms import the byte-identical initial source and search verdict, with two further
+opportunities each. All four search selections commit before final-data access.
+
+First-proposal search correctness: ordinary prompting **12/16**, contract checklist
+**11/16**. Full contract+counterexample configuration is **13/16 final-correct**,
+versus **15/16** for ordinary generation+repair. Of 8 fully observed shared-failure
+pairs, ordinary repair rescues 5, counterexample repair 5. Failures remain visible;
+these exploratory small-task outcomes do not establish stable generalization. Neither experimental policy earns promotion; ordinary generation/repair remains the recommendation. A degenerate repair interval is not an equivalence test.
+
+Generation checks output coordinates, offsets, masking and casts in the existing draft/
+plan. Repair receives synthetic search-only input/expected/actual witnesses, failed-source
+memory and an optional correct anchor. A tokenizer drops only whole optional context
+blocks; generated source is never edited. Both arms share the backend, so old OpenCode
+results are not a causal latency comparison. Native requests have no auxiliary titles.
+
+Dynamic discovery and latency-EWMA work allocation cover 3 GPU groups and
+3 process identities; active blocks stay on one process. Completed model-request
+intervals reach 3 concurrent ports; known independent GPU windows peak at
+1. The CPU suite passes 159 cases on both pinned SDKs and a fresh locked install.
+The row_mean/layer_norm additions were seen in an invalid device pre-run after policy freeze; they are not claimed as blind held-out tasks.
+The invalid device pre-run preserves 48 dispatches (three unconfirmed), excluded from effects; the evaluator now verifies physical GPU UUID binding. The analysis-only eight-cluster correction changes no generated proposal or evaluator.
+See [the reproduction guide](repair-reproduction.md), [the frozen protocol](repair-study-plan.md), [detailed results](repair-study-results.zh.md)
+and `results/repair-study/`. Earlier releases below keep independent denominators.
+
+## Earlier engineering evidence: a three-service pool (2026-10-15)
 
 The harness completed all **24 scheduled jobs**: six development families × two seeds ×
 two strategies. Final correctness is **20/24**, with **6/24** passing the observed-sharing

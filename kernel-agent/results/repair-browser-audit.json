@@ -1,0 +1,49 @@
+{
+  "created_utc": "2026-10-15T14:04:59.964Z",
+  "status": "passed",
+  "scope": "Rendered report and DOM integrity at the existing default browser viewport; no viewport override, model call or GPU work",
+  "url": "http://127.0.0.1:8765/reports/kernel-agent-report.html#repair-study",
+  "mobile": {
+    "choices": 64,
+    "effectPoints": 3,
+    "infra": "基础设施失败影响 1/16 个块。主结果保留全部块，不能把此类差异直接归因于提示策略。另列事后辅助描述：充分观察的 15 个块中，双基线最终正确 15/15，组合策略 12/15；它不替换预定分母，也不增加成功试验。",
+    "inputLabels": [
+      "共享初始候选 · numeric_error",
+      "输入 0",
+      "输入 1",
+      "预期输出",
+      "实际输出",
+      "修订 1 · numeric_error",
+      "输入 0",
+      "输入 1",
+      "预期输出",
+      "实际输出",
+      "修订 2 · numeric_error",
+      "输入 0",
+      "输入 1",
+      "预期输出",
+      "实际输出"
+    ],
+    "overflow": false,
+    "selected": "SiLU 乘法融合 / 20261102 / 合约检查清单 / 结构化反例修复",
+    "summary": "最新生成／修复对照：16 个配对块、64 个结局均已结束；组合策略 13/16 最终正确，双基线 15/16。真实模型调用 152 次。",
+    "viewport": {
+      "height": 725,
+      "width": 426
+    }
+  },
+  "manual_selection": {
+    "overflow": false,
+    "selected": "向量加法 / 20261102 / 普通 KDA 提示 / 普通错误修复",
+    "summary": "首轮搜索正确；最终正确，性能门槛未通过。同生成条件下的两种修复共享相同初始源码与裁决。"
+  },
+  "embedded_checkpoint_matches": true,
+  "checkpoint_sha256": "e7b93aa3b19bce721620146d9a3882bdd9c556948470d17d46f574dad74bb1b0",
+  "console_errors": [],
+  "sha256": {
+    "reports/template.html": "38206f7d092f78b79cb765eca06903ad0051478dc8cfcf728ea67d4a8809b8bf",
+    "reports/kernel-agent-report.html": "149bab275fb6f9079849e70d46a986eb9c299fdbd4d176e54c76625c4384e9d6",
+    "reports/repair-preview.png": "84200781c2f152ff70bfb1fa5bdf8243f9b7b49d690aa4c34d0308655c61dc1c",
+    "results/repair-study/summary.json": "a8a6c358edd1cdb04e018f72716906c7dd19badf2ab1e7147b0d0c51ab956fc1"
+  }
+}

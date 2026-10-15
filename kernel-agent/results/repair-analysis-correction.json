@@ -1,0 +1,11 @@
+{
+  "record_created_utc": "2026-10-15T13:01:16.956492+00:00",
+  "recorded_decision_utc": "2026-10-15T12:54:31.394910+00:00",
+  "recorded_decision": {
+    "reason": "Inherited historical bootstrap accepts at most six task clusters; formal design has eight. Detected before any sealed v2 result. No generation changes.",
+    "prepared_file": "/tmp/kernel-agent-summarize-repair-postrun.py",
+    "method": "Exact weighted-multiset bootstrap, 6435 patterns representing all 8**8 ordered resamples; same percentile definition. Apply after model generation and document as analysis-only correction."
+  },
+  "prepared_analyzer_sha256": "8b4ba7ea19f9ca437b33e991496eb50ee3d05255f4f1047d36a69ffa137be1f6",
+  "scope": "Analysis-only cluster-count compatibility fix. No model policy, prompt, task, evaluator, trial order or data changes. Original executed analyzer remains in the frozen study sources."
+}

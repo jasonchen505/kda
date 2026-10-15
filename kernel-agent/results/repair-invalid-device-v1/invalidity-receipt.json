@@ -1,0 +1,19 @@
+{
+  "observed_utc": "2026-10-15T12:36:19.799962+00:00",
+  "status": "invalid_device_binding_pre_run",
+  "terminated_owned_process_group": 2323993,
+  "supervisor_cuda_environment": [],
+  "expected_gpu4_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+  "default_device_probe": {
+    "device_count": 8,
+    "cuda_default_uuid": "ef6e1a80-1424-bac0-852e-6b1746370905",
+    "device_name": "NVIDIA GeForce RTX 4090"
+  },
+  "checkpoint_allocations": {
+    "model_calls": 60,
+    "output_tokens": 122880
+  },
+  "completed_blocks_at_stop": 3,
+  "reason": "The native evaluator did not set CUDA_VISIBLE_DEVICES; GPU4 telemetry did not establish where the candidate executed. Excluded from policy efficacy evidence. Raw files retained; no uncertain call replay.",
+  "foreign_model_processes_modified": false
+}

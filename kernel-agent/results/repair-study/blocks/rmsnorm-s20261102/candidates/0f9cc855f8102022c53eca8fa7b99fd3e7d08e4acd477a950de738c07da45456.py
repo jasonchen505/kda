@@ -1,0 +1,49 @@
+import torch
+import triton
+import triton.language as tl
+
+
+@triton.jit
+def _rmsnorm_kernel(
+    X,
+    W,
+    Y,
+    stride_x,
+    stride_y,
+    width,
+    eps,
+    BLOCK: tl.constexpr,
+    IS_BF16: tl.constexpr,
+):
+    row = tl.program_id(0)
+    x_ptr = X + row * stride_x
+    y_ptr = Y + row * stride_y
+    cols = tl.arange(0, BLOCK)
+    mask = cols < width
+    x = tl.load(x_ptr + cols, mask=mask, other=0.0).to(tl.float32)
+    sumsq = tl.sum(x * x, axis=0)
+    mean = sumsq / width
+    rstd = tl.rsqrt(mean + eps)
+    w = tl.load(W + cols, mask=mask, other=0.0)
+    normed = (x * rstd).to(x.dtype)
+    y = w * normed
+    tl.store(y_ptr + cols, y, mask=mask)
+
+
+def run(x, weight):
+    rows, width = x.shape
+    y = torch.empty_like(x)
+    BLOCK = triton.next_power_of_2(width)
+    is_bf16 = x.dtype == torch.bfloat16
+    _rmsnorm_kernel[(rows,)](
+        x,
+        weight,
+        y,
+        x.stride(0),
+        y.stride(0),
+        width,
+        1e-6,
+        BLOCK=BLOCK,
+        IS_BF16=is_bf16,
+    )
+    return y

@@ -93,6 +93,21 @@ if (pool / "summary.json").exists():
                                                      "attempts": json.loads(trace.read_text()) if trace.exists() else []})
 payload["pool_checks"] = (json.loads((ROOT / "results/pool-checks.json").read_text())
                           if (ROOT / "results/pool-checks.json").exists() else None)
+repair_dir = ROOT / "results/repair-study"
+payload["repair"] = ({"summary": json.loads((repair_dir / "summary.json").read_text()),
+                      "plan": json.loads((repair_dir / "plan.json").read_text()),
+                      "raw_checkpoint": (repair_dir / "checkpoint.json").read_text()}
+                     if (repair_dir / "summary.json").exists() else None)
+payload["repair_checks"] = (json.loads((ROOT / "results/repair-checks.json").read_text())
+                            if (ROOT / "results/repair-checks.json").exists() else None)
+invalid = ROOT / "results/repair-invalid-device-v1"
+payload["repair_invalidity"] = None
+if (invalid / "invalidity-receipt.json").exists():
+    receipt = json.loads((invalid / "invalidity-receipt.json").read_text())
+    old_calls = [json.loads(p.read_text()) for p in invalid.glob("blocks/*/requests/*.json")
+                 if not p.name.endswith((".request.json", ".response.json")) and not p.name.startswith(".")]
+    payload["repair_invalidity"] = {**receipt, "dispatched_requests": sum(bool(c.get("dispatched_utc")) for c in old_calls),
+                                    "unconfirmed_requests": sum(c.get("status") in {"dispatched", "response_unknown"} for c in old_calls)}
 if shared_checkpoint.exists():
     checkpoint = json.loads(shared_checkpoint.read_text())
     for row in checkpoint["jobs"]:

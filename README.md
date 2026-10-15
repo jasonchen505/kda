@@ -23,6 +23,7 @@ handwritten kernels as agent successes. The original KDA documentation is preser
 - [GPU4 execution, interference qualification and guarded plan](kernel-agent/docs/multiseed-execution.md)
 - [Why GPU sharing and performance measurement differ](kernel-agent/docs/gpu-sharing-policy.md)
 - [Online feedback with durable finalization](kernel-agent/docs/phased-study-plan.md)
+- [Generation and counterexample repair design](kernel-agent/docs/repair-study-plan.md)
 - [Three-service execution results](kernel-agent/docs/service-pool-results.zh.md)
 - [Recorded endpoint restart and handoff](kernel-agent/docs/service-pool-handoff.md)
 
@@ -41,40 +42,35 @@ The review path above checks published evidence and controller mechanisms on a C
 
 ## Result and scope
 
-The latest service-pool engineering validation completed **24/24 scheduled jobs**, across
-six development families, two seeds and two strategies: **20/24 final-correct**,
-**6/24 conditionally promoted**. Three local-model endpoints had overlapping proposer
-requests; this project's GPU4 evaluator windows were serialized by a cooperative OS lock.
-The reported peak is concurrency, not a measured end-to-end throughput speedup.
+The latest agent-policy study completed **64/64 factorial arm outcomes** on eight task
+families and two seeds. First-proposal search correctness is **12/16** for ordinary
+KDA prompting and **11/16** for a contract checklist. Full contract+counterexample
+configuration is **13/16 final-correct**, versus **15/16** for ordinary generation
+and repair. Shared-failure fully observed pairs: 8, with 5 ordinary versus 5
+counterexample rescues. See [results and uncertainty](kernel-agent/docs/repair-study-results.zh.md).
 
-Two borrowed endpoints disappeared mid-run. A recorded, declaration-matched gateway
-restored the logical entrances; **15 committed jobs were reused and nine untouched jobs
-continued**, with 178 existing request/admission hashes unchanged and budgets retained.
-Five strategy pairs cross the restart, so pooled feedback-effect intervals are suppressed.
-Four jobs had no eligible source and never ran final evaluation; failed and uncertain
-outcomes remain in the scheduled denominator.
+**Decision: keep ordinary generation and repair as the recommendation.** The new policies remain experimental: contract prompting observed lower correctness, and diagnostic repair did not improve paired rescues. This is a completed negative result, not a demonstrated accuracy improvement. One GPU-monitor failure affects the primary denominator; the 15 fully observed blocks give 15/15 baseline versus 12/15 combined. The zero-width observed repair interval is not an equivalence test.
 
-The harness also persists online search measurements and source selection before a
-separately resumable final veto. A previous real SIGKILL pilot reused six search records,
-then made two independent final checks with zero new model/search calls. A fixed-source
-selector contrast supports the gate-first defect fix. These distinct engineering and
-model experiments keep separate denominators and runtime identities.
+The controller adds contract/index/cast reasoning, tiny independent search witnesses,
+failed-source memory and a correct-source anchor. The two repair arms import exactly
+the same initial source and verdict, each with two further opportunities. Actual model
+calls: **152/160**, not 64×3. All final selections commit before final-data access.
+No generated kernel is manually patched.
 
-The CPU suite passes **134 cases** on both pinned Humanize SDKs and a fresh locked
-installation. [Latest results and limits](kernel-agent/docs/service-pool-results.zh.md)
-and [the endpoint handoff](kernel-agent/docs/service-pool-handoff.md) provide the details.
-The earlier one-seed feedback study completed 12/12 jobs, without evidence of a feedback
-advantage. The older guarded plan remains 23/36 terminal with 13 pending; it is not patched
-using this new runtime.
+The common native Chat backend removes auxiliary title calls. Dynamic Qwen discovery,
+idle admission and latency-EWMA work allocation cover 3 GPU groups. An active
+comparison block binds one model process; unknown calls are never replayed or migrated.
+This is not a causal comparison with old OpenCode latency. The CPU suite passes **159 cases**
+on both pinned SDKs and a fresh locked install, separate from model/GPU results.
 
-Generated candidates are not manually repaired. Official Triton examples assist generation,
-all families participated in development, cross-root weight equality is unverified, and
-shared speed ratios against `torch.compile` do not establish isolated performance,
-held-out generalization or production safety.
+Earlier 24-job pooling, recorded endpoint recovery, fixed-source selector contrast and
+real SIGKILL finalization remain independently auditable. The old guarded 36-job plan
+still has 23 terminal jobs and 13 pending. Eight current families include six developed
+ones and two additions seen in an invalid device pre-run, not a blind external benchmark. Task-cluster
+intervals are exploratory; cached roots' weight equality is unverified; shared kernel
+ratios against torch.compile are not end-to-end LLM acceleration or production safety.
 
-![Concurrent service pool and durable evidence](kernel-agent/reports/pool-preview.png)
-
-![Online-feedback finalization and recovery](kernel-agent/reports/phased-preview.png)
+![Generation and repair factorial results](kernel-agent/reports/repair-preview.png)
 
 ## License
 

@@ -1,0 +1,108 @@
+{
+  "created_utc": "2026-10-15T14:01:06.426729+00:00",
+  "status": "verified",
+  "scope": "Post-run integrity and recorded outcomes only; no new model/GPU work",
+  "scheduled_blocks": 16,
+  "scheduled_outcomes": 64,
+  "unique_opportunities": 160,
+  "formal_dispatched": 152,
+  "formal_completed_responses": 152,
+  "formal_unconfirmed": 0,
+  "formal_allocated_calls": 160,
+  "invalid_prerun_dispatched": 48,
+  "invalid_prerun_unconfirmed": 3,
+  "invalid_prerun_allocated_calls": 60,
+  "iteration_dispatched": 200,
+  "iteration_allocated_calls": 220,
+  "invalid_prerun_excluded": true,
+  "unchanged_policy_sha256": "0cc84ed809d28258415ff2bb3a9b103dff09b830d001723de2bdcef7479cd9aa",
+  "independent_final_source_checks": 50,
+  "physical_evaluation_gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+  "unique_opportunity_statuses": {
+    "correct": 121,
+    "numeric_error": 18,
+    "protocol_error": 6,
+    "compile_error": 4,
+    "contract_error": 1,
+    "resource_monitor_error": 1,
+    "not_run_infrastructure": 8,
+    "runtime_error": 1
+  },
+  "duplicate_search_sources": 13,
+  "omitted_optional_sections": {},
+  "finish_reasons": {
+    "stop": 149,
+    "length": 3
+  },
+  "unique_diagnostic_probes": {
+    "tiny_probe_passed": 3,
+    "contradiction_observed": 15
+  },
+  "completed_call_proxy_seconds_sum": 10358.340938623995,
+  "policy_observation_sensitivity": {
+    "infrastructure_blocks": [
+      {
+        "block": "row_sum-s20261102",
+        "statuses": [
+          "not_run_infrastructure",
+          "resource_monitor_error"
+        ],
+        "stop": "resource_monitor_error"
+      }
+    ],
+    "fully_observed_blocks": [
+      "vector_add-s20261102",
+      "layer_norm-s20261102",
+      "row_mean-s20261101",
+      "softmax-s20261102",
+      "row_mean-s20261102",
+      "softmax-s20261101",
+      "silu_mul-s20261102",
+      "silu_mul-s20261101",
+      "rmsnorm-s20261101",
+      "layer_norm-s20261101",
+      "vector_add-s20261101",
+      "transpose-s20261101",
+      "rmsnorm-s20261102",
+      "row_sum-s20261101",
+      "transpose-s20261102"
+    ],
+    "cells": [
+      {
+        "generation": "baseline",
+        "repair": "baseline",
+        "correct": 15,
+        "denominator": 15
+      },
+      {
+        "generation": "baseline",
+        "repair": "counterexample",
+        "correct": 15,
+        "denominator": 15
+      },
+      {
+        "generation": "contract",
+        "repair": "baseline",
+        "correct": 12,
+        "denominator": 15
+      },
+      {
+        "generation": "contract",
+        "repair": "counterexample",
+        "correct": 12,
+        "denominator": 15
+      }
+    ],
+    "scope": "Post-hoc complete-block descriptive counts only; primary 16-per-cell results retain every infrastructure failure. No replacement trial or new efficacy claim."
+  },
+  "analysis_only_correction": {
+    "reason": "Historical interval helper accepts at most six clusters; prospective design requires eight.",
+    "decision_time": "before any sealed formal v2 block; recorded in repair-analysis-correction.json",
+    "method": "Exact weighted multisets, same percentile definition, representing all 8**8 ordered draws",
+    "executed_analyzer_sha256": "f1018b63b1ee2aa9613be55958f09a0da28886a0e1dfeddaf1ee6e4eafcd4c7b",
+    "delivered_analyzer_sha256": "8b4ba7ea19f9ca437b33e991496eb50ee3d05255f4f1047d36a69ffa137be1f6",
+    "model_generation_unchanged": true
+  },
+  "plan_sha256": "2ba73df83678e6ae9987894944518953a5009b833d9c9e1a35f30e5da92c88fe",
+  "checkpoint_file_sha256": "e7b93aa3b19bce721620146d9a3882bdd9c556948470d17d46f574dad74bb1b0"
+}

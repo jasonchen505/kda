@@ -13,11 +13,11 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#repair-study">生成与修复</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
 <main>
 <header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.15</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
-<p class="lede">复现 KDA 的任务工作流，用 Humanize 驱动本地 Qwen 生成 Triton 代码。改进对象是 agent 控制器：如何测试、修复、停止和选择候选。</p>
+<p class="lede">复现 KDA 的任务工作流，用 Humanize 驱动本地 Qwen 生成 Triton 代码。改进对象是 agent 控制器：如何测试、修复、停止和选择候选。新增直连 Qwen 后端，用同起点对照验证生成与修复策略。</p>
 <span class="tag">真实模型生成</span> <span class="tag">独立 GPU 评测</span> <span class="tag">离线报告</span>
 </header>
 <div class="notice">本报告的成绩来自真实模型提案与独立 GPU 评测。此前手写算子和模型实验只作辅助材料，不计入 agent 成绩。</div>
@@ -29,9 +29,25 @@
 
 <section id="portfolio"><h2>五分钟看懂这个求职项目</h2>
 <p>研究工程问题：如何让一个本地 coding agent 在数值、性能和资源约束下写出可验收的 kernel，并在失败或中断后保留可信实验记录。</p>
-<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流；Humanize → OpenCode → 本地 Qwen 的真实生成链路。六类 Triton 任务用于评估这个 agent。</p></div><div class="card"><h3>自己改进了什么</h3><p>结构化源码协议与分类反馈、正确候选保留、门槛优先选择、独立最终否决；再补任务恢复、预算持久化、生成／测速阶段分离与多服务并发调度。</p></div></div>
-<p>证据链：同预算反馈对照没有证明收益 → 轨迹揭示选择器缺陷 → 固定源码重测与新生成验证 → SIGKILL 恢复验证 → 多种子运行暴露设备调度瓶颈 → 共卡生成与独立测速队列 → 三路服务并发与入口失效后的恢复。</p>
+<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流，以及 Humanize → OpenCode → 本地 Qwen 的真实生成链路。新增直连后端用于八类任务的生成／修复对照，模型源码不经人工修改。</p></div><div class="card"><h3>自己改进了什么</h3><p>实现合约检查清单、微型搜索诊断、失败记忆与正确源码锚点，用同初始源码的 2×2 对照检验生成和修复效果；底层支持独立评测、候选选择、持久化预算、故障恢复和动态多服务调度。</p></div></div>
+<p>研究迭代：历史反馈对照未证明收益，促成候选选择与恢复改进。最新实验用共享初稿的交叉对照，分别检验合约生成和诊断修复；失败、未知调用与原始源码一并保留。</p>
 <p class="small" id="portfolio-evidence">定位：可以写入简历的 agent harness 研究工程原型。三任务集成验证为 3/3 最终正确、2/3 晋升；最新六任务反馈对照见下方。真实生成、工程测试和历史未完成实验分别计数。</p></section>
+
+<p class="notice" id="repair-invalid-note" hidden></p>
+<section id="repair-study" hidden><div class="section-top"><h2>改进生成与修复，分别验证</h2><span class="tag" id="repair-status"></span></div>
+<p>8 类任务 × 2 个新种子 × 2 种生成策略 × 2 种修复策略，共 64 个最终结局。先比较普通 KDA 提示和合约检查清单；再让两种修复策略共享同一份初始源码与搜索裁决，各获得两次修订机会。初始生成只执行一次，最多 160 次模型调用。</p>
+<div class="cards" id="repair-metrics"></div>
+<div class="two" id="repair-initial"></div>
+<div class="table-wrap"><table><thead><tr><th>生成策略</th><th>修复策略</th><th>最终正确</th><th>性能门槛</th><th>初始失败后恢复正确</th></tr></thead><tbody id="repair-cells"></tbody></table></div>
+<p class="notice" id="repair-conclusion"></p><p id="repair-rescue"></p><p class="small" id="repair-infra"></p>
+<p class="notice">策略决定：保留普通生成＋普通修复为推荐配置，合约清单与诊断修复维持实验性。本轮首轮正确 12/16 对 11/16，组合策略最终 13/16，双基线 15/16。反例修复的 [0,0] 区间来自当前观测逐对相同，不是等效性检验。</p>
+<div class="card" id="repair-effect-card" hidden><h3>策略效果与不确定性</h3><svg id="repair-effects" viewBox="0 0 640 245" role="img" aria-label="三项策略差异与八类任务聚类的探索性区间" style="display:block;width:100%;height:auto"></svg><p class="small">点表示改进减基线的正确率差，横线表示按八类任务聚类的探索性 95% 区间。零线两侧都有可能时，当前证据不足以认定稳定收益。</p></div>
+<div class="two"><div class="card"><h3>生成：先核对合约</h3><p>在原 draft/plan 中推导输出形状、坐标与内存偏移，核对边界掩码、补齐中性值和类型转换顺序。每次仍只输出一个完整候选，不额外调用模型。</p></div><div class="card"><h3>修复：用可检查的诊断证据</h3><p>提供搜索失败、微型输入／预期／实际输出、失败 SHA 记忆，以及上下文允许时的正确版本锚点。微型样本可能无法复现原形状上的错误；原始搜索失败仍是裁决依据。模型必须说明与证据对应的修复假设；最终检查不进入上下文。</p></div></div>
+<h3>三路服务如何分担工作</h3><div id="repair-services" class="cards" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
+<p class="small" id="repair-resource"></p><p class="small">所有组共同使用直连 Qwen 后端、8192 上下文和 2048 输出上限。首次使用空闲副本后，按实测延迟 EWMA 分配待运行块；同一对照块绑定相同进程，服务失效不迁移已开始的块，也不重放未知请求。每次派发只观察空闲状态，不能预留其他用户的服务。GPU4 允许共卡，本项目评测协作串行。</p>
+<div class="controls"><label for="repair-run">查看同起点修复轨迹</label><select id="repair-run"></select><button id="repair-failed-example" class="secondary" hidden>查看首个两种修复都未救回的案例</button></div><div id="repair-trajectory"></div>
+<details><summary>实验设计、预算、效应区间与完整性检查</summary><pre id="repair-provenance"></pre></details>
+<p class="small">六类既有开发任务加两类新增任务（行均值、LayerNorm）；新增任务在策略冻结后经历过设备接入预跑，本轮不作外部盲测宣称。区间按八类任务重采样，先平均种子；这是探索性估计。服务版本和缓存目录不同，权重等价性未核实。初始源码、测量复用和基础设施失败均单独记录，不与旧实验合并。</p></section>
 
 <section id="pool-study" hidden><div class="section-top"><h2>三路模型生成，一路独立评测</h2><span class="tag" id="pool-status"></span></div>
 <p>将用户授权的两个空闲服务与自建服务接入同一 harness。模型请求可并行；GPU4 上的本项目评测加锁串行。六类开发任务 × 两个新种子 × 两组策略，共 24 项，按同一逻辑服务分组；重启与端口变更另存记录。</p>
@@ -83,7 +99,7 @@
 <p id="multiseed-conclusion"></p><p class="small">每组每任务预定 3 次运行。待运行和运行中没有最终结论；未知中断和失败在终止后的分母中保留。仅在全部 36 次终止后给出完整比例与按任务计算的探索性区间。任务均参与过开发，配对种子也不保证首轮候选相同。</p>
 <div class="controls"><button class="secondary" id="download-multiseed">下载对照分析</button><button class="secondary" id="download-checkpoint">下载运行检查点</button></div>
 <details><summary>本次实际运行环境、检查与分析范围</summary><pre id="multiseed-provenance"></pre></details></section>
-<section id="architecture"><h2>01 · 谁负责生成，谁负责判断</h2>
+<section id="architecture"><h2>01 · 谁负责生成，谁负责判断</h2><p class="notice">最新生成／修复对照通过原生 Chat 适配器直连本地 Qwen；下图保留此前 Humanize/OpenCode 复现路线。两条路线均由控制器写入模型原始源码，并交给独立 GPU 评测。</p>
 <p>KDA 提供工作流与提示参考。Humanize 提供真实的 <code>Agent.spawn/run</code> 与环境执行。下游控制器把模型提案落盘，再调用独立评测器。模型的“完成了”不是验收证据。</p>
 <div class="flow" aria-label="任务通过KDA提示、Humanize和OpenCode到达本地Qwen"><div class="node"><b>任务合约</b><span>输入 / 数值语义 / 约束</span></div><div class="node"><b>KDA 提示</b><span>草案 → 计划 → 候选</span></div><div class="node"><b>Humanize + OpenCode</b><span>真实 coding-agent 会话</span></div><div class="node"><b>本地 Qwen</b><span>输出计划与完整代码</span></div></div>
 <div class="flow" aria-label="控制器保存候选，独立测试，再测性能和决定是否晋升"><div class="node"><b>控制器准入</b><span>解析 / 基本源码检查 / SHA</span></div><div class="node"><b>正确性评测</b><span>奇数尺寸 / BF16 / 输入不变</span></div><div class="node"><b>性能评测</b><span>torch.compile / 3 次重复</span></div><div class="node"><b>候选决策</b><span>保留 / 修订 / 停止</span></div></div>
@@ -135,7 +151,7 @@
 <div id="run-summary"></div><div id="turns"></div>
 </section>
 
-<section><h2>05 · 复现的边界</h2><div class="two"><div class="card"><h3>已经执行</h3><p>KDA 固定版本及子模块准备；Humanize 真实驱动本地 coding agent；生成任务与反馈循环；独立 GPU 正确性评测；正确候选进入计时与最终检查；可查看的完整轨迹。</p><p id="tests-note"></p></div><div class="card"><h3>尚未证明</h3><p>没有运行完整 KernelBench。没有多次随机种子的置信区间。没有训练 kernel 模型，也没有证明达到领域最优性能。</p><p>当前 agent 通过结构化提案生成源码，由控制器写文件。它已按任务路由检索固定官方示例；尚未接入自主搜索、Nsight Compute 分析与开放式 shell 工具。KDA 提示是适配版，不是对原始完整研究流程的等价复现。</p></div></div>
+<section><h2>05 · 复现的边界</h2><div class="two"><div class="card"><h3>已经执行</h3><p>KDA 固定版本及子模块准备；Humanize 真实驱动本地 coding agent；生成任务与反馈循环；独立 GPU 正确性评测；正确候选进入计时与最终检查；可查看的完整轨迹。</p><p id="tests-note"></p></div><div class="card"><h3>尚未证明</h3><p>没有运行完整 KernelBench。最新设计只有八类任务、每类两个种子，任务聚类区间属于探索性描述。没有训练 kernel 模型，也没有证明达到领域最优性能。</p><p>当前 agent 通过结构化提案生成源码，由控制器写文件。它已按任务路由检索固定官方示例；尚未接入自主搜索、Nsight Compute 分析与开放式 shell 工具。KDA 提示是适配版，不是对原始完整研究流程的等价复现。</p></div></div>
 <div class="notice" id="probe-note"></div><details><summary>单次成功探针：源码、最终延迟与门槛</summary><pre id="probe-detail"></pre><button class="secondary" id="download-probe">下载探针原始数据</button></details><details><summary>保留的同预算 API 规则对照</summary><p id="api-study"></p><button class="secondary" id="download-api">下载第二阶段 8 次运行</button></details><details><summary>保留的第一轮探索试验</summary><p id="initial-study"></p><button class="secondary" id="download-initial">下载先前 8 次运行</button></details>
 <details><summary>此前示例辅助版本的完整评测</summary><p id="reference-study"></p><button class="secondary" id="download-reference">下载第三阶段 4 次运行</button></details>
 <details><summary>本轮接口诊断探针与结构化输出预检</summary><pre id="transport-probes"></pre></details>
@@ -152,10 +168,10 @@
 <div class="cards"><div class="card"><div class="metric">SIGKILL</div><p>真实杀进程再启动</p></div><div class="card"><div class="metric" id="recovery-replay">—</div><p>重复调用已完成任务</p></div><div class="card"><div class="metric" id="recovery-unknown">—</div><p>未知结果仍保留在分母</p></div><div class="card"><div class="metric" id="new-plan-count">—</div><p id="new-plan-label">计划运行 · 尚未生成</p></div></div>
 <div class="controls"><label for="recovery-phase">查看恢复步骤</label><select id="recovery-phase"><option value="before">① 进程中断前</option><option value="after">② 恢复后</option></select><button class="secondary" id="download-recovery">下载故障证据</button></div>
 <div class="table-wrap"><table><thead><tr><th>任务</th><th>状态</th><th>累计预算预留</th><th>再次启动的动作</th></tr></thead><tbody id="recovery-table"></tbody></table></div><p id="recovery-note"></p>
-<div class="two"><div class="card"><h3>已经验证的工程能力</h3><p id="upgrade-checks"></p><p>单写者锁、原子检查点、计划漂移拒绝、结果 SHA 绑定、失败分母及预算不重置。A/C 执行真实 Humanize 流程，但模型回复与 GPU 裁决使用测试驱动。</p></div><div class="card"><h3>下一项实证：反馈有多可靠</h3><p id="multiseed-note"></p><p>六类任务已用于开发，不能当作未见任务。三种随机种子、两组各三次提案，温度 0.2；固定同一运行环境，按任务分组报告。资源预检通过后才会开始。</p></div></div>
+<div class="two"><div class="card"><h3>已经验证的工程能力</h3><p id="upgrade-checks"></p><p>单写者锁、原子检查点、计划漂移拒绝、结果 SHA 绑定、失败分母及预算不重置。A/C 执行真实 Humanize 流程，但模型回复与 GPU 裁决使用测试驱动。</p></div><div class="card"><h3>此前未完成的多种子计划</h3><p id="multiseed-note"></p><p>六类任务已用于开发，不能当作未见任务。三种随机种子、两组各三次提案，温度 0.2；固定同一运行环境，按任务分组报告。资源预检通过后才会开始。</p></div></div>
 <p class="small">恢复粒度是任务边界；没有恢复任务内会话，也不保证外部调用恰好一次。预算预留是调度额度，无法代替完整的服务端 token 使用记录。GPU 预检不能排除其他用户在运行中占用设备。</p>
 <details><summary>冻结计划、资源预检与恢复断言</summary><pre id="recovery-detail"></pre></details></section>
-<section><h2>07 · 求职展示怎么讲</h2><p>可陈述的贡献是：基于 KDA 与 Humanize 实现本地 kernel 生成 agent，把候选选择交给独立评测器；加入反馈、预算、去重、回退和最终检查，并保留完整实验轨迹。对照结果以本报告真实计数为准。</p><p>项目主线是 kernel agent 的复现、改进与验证。从原始同预算对照定位选择缺陷，再补可恢复的实验调度，用真实中断验证结果复用与未知状态处理。已有 GPU 实验、CPU 故障测试和待运行的多种子计划分别呈现。稳定收益和更广任务泛化仍需后续实验。</p></section>
+<section><h2>07 · 求职展示怎么讲</h2><p>可陈述的贡献是：基于 KDA 与 Humanize 实现本地 kernel 生成 agent，把候选选择交给独立评测器；加入反馈、预算、去重、回退和最终检查，并保留完整实验轨迹。对照结果以本报告真实计数为准。</p><p>项目主线是 kernel agent 的复现、改进与验证。从原始同预算对照定位选择缺陷，再补可恢复的实验调度，用真实中断验证结果复用与未知状态处理。各轮 GPU 实验、CPU 故障测试和未完成计划保留各自的分母。最新生成／修复交叉对照见上方，稳定收益和更广任务泛化仍需后续实验。</p></section>
 
 <section id="evidence"><h2>08 · 证据、复现与表达来源</h2><p>报告是单个 HTML 文件。数据与交互代码都在文件内。断网仍可切换轨迹、查看图表与下载 JSON。</p>
 <details><summary>固定版本与源文件 SHA</summary><pre id="provenance"></pre></details>
@@ -185,7 +201,7 @@ python3 scripts/build_report.py --input results/agent-strategy-study.json</pre><
 'use strict';
 const RAW_DATA=document.getElementById('evidence-data').textContent;
 const DATA=JSON.parse(RAW_DATA), study=DATA.study, runs=study.runs;
-const names={kda_prompt:'单轮提示',evidence_loop:'普通反馈',api_guided:'API 指导',reference_guided:'示例辅助'}, taskNames={vector_add:'向量加法',softmax:'行 Softmax',rmsnorm:'RMSNorm',transpose:'矩阵转置',row_sum:'行求和',silu_mul:'SiLU 乘法融合'};
+const names={kda_prompt:'单轮提示',evidence_loop:'普通反馈',api_guided:'API 指导',reference_guided:'示例辅助'}, taskNames={vector_add:'向量加法',softmax:'行 Softmax',rmsnorm:'RMSNorm',transpose:'矩阵转置',row_sum:'行求和',silu_mul:'SiLU 乘法融合',row_mean:'行均值',layer_norm:'LayerNorm'};
 const transportNames={passthrough:'原始工具接口','tool-free':'无工具接口','json-schema':'JSON 字符串约束','json-lines':'逐行源码约束'};
 const strategyNames={blind:'无评测反馈',feedback:'有评测反馈'};
 const isStrategy=['strategy_ablation','selector_validation'].includes(study.metadata.study_kind);
@@ -336,6 +352,45 @@ if(shared){
  showSharedRun();$('shared-run').addEventListener('change',showSharedRun);
  $('download-shared-study').addEventListener('click',()=>downloadRaw(DATA.raw_shared_checkpoint,'shared-feedback-checkpoint.json'));
 }
+const repairStudy=DATA.repair;
+if(DATA.repair_invalidity){const i=DATA.repair_invalidity;$('repair-invalid-note').hidden=false;$('repair-invalid-note').textContent=`设备接入无效预跑单独保留：实际默认 CUDA UUID 对应 GPU0，原 GPU4 遥测不能证明候选执行位置。已停止本项目进程组；${i.dispatched_requests} 次派发（${i.unconfirmed_requests} 次未确认）与原预算账本均保留，不计入正式效果。本轮用新种子、新账本，并要求子进程 GPU UUID 与 GPU4 相符。`;}
+if(repairStudy){
+ const r=repairStudy.summary; const gname=g=>g==='contract'?'合约检查清单':'普通 KDA 提示',rname=p=>p==='counterexample'?'结构化反例修复':'普通错误修复';
+ $('repair-study').hidden=false;$('repair-status').textContent=r.status==='complete'?'64 个结局均已结束':'运行中 · 冻结设计';
+ for(const [v,l]of [[`${r.resolved}/64`,'已结束的最终结局'],[`${r.dispatched_requests}/160`,'实际派发 / 调用额度'],[String(r.peak_model_ports),'已完成请求的峰值并发端口'],[String(r.request_statuses.response_unknown||0),'未确认完整响应']]){const c=node('div',undefined,'card');c.append(node('div',v,'metric'),node('p',l));$('repair-metrics').append(c)}
+ for(const g of r.initial){const c=node('div',undefined,'card');c.append(node('h3',gname(g.generation)),node('p',`首轮搜索正确 ${g.correct}/16；取得模型回复 ${g.observed}/16。`));$('repair-initial').append(c)}
+ for(const c of r.cells){const tr=node('tr');for(const v of [gname(c.generation),rname(c.repair),`${c.correct}/16 · 已结束 ${c.resolved}`,`${c.promoted}/16`,`${c.rescued}/${c.initial_failed}`])tr.append(node('td',v));$('repair-cells').append(tr)}
+ if(r.status==='complete'){const desc=k=>{const c=r.contrasts[k],i=c.exploratory_interval;return `${(100*c.mean_difference).toFixed(1)} 个百分点，探索区间 [${(100*i.low).toFixed(1)}, ${(100*i.high).toFixed(1)}]`};$('repair-conclusion').textContent=`首轮生成差异：${desc('first_generation')}。完整流程最终正确差异：合约生成 ${desc('generation')}；反例修复 ${desc('repair')}。差异为改进－基线，保留基础设施失败；是否有效要结合区间、同起点救回率和实际失败轨迹判断。`}else $('repair-conclusion').textContent='运行尚未结束；当前数字是已封存结果，不计算完整成功率或策略效应。失败与未知结果保留在预定分母。';
+ if(r.status==='complete'){
+  $('repair-effect-card').hidden=false;const chart=$('repair-effects'),ns='http://www.w3.org/2000/svg';
+  const mark=(name,attrs,text)=>{const e=document.createElementNS(ns,name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;chart.append(e)};
+  const span=Math.min(1,Math.max(.25,Math.ceil(Math.max(...Object.values(r.contrasts).flatMap(c=>[Math.abs(c.exploratory_interval.low),Math.abs(c.exploratory_interval.high)]))*4)/4)),x=v=>190+(v+span)*205/span;
+  for(const tick of [-span,-span/2,0,span/2,span]){mark('line',{x1:x(tick),x2:x(tick),y1:25,y2:207,stroke:tick===0?'#586870':'#e2e7e4','stroke-dasharray':tick===0?'4 4':'0'});mark('text',{x:x(tick),y:230,'text-anchor':'middle','font-size':15,fill:'#586870'},`${(tick*100).toFixed(1)}%`)}
+  for(const[i,[key,label]]of [['first_generation','首轮：合约生成'],['generation','最终：合约生成'],['repair','最终：反例修复']].entries()){
+   const c=r.contrasts[key],v=c.mean_difference,b=c.exploratory_interval,y=52+i*65,color=v<0?'#a74922':'#17685d';
+   mark('text',{x:4,y:y+5,'font-size':17,fill:'#172b35'},label);mark('line',{x1:x(b.low),x2:x(b.high),y1:y,y2:y,stroke:color,'stroke-width':4});
+   for(const value of [b.low,b.high])mark('line',{x1:x(value),x2:x(value),y1:y-8,y2:y+8,stroke:color,'stroke-width':2});
+   mark('circle',{cx:x(v),cy:y,r:6,fill:color});mark('text',{x:x(v),y:y-13,'text-anchor':'middle','font-size':15,fill:color},`${v>0?'+':''}${(v*100).toFixed(1)}`);
+  }
+ }
+ const eligible=r.repair_rescue_pairs.filter(p=>p.fully_observed);$('repair-rescue').textContent=`同初始失败的修复配对：${r.repair_rescue_pairs.length} 对，其中 ${eligible.length} 对充分观察；普通修复最终救回 ${eligible.filter(p=>p.baseline).length}，反例修复救回 ${eligible.filter(p=>p.counterexample).length}。初始正确的案例不计入这个救回分母。`;
+ const infraStatuses=new Set(['resource_busy','resource_contended','resource_monitor_error','resource_exhausted','evaluator_timeout','device_mismatch','evaluator_error','model_infrastructure_error','not_run_infrastructure']);
+ const infraBlocks=r.blocks.filter(b=>b.result&&(b.result.infrastructure_stop||Object.values(b.result.arms).some(a=>[...a.attempts.map(t=>t.evaluation),a.final].some(v=>v&&infraStatuses.has(v.status)))));
+ if(r.status==='complete'){
+  const observed=r.blocks.filter(b=>b.result&&!infraBlocks.includes(b)&&Object.values(b.result.arms).every(a=>a.attempts.every(t=>typeof t.reply==='string'))),ids=new Set(observed.map(b=>b.block.id)),count=(g,p)=>r.rows.filter(x=>ids.has(x.block)&&x.generation===g&&x.repair===p&&x.correct).length;
+  $('repair-infra').textContent=`基础设施失败影响 ${infraBlocks.length}/16 个块。主结果保留全部块，不能把此类差异直接归因于提示策略。另列事后辅助描述：充分观察的 ${observed.length} 个块中，双基线最终正确 ${count('baseline','baseline')}/${observed.length}，组合策略 ${count('contract','counterexample')}/${observed.length}；它不替换预定分母，也不增加成功试验。`;
+ }else if(infraBlocks.length)$('repair-infra').textContent=`已封存块中有 ${infraBlocks.length} 个受基础设施失败影响，原失败与未执行修复均保留。正式效果尚未计算。`;
+ for(const s of r.services){const c=node('div',undefined,'card');c.append(node('h3',`:${s.endpoint.port} · GPU ${s.endpoint.gpus.join('/')}`),node('p',`分配 ${s.assigned} 块，完成 ${s.completed||0} 块。`),node('p',`请求耗时 EWMA ${Number(s.ewma_seconds||0).toFixed(1)} 秒；vLLM ${s.endpoint.version}。`,'small'));$('repair-services').append(c)}
+ $('repair-resource').textContent=`已封存的独立 GPU 窗口 ${r.independent_gpu_windows}，峰值重叠 ${r.peak_gpu_windows}。已报告输出 ${r.reported_output_tokens} tokens；${r.usage_missing_dispatched} 次派发缺少用量。请求区间包含前端和等待开销，不是纯推理时间，也未实测端到端吞吐提升。`;
+ const complete=r.rows.filter(x=>x.status==='complete');for(const [i,row]of complete.entries()){const o=node('option',`${taskNames[row.task_id]} / ${row.seed} / ${gname(row.generation)} / ${rname(row.repair)}`);o.value=String(i);$('repair-run').append(o)}
+ function repairWitness(w){const box=node('div');box.append(node('p','独立评测器的微型诊断样本 · 仅搜索阶段','small'));const cards=node('div',undefined,'cards');cards.style.gridTemplateColumns='repeat(auto-fit,minmax(min(100%,240px),1fr))';for(const [label,tensor]of [...(w.inputs||[]).map((t,i)=>[`输入 ${i}`,t]),['预期输出',w.expected],['实际输出',w.actual]]){if(!tensor)continue;const c=node('div',undefined,'card');c.append(node('strong',label),node('p',`形状 ${(tensor.shape||[]).join(' × ')}，步长 ${(tensor.stride||[]).join(', ')}`,'small'));const grid=node('div');const width=Math.min(4,tensor.shape?.length>1?tensor.shape.at(-1):tensor.values?.length||1);grid.style.display='grid';grid.style.gridTemplateColumns=`repeat(${Math.max(1,width)},minmax(0,1fr))`;grid.style.gap='5px';for(const [i,value]of (tensor.values||[]).slice(0,28).entries()){const bf=w.expected?.dtype?.includes('bfloat16'),atol=bf?0.015:0.00002,rtol=bf?0.015:0.0002;const bad=label==='实际输出'&&w.expected?.values?.[i]!==undefined&&Math.abs(value-w.expected.values[i])>atol+rtol*Math.abs(w.expected.values[i]);const cell=node('span',Number(value).toFixed(3),bad?'bad':'');cell.style.fontFamily='var(--mono)';cell.style.fontSize='12px';grid.append(cell)}c.append(grid);if(tensor.nonfinite)c.append(node('p','包含非有限值','bad'));cards.append(c)}box.append(cards);return box}
+ function showRepair(){const target=$('repair-trajectory');target.replaceChildren();const row=complete[Number($('repair-run').value)];if(!row){target.append(node('p','尚未有封存的对照块，真实请求进度见上方。'));return}const block=r.blocks.find(b=>b.block.id===row.block),arm=block.result.arms[`g-${row.generation}_r-${row.repair}`];target.append(node('p',`首轮搜索${row.initial_correct?'正确':'未通过'}；最终${row.correct?'正确':'未通过'}，性能门槛${row.promoted?'通过':'未通过'}。同生成条件下的两种修复共享相同初始源码与裁决。`));for(const [i,a]of arm.attempts.entries()){const c=node('div',undefined,'turn');c.append(node('strong',`${i===0?'共享初始候选':`修订 ${i}`} · ${a.evaluation.status}${a.duplicate_of?' · 复用同 SHA 测量':''}`));if(a.evaluation.counterexample)c.append(repairWitness(a.evaluation.counterexample));for(const [label,value]of [['模型原始回复',a.reply],['搜索裁决与反例',a.evaluation],['源码与父 SHA',{source_sha256:a.source_sha256,parent_sha256:a.parent_sha256,code:a.code}]]){const d=node('details');d.append(node('summary',label),node('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));c.append(d)}target.append(c)}const d=node('details');d.append(node('summary','选择已提交之后的最终裁决'),node('pre',JSON.stringify({selected_sha256:arm.selected_sha256,final:arm.final,reused_from:arm.final_reused_from},null,2)));target.append(d)}
+ const witnessDefault=complete.findIndex(row=>row.repair==='counterexample'&&r.blocks.find(b=>b.block.id===row.block)?.result?.initial?.[row.generation]?.evaluation?.counterexample);if(witnessDefault>=0)$('repair-run').value=String(witnessDefault);
+ const unrepaired=r.repair_rescue_pairs.find(p=>p.fully_observed&&!p.baseline&&!p.counterexample);
+ if(unrepaired){$('repair-failed-example').hidden=false;$('repair-failed-example').addEventListener('click',()=>{const i=complete.findIndex(row=>row.block===unrepaired.block&&row.generation===unrepaired.generation&&row.repair==='counterexample');$('repair-run').value=String(i);showRepair()})}
+ $('repair-run').addEventListener('change',showRepair);showRepair();$('repair-provenance').textContent=JSON.stringify({plan:repairStudy.plan,contrasts:r.contrasts,request_statuses:r.request_statuses,shared_initial_binding_verified:r.shared_initial_binding_verified,final_selection_binding_verified:r.final_selection_binding_verified,checks:DATA.repair_checks},null,2);
+}
+
 const poolStudy=DATA.pool;
 if(poolStudy){
  const p=poolStudy.summary;$('pool-study').hidden=false;$('pool-status').textContent=p.status==='complete'?'24 项均已结束':'真实运行中 · 离线快照';
@@ -404,7 +459,7 @@ if(recovery){
   }
   $('recovery-note').textContent=phase==='before'?'A 的结果已提交，B 的预算预留和调用状态已落盘，C 尚未调用。此时对测试子进程发送 SIGKILL。':'A 的结果 SHA 完全复用；B 保留为未知并占据原分母；C 完成。再次启动不新增调用。以上使用测试驱动，不计入 GPU 成绩。';
  }
- const check=DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+ const check=DATA.repair_checks||DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
  $('upgrade-checks').textContent=check?`${check.passed_tests} 项机制与证据检查通过；lint、脚本语法和离线审计通过。`:'SIGKILL 场景与恢复断言通过；机制检查详见项目测试记录。';
  $('multiseed-note').textContent=multiseed?`旧 GPU6 计划保留为零启动的预检记录；修正评测解释器后，新计划在 GPU${multiseed.runtime.gpu_index} 上运行。已终止 ${multiseed.terminal}/${multiseed.scheduled}，结果与进度见上方多种子章节。`:nextPlan?`冻结 ${nextPlan.summary.scheduled} 次运行、108 次提案机会；已启动 ${nextPlan.summary.terminal} 次。状态：等待资源。预检记录：${nextPlan.last_event.error}。预算预留仍为 0。`:'扩展实验尚未启动。';
  $('recovery-detail').textContent=JSON.stringify({assertions:recovery.assertions,summary:recovery.summary,next_plan:nextPlan},null,2);
@@ -412,7 +467,7 @@ if(recovery){
  $('download-recovery').addEventListener('click',()=>download(recovery,'campaign-recovery-validation.json'));
  showRecovery();
 }
-const currentChecks=DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+const currentChecks=DATA.repair_checks||DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
 $('tests-note').textContent=(DATA.validation||'流程单元与集成检查见项目 tests/。')+(currentChecks?` 当前工程 ${currentChecks.passed_tests} 项检查通过，CPU 恢复测试另见调度章节。`:'');$('provenance').textContent=JSON.stringify({metadata:study.metadata,upstreams:DATA.upstreams,study_status:study.status},null,2);$('startup').append(node('p','启动诊断文件：'+(DATA.startup_files||[]).join('、'),'small'));$('generated').textContent=DATA.generated_utc;showSpeed();showRun();
 if(isSelectorValidation&&DATA.selector_validation_audit){$('selector-delivery').hidden=false;$('selector-delivery-data').textContent=JSON.stringify(DATA.selector_validation_audit,null,2)}
 if(shared?.status==='complete'){
@@ -425,7 +480,7 @@ if(shared?.status==='complete'){
  $('portfolio-evidence').textContent=`定位：可写入简历的 agent harness 研究工程原型。最新对照完整终止 ${shared.scheduled}/${shared.scheduled}；候选复用试跑以 0 次新生成请求完成 2/2 最终验收。真实生成、工程测试与历史未完成实验分别计数。`;
  $('provenance').textContent=JSON.stringify({latest_shared_plan:DATA.shared_feedback_checkpoint.plan,historical_three_task_metadata:study.metadata,upstreams:DATA.upstreams},null,2);
 }
-if(phased){$('main-finding').append(' 最新工程改进：在线反馈搜索先提交，最终评测通过真实 SIGKILL 与恢复验证；模型调用与已提交搜索均未重放。');$('portfolio-evidence').textContent='定位：可写入简历的 agent harness 研究工程原型。主贡献是独立评测与候选选择、预算与未知调用管理、保留在线反馈的阶段恢复；实验负结果与故障证据均可审阅。'}
+if(phased){$('main-finding').append(' 最新工程改进：在线反馈搜索先提交，最终评测通过真实 SIGKILL 与恢复验证；模型调用与已提交搜索均未重放。');$('portfolio-evidence').textContent='定位：面向大模型研究工程岗位的 agent harness 原型。既实现生成／修复策略，也用同起点对照检查效果；独立评测、调度与恢复让结论可以审阅。策略实现不自动等于收益已被证明。'}
 if(poolStudy?.summary.status==='complete'){
  const p=poolStudy.summary,correct=p.arms.reduce((n,a)=>n+a.correct,0),promoted=p.arms.reduce((n,a)=>n+a.promoted,0),blind=p.arms.find(a=>a.policy==='blind'),fb=p.arms.find(a=>a.policy==='feedback');
  $('summary').textContent=`最新服务池工程验证：六类任务、两个新种子、两组策略，24 项均已结束；最终正确 ${correct}/24，条件性能门槛通过 ${promoted}/24。`;
@@ -433,6 +488,23 @@ if(poolStudy?.summary.status==='complete'){
  $('main-finding').textContent=`有反馈 ${fb.correct}/12 最终正确、${fb.promoted}/12 晋升；无反馈 ${blind.correct}/12 最终正确、${blind.promoted}/12 晋升。实测提案代理区间峰值覆盖 ${p.peak_overlapping_proposal_ports} 个端口。主要新增贡献是空闲准入、多服务并发与 GPU 评测串行；没有把并发端口数当作端到端加速倍数。`;
  $('model-info').textContent='三路缓存 Qwen 27B FP8 接口 · vLLM 0.25.1 / 0.27.1 · 共同 8192 上下文 / 2048 输出上限 · 生成 GPU0/1、2/3、5/6，评测 GPU4。跨目录权重等价性未核实。';
  $('runtime-note').textContent=p.handoff?'本轮含记录的服务重启与端口恢复，5 对跨越重启，整轮策略收益区间已关闭。工程结果与旧 12 项、旧 36 项计划及两任务恢复验证分别保存。':'只在同一服务内比较两组，每个任务先平均两个种子，再按六类任务计算探索性区间。与旧 12 项、旧 36 项计划及两任务恢复验证分别保存。';
+}
+
+if(repairStudy&&repairStudy.summary.status!=='complete'){
+ const r=repairStudy.summary;
+ $('summary').textContent=`生成／修复的冻结对照正在运行：已封存 ${r.resolved}/64 个最终结局，实际派发 ${r.dispatched_requests}/160 次模型调用。完整效果尚待全部结果。`;
+ $('metrics').replaceChildren();for(const[l,v,t]of [['配对任务块','16','八类任务，各两个新种子'],['已封存结局',`${r.resolved}/64`,'四组共享生成起点'],['实际派发',`${r.dispatched_requests}/160`,'固定总额度，无未知调用重放'],['已完成请求并发',String(r.peak_model_ports),'动态服务池，GPU4 评测串行']]){const c=node('div',undefined,'card');c.append(node('div',l,'small'),node('div',v,'metric'),node('p',t,'small'));$('metrics').append(c)}
+ $('main-finding').textContent='本轮直接比较合约检查清单与普通生成、结构化诊断与普通修复。两种修复使用同一初始源码和裁决，各获得两次机会。当前不计算完整成功率或策略效应。';
+ $('model-info').textContent='本地 Qwen 27B FP8 动态服务池 · 原生 Chat 后端 · 共同 8192 上下文 / 2048 输出上限 · GPU4 评测允许共卡。';
+ $('runtime-note').textContent='设计与策略已冻结；失败和未知结局保留在预定分母，最终数据只接受或否决已选源码。历史结果在后续章节单独展示。';
+}
+if(repairStudy?.summary.status==='complete'){
+ const r=repairStudy.summary,b=r.cells.find(c=>c.generation==='baseline'&&c.repair==='baseline'),n=r.cells.find(c=>c.generation==='contract'&&c.repair==='counterexample');
+ $('summary').textContent=`最新生成／修复对照：16 个配对块、64 个结局均已结束；组合策略 ${n.correct}/16 最终正确，双基线 ${b.correct}/16。真实模型调用 ${r.dispatched_requests} 次。`;
+ $('metrics').replaceChildren();for(const [l,v,t]of [['配对任务块','16','八类任务，各两个新种子'],['双基线最终正确',`${b.correct}/16`,'普通生成＋普通修复'],['组合策略最终正确',`${n.correct}/16`,'合约生成＋反例修复'],['真实模型调用',String(r.dispatched_requests),'首轮只调用一次并共享']]){const c=node('div',undefined,'card');c.append(node('div',l,'small'),node('div',v,'metric'),node('p',t,'small'));$('metrics').append(c)}
+ $('main-finding').textContent=`首轮搜索正确：普通提示 ${r.initial[0].correct}/16，合约清单 ${r.initial[1].correct}/16。${n.correct>b.correct?'组合策略的全量正确数较高；需结合基础设施失败、充分观测子集与区间判断，不能直接认定稳定收益。':'组合策略没有提高本轮最终正确数，不能将新策略的实现等同于已证实的效果提升。'}具体效应与不确定性见生成与修复章节。`;
+ $('model-info').textContent='本地 Qwen 27B FP8 动态服务池 · 所有组使用相同直连后端、温度 0.2、8192 上下文与 2048 输出上限 · GPU4 独立评测、允许共卡。';
+ $('runtime-note').textContent='对照块绑定同一模型进程；不跨缓存目录作模型质量比较。16 个块不是 64 个独立任务簇；区间先平均种子，再按八类任务重采样。旧实验分别保留。';
 }
 </script>
 </body></html>

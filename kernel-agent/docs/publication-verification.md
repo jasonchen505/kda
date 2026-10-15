@@ -1,4 +1,27 @@
-# Latest delivery: concurrent service pool and recorded recovery
+# Latest delivery: contract planning and counterexample repair
+
+The prospective factorial study terminates all 64 arm outcomes on 16 blocks, with
+152 actual model dispatches. Shared initial source/verdict, unchanged search selection,
+exact request/response/source bindings and cooperative GPU windows pass the offline audit.
+Generated kernels are unchanged from their model replies. Task-cluster intervals and
+conditional repair-rescue denominators are reported without pooling old trials.
+
+Current CPU checks: **159 passed** independently on both pinned Humanize SDKs and a fresh
+locked install, Ruff, shell syntax and offline evidence. Raw outputs: `results/repair-checks.json`.
+The frozen generation, reference and evaluator files are in `results/repair-study/sources/`;
+post-run analysis/presentation are separately frozen in `results/repair-analysis/`.
+Browser proof and delivery manifest: `results/repair-browser-audit.json` and
+`results/repair-delivery-audit.json`. Runtime pairing uses actual API PID/start ticks,
+HTTP declaration and public GPU worker ancestry; weights/private environments are unread.
+
+These 64 outcomes are four arms per block with shared starts, not 64 independent
+model-generation trials or an external benchmark. Native Chat is shared by all arms;
+there is no measured causal backend-throughput speedup. Old release records below
+keep their original runtime identities, test counts and incomplete denominators.
+
+---
+
+# Earlier delivery: concurrent service pool and recorded recovery
 
 All 24 scheduled engineering jobs resolved; 20/24 final-correct, 6/24 conditionally
 promoted. All three workers exited zero. The published evidence keeps the pre-handoff

@@ -1,0 +1,84 @@
+{
+  "created_utc": "2026-10-15T14:02:16.882158+00:00",
+  "decision": "retain_baseline_recommendation; no promotion of experimental contract or diagnostic repair policies",
+  "recommended_generation": "baseline",
+  "recommended_repair": "baseline",
+  "experimental": [
+    "contract",
+    "counterexample"
+  ],
+  "first_proposal_correct": [
+    {
+      "generation": "baseline",
+      "scheduled": 16,
+      "observed": 16,
+      "correct": 12
+    },
+    {
+      "generation": "contract",
+      "scheduled": 16,
+      "observed": 16,
+      "correct": 11
+    }
+  ],
+  "final_cells": [
+    {
+      "generation": "baseline",
+      "repair": "baseline",
+      "scheduled": 16,
+      "resolved": 16,
+      "correct": 15,
+      "promoted": 4,
+      "initial_failed": 4,
+      "rescued": 3
+    },
+    {
+      "generation": "baseline",
+      "repair": "counterexample",
+      "scheduled": 16,
+      "resolved": 16,
+      "correct": 15,
+      "promoted": 3,
+      "initial_failed": 4,
+      "rescued": 3
+    },
+    {
+      "generation": "contract",
+      "repair": "baseline",
+      "scheduled": 16,
+      "resolved": 16,
+      "correct": 13,
+      "promoted": 5,
+      "initial_failed": 5,
+      "rescued": 2
+    },
+    {
+      "generation": "contract",
+      "repair": "counterexample",
+      "scheduled": 16,
+      "resolved": 16,
+      "correct": 13,
+      "promoted": 5,
+      "initial_failed": 5,
+      "rescued": 2
+    }
+  ],
+  "conditional_rescue": {
+    "fully_observed_pairs": 8,
+    "baseline_rescued": 5,
+    "counterexample_rescued": 5
+  },
+  "infrastructure_blocks": [
+    {
+      "block": "row_sum-s20261102",
+      "statuses": [
+        "not_run_infrastructure",
+        "resource_monitor_error"
+      ],
+      "stop": "resource_monitor_error"
+    }
+  ],
+  "rationale": "Full contract configuration observed lower correctness. Counterexample repair did not change paired final correctness. Small task-cluster intervals cannot establish stable harm, benefit or equivalence; [0,0] follows identical observed task effects, not an equivalence test. Performance is secondary and shared-device conditional.",
+  "next_hypothesis": "Separately budget a semantic critic before implementation, based on sealed missing-factor and layout failures. Not implemented or claimed effective in this release.",
+  "plan_sha256": "2ba73df83678e6ae9987894944518953a5009b833d9c9e1a35f30e5da92c88fe"
+}

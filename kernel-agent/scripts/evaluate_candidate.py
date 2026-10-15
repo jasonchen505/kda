@@ -1,6 +1,7 @@
 """Trusted, fresh-process GPU evaluator. Candidate files never contain the reference."""
 import importlib.util
 import json
+import os
 import random
 import statistics
 import sys
@@ -26,6 +27,13 @@ def reference(task, *args):
         return x.T.contiguous()
     if task == "row_sum":
         return x.float().sum(-1).to(x.dtype)
+    if task == "row_mean":
+        return x.float().mean(-1).to(x.dtype)
+    if task == "layer_norm":
+        fp = x.float()
+        centered = fp - fp.mean(-1, keepdim=True)
+        return (centered * torch.rsqrt(centered.square().mean(-1, keepdim=True) + 1e-5)
+                * args[1].float() + args[2].float()).to(x.dtype)
     if task == "silu_mul":
         return (torch.nn.functional.silu(x.float()) * args[1].float()).to(x.dtype)
     if task == "rmsnorm":
@@ -39,10 +47,40 @@ def inputs(task, shape, dtype):
         return (x, torch.randn_like(x))
     if task == "rmsnorm":
         return (x, torch.randn(shape[-1], dtype=dtype, device="cuda"))
+    if task == "layer_norm":
+        return (x, torch.randn(shape[-1], dtype=dtype, device="cuda"),
+                torch.randn(shape[-1], dtype=dtype, device="cuda"))
     return (x,)
 
 
-def main(task, source, final=False, timing=True):
+def counterexample(task, module, dtype):
+    """A tiny, deterministic search-only witness, identical for both repair arms."""
+    shape = [7] if task in ("vector_add", "silu_mul") else [2, 3]
+    args = inputs(task, shape, dtype)
+    for i, tensor in enumerate(args):
+        tensor.copy_(((torch.arange(tensor.numel(), device=tensor.device).reshape(tensor.shape)
+                       + 1 + i) / 3).to(dtype))
+    def snapshot(tensor):
+        return {"shape": list(tensor.shape), "stride": list(tensor.stride()),
+                "dtype": str(tensor.dtype), "values": tensor.float().flatten()[:64].cpu().tolist(),
+                "values_truncated": tensor.numel() > 64}
+    value = {"phase": "search_only", "inputs": [snapshot(t) for t in args],
+             "expected": snapshot(reference(task, *args))}
+    try:
+        actual = module.run(*args)
+        torch.cuda.synchronize()
+        if isinstance(actual, torch.Tensor):
+            # JSON never contains NaN/Infinity, including a failed diagnostic probe.
+            value["actual"] = (snapshot(actual) if torch.isfinite(actual).all()
+                               else {"nonfinite": True, "shape": list(actual.shape)})
+        else:
+            value["actual"] = {"python_type": type(actual).__name__}
+    except Exception as error:  # noqa: BLE001 -- diagnostics do not replace the original verdict
+        value["probe_error"] = str(error)[-600:]
+    return value
+
+
+def main(task, source, final=False, timing=True, diagnostics=False):
     code = Path(source).read_text()
     try:
         source_sha = admit(code)
@@ -66,6 +104,8 @@ def main(task, source, final=False, timing=True):
             "rmsnorm": [[13, 511], [96, 2047], [192, 4096]],
             "transpose": [[13, 511], [257, 769], [1000, 1001]],
             "row_sum": [[13, 511], [96, 2047], [192, 4096]],
+            "row_mean": [[13, 511], [96, 2047], [192, 4096]],
+            "layer_norm": [[13, 511], [96, 2047], [192, 4096]],
             "silu_mul": [[513], [131071], [1000003]],
         }[task]
         test_shapes = ([[3], [8193], [65539], [99991]] if task in ("vector_add", "silu_mul") else
@@ -99,8 +139,11 @@ def main(task, source, final=False, timing=True):
                         torch.testing.assert_close(module.run(*args), expected, atol=atol, rtol=rtol)
                         checks += 1
                     except AssertionError as error:
-                        return {"status": "numeric_error", "shape": shape, "dtype": str(dtype),
-                                "scale": scale, "message": str(error)[-2500:], "checks_passed": checks}
+                        failure = {"status": "numeric_error", "shape": shape, "dtype": str(dtype),
+                                   "scale": scale, "message": str(error)[-2500:], "checks_passed": checks}
+                        if diagnostics and not final:
+                            failure["counterexample"] = counterexample(task, module, dtype)
+                        return failure
                     except Exception as error:  # noqa: BLE001 -- classify candidate failures without losing the run
                         status = ("resource_exhausted" if isinstance(error, torch.OutOfMemoryError) else
                                   "compile_error" if "Compilation" in type(error).__name__ else "runtime_error")
@@ -135,12 +178,18 @@ def main(task, source, final=False, timing=True):
 
 
 if __name__ == "__main__":
+    device_audit = None
     try:
+        index = torch.cuda.current_device()
+        device_audit = {"visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"), "device_index": index,
+                        "device_count": torch.cuda.device_count(),
+                        "gpu_uuid": str(torch.cuda.get_device_properties(index).uuid)}
         if "--correctness-only" in sys.argv and "--final" in sys.argv:
             raise ValueError("deferred generation may not inspect final shapes")
         result = main(sys.argv[1], sys.argv[2], final="--final" in sys.argv,
-                      timing="--correctness-only" not in sys.argv)
+                      timing="--correctness-only" not in sys.argv, diagnostics="--diagnostics" in sys.argv)
     except Exception as error:  # noqa: BLE001 -- always return machine-readable evaluator failure
         result = {"status": "resource_exhausted" if isinstance(error, torch.OutOfMemoryError) else "evaluator_error",
                   "message": str(error), "traceback": traceback.format_exc()[-4000:]}
+    result["device_audit"] = device_audit
     print(json.dumps(result, allow_nan=False))

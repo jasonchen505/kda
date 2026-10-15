@@ -1,0 +1,6 @@
+{
+  "pid": 2367647,
+  "source": "/data/home/chenyizhou/kernel-agent-repair-source-v2",
+  "directory": "/data/home/chenyizhou/kernel-agent-repair-experiment-v2",
+  "scope": "corrected physical-GPU binding, new seeds 20261101/20261102; v1 invalid records excluded and retained; no unknown call replay"
+}

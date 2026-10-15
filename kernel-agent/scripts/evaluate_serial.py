@@ -18,13 +18,18 @@ def main():
     parser.add_argument("task")
     parser.add_argument("source")
     parser.add_argument("--final", action="store_true")
+    parser.add_argument("--diagnostics", action="store_true")
+    parser.add_argument("--require-device-proof", action="store_true")
     args = parser.parse_args()
     command = [sys.executable, str(ROOT / "scripts/evaluate_candidate.py"), args.task, args.source]
     if args.final:
         command.append("--final")
+    if args.diagnostics:
+        command.append("--diagnostics")
     try:
         with acquire(args.lock_file) as (lock, waited):
-            result = evaluate(command, args.gpu_index, pass_fds=(lock.fileno(),))
+            result = evaluate(command, args.gpu_index, pass_fds=(lock.fileno(),),
+                              require_device_proof=args.require_device_proof)
             result["cooperative_queue"] = {"lock_file": str(args.lock_file), "wait_seconds": waited,
                                            "pid": os.getpid(), "scope": "serializes this project's workers only"}
     except TimeoutError as error:

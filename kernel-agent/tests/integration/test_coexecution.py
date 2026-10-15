@@ -27,6 +27,35 @@ def test_resident_process_does_not_prevent_actual_child_execution(monkeypatch, t
     assert value["resource_audit"]["before"]["pids"] == [98765]
 
 
+def test_wrapper_owns_physical_visibility_despite_wrong_parent_environment(monkeypatch):
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "0")
+    monkeypatch.setattr(evaluate_coexecuted, "observe", lambda gpu: {**telemetry(), "gpu_uuid": "GPU-fixture"})
+    command = [sys.executable, "-c", "import os,json;print(json.dumps({'status':'correct','device_audit':"
+               "{'visible_devices':os.environ['CUDA_VISIBLE_DEVICES'],'gpu_uuid':'fixture','device_count':1,'device_index':0}}))"]
+    value = evaluate_coexecuted.evaluate(command, 4, require_device_proof=True)
+    assert value["status"] == "correct" and value["device_binding"]["verified"]
+    assert value["device_audit"]["visible_devices"] == "GPU-fixture"
+    import os
+    assert os.environ["CUDA_VISIBLE_DEVICES"] == "0"
+
+
+@pytest.mark.parametrize("changed", [{"gpu_uuid": "wrong"}, {"device_count": 2}, {"visible_devices": "0"}])
+def test_wrong_physical_proof_cannot_be_scored_even_if_child_claims_correct(monkeypatch, changed):
+    monkeypatch.setattr(evaluate_coexecuted, "observe", lambda gpu: {**telemetry(), "gpu_uuid": "GPU-fixture"})
+    proof = {"visible_devices": "GPU-fixture", "gpu_uuid": "fixture", "device_count": 1, "device_index": 0, **changed}
+    value = {"status": "correct", "device_audit": proof}
+    command = [sys.executable, "-c", f"print({json.dumps(value)!r})"]
+    result = evaluate_coexecuted.evaluate(command, 4, require_device_proof=True)
+    assert result["status"] == "device_mismatch" and not result["device_binding"]["verified"]
+
+
+def test_missing_physical_proof_cannot_be_scored(monkeypatch):
+    monkeypatch.setattr(evaluate_coexecuted, "observe", lambda gpu: {**telemetry(), "gpu_uuid": "GPU-fixture"})
+    value = evaluate_coexecuted.evaluate([sys.executable, "-c", "print('{\"status\":\"correct\"}')"],
+                                        4, require_device_proof=True)
+    assert value["status"] == "device_mismatch"
+
+
 def test_missing_monitor_evidence_cannot_become_a_shared_speedup(monkeypatch):
     observations = iter([telemetry(), OSError("device query unavailable")])
 
