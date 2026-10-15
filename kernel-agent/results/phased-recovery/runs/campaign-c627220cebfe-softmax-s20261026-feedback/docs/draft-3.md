@@ -1,0 +1,1 @@
+Single-row kernel with tuned block sizes and num_warps. Avoids 2D masking overhead for small rows. Uses FP32 accumulation for BF16 inputs. Optimizes worst case [7,257] by reducing per-row overhead.

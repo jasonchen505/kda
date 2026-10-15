@@ -22,6 +22,7 @@ handwritten kernels as agent successes. The original KDA documentation is preser
 - [Prepared 36-job multi-seed study](kernel-agent/docs/multiseed-study-plan.md)
 - [GPU4 execution, interference qualification and guarded plan](kernel-agent/docs/multiseed-execution.md)
 - [Why GPU sharing and performance measurement differ](kernel-agent/docs/gpu-sharing-policy.md)
+- [Online feedback with durable finalization](kernel-agent/docs/phased-study-plan.md)
 
 ```bash
 git clone --branch codex/kernel-agent-harness https://github.com/jasonchen505/kda.git
@@ -38,31 +39,31 @@ The review path above checks published evidence and controller mechanisms on a C
 
 ## Result and scope
 
-The latest three-task integration campaign produced **3/3 final-correct outputs and 2/3
-performance promotions**. SiLU and RMSNorm achieved mean speedups of **1.291× and 1.073×**
-on three BF16 shapes versus `torch.compile` on an RTX 4090. A preceding equal-budget
-feedback/blind study produced 3/3 correct and 0/3 promoted in each arm.
+The completed six-family, two-arm, one-seed feedback comparison has **12/12 terminal
+jobs**: blind refinement is **6/6 final-correct and 1/6 promoted**; measured feedback
+is **5/6 final-correct and 1/6 promoted**. One feedback task exhausted its 900-second
+budget without a final verdict. Its three search records, generated sources and failed
+outcome are preserved. This study does not establish a feedback advantage.
 
-These are separate small, reference-assisted studies, not a stable success-rate estimate.
-Inference configuration changed between campaigns. The selector defect, fixed-source
-rechecks, negative trials and causal limits are documented alongside the positive result.
-The guarded harness passes **99 mechanism/interface/artifact checks** on both
-pinned Humanize environments; the original measured campaign passed 54. A real SIGKILL
-test reuses completed jobs, preserves unknown outcomes and allocations, and starts only
-pending tasks. It uses synthetic model/GPU drivers, not additional generation trials.
+The controller now supports online search timing feedback followed by a separately
+resumable final queue. It commits proposals, search measurements and search-only selection
+before final-data access. Recovery reuses committed work; the final check can veto the
+selected source without selecting an alternative. The latest engineering pilot and its
+real process-kill boundary are documented in the report and verification notes. It
+reused six search measurements and ran two independent final checks after SIGKILL,
+with zero new model or search calls: 2/2 final-correct, 1/2 conditionally promoted.
+The CPU suite passes 119 tests on both pinned SDKs and a fresh locked installation.
 
-The six-family × three-stochastic-seed × two-arm study is prepared (36 jobs). One earlier
-GPU4 integration job made three real Qwen proposals and passed final numerical checks,
-but a foreign CUDA process started during the job; its recorded promotion is explicitly
-unqualified for clean performance. The new guarded campaign waits on user-selected GPU4
-with finite resource waiting and pre/post evaluation checks. Full multi-seed results remain
-pending. Strict occupancy is a conservative measurement policy, not a CUDA execution rule.
+Earlier three-task integration produced 3/3 final-correct and 2/3 promoted; fixed-source
+rechecks support a selector defect fix. The old guarded 36-job plan remains at 23 terminal
+jobs and 13 pending. These experiments keep separate denominators and runtime identities.
+Generated candidates are not manually repaired, and speed ratios against `torch.compile`
+are conditional on the observed shared-device policy. Official Triton examples assist
+generation; the experiments do not establish held-out generalization or production safety.
 
-![Offline report preview](kernel-agent/reports/report-preview.png)
+![Online-feedback finalization and recovery](kernel-agent/reports/phased-preview.png)
 
-![Task-boundary recovery preview](kernel-agent/reports/recovery-preview.png)
-
-![Guarded multi-seed progress preview](kernel-agent/reports/multiseed-preview.png)
+![Complete shared-condition feedback comparison](kernel-agent/reports/coexecution-preview.png)
 
 ## License
 

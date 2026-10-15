@@ -1,0 +1,13 @@
+{
+  "rawCheckpointBytesMatch": true,
+  "sha256": "7c789cad07a90325dc27f69cc3776791fa36772860e7728f0094ba7bd95394a6",
+  "characters": 154587,
+  "stepsChecked": [
+    "search",
+    "kill",
+    "final"
+  ],
+  "viewportWidth": 426,
+  "bodyWidth": 426,
+  "consoleErrors": []
+}

@@ -40,6 +40,7 @@ def main():
     parser.add_argument("--generation", type=Path, required=True)
     parser.add_argument("--generation-sources", type=Path)
     parser.add_argument("--directory", type=Path, required=True)
+    parser.add_argument("--prepare", action="store_true", help="commit queues and selection without GPU/model calls")
     args = parser.parse_args()
     source = args.generation_sources or args.generation.parent / "sources"
     state = origin(args.generation, source)
@@ -87,7 +88,7 @@ def main():
                 return {"status": "evaluator_timeout"}
 
         with TimingQueue(folder / "checkpoint.json", queue_plan) as queue:
-            result = queue.run(evaluate)
+            result = queue.state if args.prepare else queue.run(evaluate)
             complete &= result["status"] == "complete"
             rows.append({"job": row["job"], "status": result["status"], "correct": result.get("correct"),
                          "promoted": result.get("promoted"), "selected_sha256": result["selected_sha256"],
@@ -103,7 +104,7 @@ def main():
     atomic_json(directory / "summary.json", summary)
     print(json.dumps({"status": summary["status"], "final_correct": sum(bool(r["correct"]) for r in rows),
                       "promoted": sum(bool(r["promoted"]) for r in rows), "new_model_requests": 0}))
-    return 0 if complete else 2
+    return 0 if args.prepare or complete else 2
 
 
 if __name__ == "__main__":

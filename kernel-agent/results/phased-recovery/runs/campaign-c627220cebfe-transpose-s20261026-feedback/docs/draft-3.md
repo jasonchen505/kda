@@ -1,0 +1,1 @@
+Optimize transpose by tuning block sizes per shape and using 2D grid. For small matrices use smaller blocks to reduce wasted threads; for large matrices use 128x128 blocks for better memory coalescing. Keep masking for odd sizes.

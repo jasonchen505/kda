@@ -21,7 +21,7 @@ latest = (ROOT / args.input) if args.input else max((p for p in canonical if p.e
           key=lambda p: json.loads(p.read_text()).get("started_utc", ""))
 study = json.loads(latest.read_text())
 payload = {"study": study, "generated_utc": datetime.now(timezone.utc).isoformat(),
-           "validation": "54 个控制器协议、接口与 Humanize 流程测试通过；真实模型运行单独计数。",
+           "validation": "控制器、兼容性与证据测试单独计数；真实模型运行使用独立 GPU 裁决。",
            "upstreams": {"kda": "ef6ce617693ef0782b3ecb9f37e39bbf10226a90",
                          "humanize": "77e3d0658d9dd4c54cd9497e45940593bf6a43ff"},
            "strategy_summary": summarize(study) if study.get("metadata", {}).get("study_kind") in {"strategy_ablation", "selector_validation"} else None,
@@ -66,6 +66,14 @@ payload["raw_deferred_evidence"] = json.dumps(
 shared_checkpoint = ROOT / "results/shared-feedback-checkpoint.json"
 payload["raw_shared_checkpoint"] = shared_checkpoint.read_text() if shared_checkpoint.exists() else None
 payload["shared_failed_traces"] = []
+phased = ROOT / "results/phased-recovery"
+payload["phased"] = ({key: json.loads((phased / path).read_text()) for key, path in (
+    ("generation", "generation.json"), ("final", "final/summary.json"),
+    ("receipt", "supervisor-exit.json"), ("kill", "final/kill-receipt.json"),
+    ("launch", "service-launch.json"), ("initial_exit", "initial-supervisor-exit.json"))} if phased.exists() else None)
+payload["phased_checks"] = (json.loads((ROOT / "results/phased-checks.json").read_text())
+                            if (ROOT / "results/phased-checks.json").exists() else None)
+payload["raw_phased_generation"] = (phased / "generation.json").read_text() if phased.exists() else None
 if shared_checkpoint.exists():
     checkpoint = json.loads(shared_checkpoint.read_text())
     for row in checkpoint["jobs"]:

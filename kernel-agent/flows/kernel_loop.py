@@ -51,7 +51,7 @@ class Params(FlowParams):
     proposal_format: Literal["string", "lines"] = "string"
     study_policy: Literal["legacy", "blind", "feedback"] = "legacy"
     selection_policy: Literal["gate_first", "geomean"] = "gate_first"
-    evaluation_mode: Literal["integrated", "deferred"] = "integrated"
+    evaluation_mode: Literal["integrated", "deferred", "search_only"] = "integrated"
 
 
 def first_prompt(task):
@@ -77,8 +77,9 @@ def first_prompt(task):
 async def kernel_loop(task, *, agents, envs, params, ctx):
     fixed_study = params.study_policy != "legacy"
     deferred = params.evaluation_mode == "deferred"
-    if deferred and not fixed_study:
-        raise ValueError("deferred timing requires fixed proposal budgets")
+    search_only = params.evaluation_mode == "search_only"
+    if (deferred or search_only) and not fixed_study:
+        raise ValueError("phase separation requires fixed proposal budgets")
     if fixed_study and (params.mode != "reference_guided" or params.proposal_format != "lines"):
         raise ValueError("strategy study requires the shared reference-guided line protocol")
     workspace = envs["workspace"]
@@ -90,6 +91,10 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
         prompt += ("\nGeneration uses search numerical checks only, on a potentially shared GPU. "
                    "Performance selection and final checks occur later in a separate queue. "
                    "No timing or final-shape evidence is available during revision.")
+    if search_only:
+        prompt += ("\nSearch correctness and timing feedback are available during revision. "
+                   "The controller commits all proposals and freezes search-only selection first. "
+                   "A separate resumable process performs the final check; final evidence never enters this conversation.")
     if params.proposal_format == "lines":
         prompt = line_protocol.first_prompt(prompt)
     initial_context = None
@@ -218,11 +223,11 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
     final_evaluation = None
     final_decision = None
     candidate_finals = {}
-    if best is not None:
+    if best is not None and not search_only:
         final_evaluation = await final_check(best)
         final_decision = decision(final_evaluation)
         candidate_finals[best["source_sha256"]] = {"evaluation": final_evaluation, "decision": final_decision}
-    if fixed_study and not deferred:
+    if fixed_study and not deferred and not search_only:
         # Audit first/last/best on final data without changing the search-selected source.
         for candidate in records:
             digest = candidate.get("source_sha256")
@@ -235,9 +240,10 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
             "study_policy": params.study_policy,
             "selection_policy": params.selection_policy,
             "evaluation_mode": params.evaluation_mode,
-            "measurement_state": "timing_pending" if deferred else "finalized",
+            "measurement_state": "timing_pending" if deferred else "final_pending" if search_only else "finalized",
             "timing_candidates": list(dict.fromkeys(a["source_sha256"] for a in records
-                                      if a.get("decision", {}).get("timing_eligible"))) if deferred else [],
+                                      if a.get("decision", {}).get("timing_eligible" if deferred else "correct")))
+                                      if deferred or search_only else [],
             "terminal": terminal, "correct": bool(final_decision and final_decision["correct"]),
             "promoted": bool(final_decision and final_decision["promoted"]),
             "search_correct": best is not None,

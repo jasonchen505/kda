@@ -1,0 +1,1 @@
+Single-pass row softmax kernel. Each program handles one row. Load row with mask, compute max, exp, sum, normalize. Store with mask. FP32 accumulation for stability. Supports all contracted shapes.

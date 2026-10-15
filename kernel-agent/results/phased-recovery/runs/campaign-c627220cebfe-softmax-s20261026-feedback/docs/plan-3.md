@@ -1,0 +1,1 @@
+1. Use 1D kernel processing one row per program. 2. Tune BLOCK_SIZE and num_warps based on n_cols. 3. Cast BF16 to FP32 for reduction. 4. Grid = (n_rows,). 5. Minimize launch overhead for small row counts.

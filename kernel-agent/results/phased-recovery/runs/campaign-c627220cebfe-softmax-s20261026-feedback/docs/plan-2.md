@@ -1,0 +1,1 @@
+1. Modify kernel to accept ROWS_PER_BLOCK as constexpr. 2. Use 2D offsets for row and column indices. 3. Load 2D block with mask for both dimensions. 4. Compute max/exp/sum along column axis (axis=1). 5. Store 2D block with mask. 6. Update run wrapper to compute grid based on rows and cols, selecting ROWS_PER_BLOCK to balance occupancy.

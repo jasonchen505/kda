@@ -34,6 +34,8 @@ def source_hashes():
              "docs/deferred-evaluation.md",
              "scripts/evaluate_coexecuted.py", "scripts/finish_deferred.py",
              "scripts/run_shared_campaign.py", "docs/shared-study-plan.md",
+             "scripts/run_phased.py", "scripts/start_cached_qwen27.sh", "docs/phased-study-plan.md",
+             "scripts/validate_phased_recovery.py",
              "data/tasks.json", "data/opencode-qwen27.json",
              "results/qwen27-asset-manifest.json", "docs/multiseed-study-plan.md", "pyproject.toml", "uv.lock"]
     paths += [str(p.relative_to(ROOT)) for folder in ("src/kernel_agent", "references")
@@ -236,7 +238,7 @@ def execute(plan, job, trace_root):
                                       "run_id": run_id, "mode": generation["mode"], "rounds": generation["rounds"],
                                       "proposal_format": generation["proposal_format"],
                                       "selection_policy": generation["selection_policy"],
-                                      "evaluation_mode": "deferred" if deferred else "integrated",
+                                      "evaluation_mode": generation.get("evaluation_mode", "integrated"),
                                       "evaluator": [plan["runtime"]["gpu_python"],
                                                     str(ROOT / "scripts" / evaluator_script), "--gpu-index",
                                                     str(plan["runtime"]["gpu_index"])]}).run()

@@ -14,16 +14,22 @@ RESOURCE_FAILURES = {"resource_busy", "resource_contended", "resource_monitor_er
 
 
 def candidates(run):
-    if run.get("evaluation_mode") != "deferred" or run.get("final_evaluation") is not None:
-        raise ValueError("queue requires deferred generation without final-data access")
+    search_only = run.get("evaluation_mode") == "search_only"
+    if run.get("evaluation_mode") not in {"deferred", "search_only"} or run.get("final_evaluation") is not None:
+        raise ValueError("queue requires phase-separated generation without final-data access")
+    if search_only and (run.get("candidate_final_evaluations") or run.get("measurement_state") != "final_pending"):
+        raise ValueError("online search must commit before final-data access")
     items = {}
     for attempt in run["attempts"]:
-        if not numeric_decision(attempt["evaluation"])["timing_eligible"]:
+        if not (decision(attempt["evaluation"])["correct"] if search_only else
+                numeric_decision(attempt["evaluation"])["timing_eligible"]):
             continue
         code, digest_ = proposal(attempt["reply"])["code"], attempt["source_sha256"]
         if code != attempt["code"] or sha(code) != digest_ or attempt["evaluation"].get("source_sha256") != digest_:
             raise ValueError("eligible source differs from model/numerical evidence")
         items.setdefault(digest_, {"source_sha256": digest_, "code": code, "iteration": attempt["iteration"]})
+        if search_only and digest_ in items and "evaluation" not in items[digest_]:
+            items[digest_]["evaluation"] = attempt["evaluation"]
     if list(items) != run["timing_candidates"]:
         raise ValueError("eligible candidate schedule changed")
     return list(items.values())
@@ -53,7 +59,20 @@ class TimingQueue:
                                          for c in eligible], "selected_sha256": None,
                               "selection_committed": False,
                               "final": {"status": "queued", "observations": []}}
+                # Online feedback already paid for these search measurements. Import
+                # the exact evidence instead of rerunning search or any model calls.
+                for row, candidate in zip(self.state["search"], eligible, strict=True):
+                    if "evaluation" in candidate:
+                        value = candidate["evaluation"]
+                        row.update(status="measured", evaluation=value,
+                                   decision=self.checked(value, candidate["source_sha256"]),
+                                   observations=[{"status": "imported_committed_search", "evaluation": value}])
+                if self.plan["generation_result"].get("evaluation_mode") == "search_only":
+                    if self.select() != self.plan["generation_result"].get("selected_sha256"):
+                        raise ValueError("committed selection differs from search-only evidence")
+                    self.state.update(selection_committed=True, selected_sha256=self.select(), status="final_pending")
                 self.save()
+                self.verify()
             return self
         except BaseException:
             self.lock.close()
@@ -111,6 +130,12 @@ class TimingQueue:
                 raise ValueError("selection precedes complete search timings")
             if self.state["selected_sha256"] != self.select():
                 raise ValueError("selection differs from search-only evidence")
+        if self.plan["generation_result"].get("evaluation_mode") == "search_only":
+            expected = {c["source_sha256"]: c["evaluation"] for c in eligible}
+            if (not self.state["selection_committed"] or self.state["selected_sha256"] !=
+                    self.plan["generation_result"].get("selected_sha256") or any(
+                    r.get("evaluation") != expected[r["source_sha256"]] for r in self.state["search"])):
+                raise ValueError("imported online-search evidence changed")
         final = self.state["final"]
         if final["status"] == "measured":
             actual = self.checked(final["evaluation"], self.state["selected_sha256"])

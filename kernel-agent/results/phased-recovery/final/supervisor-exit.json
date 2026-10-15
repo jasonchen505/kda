@@ -1,0 +1,32 @@
+{
+  "started_utc": "2026-10-15T08:42:36.104179+00:00",
+  "phase": "pure_finalization_after_prepare_exit_fix",
+  "initial_supervisor_error": "prepare returned 2 for pending measurements; fixed CLI exit code, preserved generation and initial failure",
+  "status": "complete",
+  "generation_sha256": "7c789cad07a90325dc27f69cc3776791fa36772860e7728f0094ba7bd95394a6",
+  "wire_files": 12,
+  "wire_sha256": {
+    "wire/softmax-s20261026-feedback/0196115e55de4d3e919e5878ead6afbe.json": "4789c358e1aeb5f7b48d4f70454596a729100897fa4cb2c23a178ea32094a99c",
+    "wire/softmax-s20261026-feedback/2ad957dd270f48ee87dcbd7602ab7e0d.json": "8a61c0724007692342387a276c5af3ad71e51ac6b4ce1d6cbfddfb3015d37369",
+    "wire/softmax-s20261026-feedback/63fb1ba88880494fb520c39d857d39ee.json": "bafd8f963ae34b021beeeb2f0d3912b40c9b46dd6ab0132ac8c410724cd9e667",
+    "wire/softmax-s20261026-feedback/bb1b1cc391df483b901bdea53a53071a.json": "a17e03f491cd0f36160dc34c6fecef5101aa8175799a2f50b1d2381de3896c11",
+    "wire/softmax-s20261026-feedback/d2a2bad235fd4ab4895189113c36170e.json": "9d35cae15a98b97098cc295bfcb53aa8ea89ccd22651be0a634e075b15461e3a",
+    "wire/softmax-s20261026-feedback/fd246bbda3694bc79dd213411602eaf4.json": "df8cd89ef44155136e5dd951f50178f15d7ba972c7493285df31bcd5ea44febd",
+    "wire/transpose-s20261026-feedback/596abe20814e41a6910a34d5bf393010.json": "d33096b4edf611d9c7776346e7a18971f2396e2bf8794c8368b1f62767788199",
+    "wire/transpose-s20261026-feedback/711a422f72744107a35694b28e8640eb.json": "6874bcfed7da512cc57010edec6f47d582ddb0097c6c26b3e3783fded6013d97",
+    "wire/transpose-s20261026-feedback/a47d66d5413a460fa87f1804d027d8e1.json": "54e6b56ffe181b95a446c7d8b1476bf204e199cdc33a40b1ebd19bda4b06e11d",
+    "wire/transpose-s20261026-feedback/c2315b404999430cb7141952839aed0e.json": "b37f6ea41c005622daf6cd2eaeedfeebf1e9fae6d00d3efc1bdf6bdebbdc52c9",
+    "wire/transpose-s20261026-feedback/e80888977769485cabc68486f36295d4.json": "29222465dd526ba30af4d2a9d7475c7b98557bed55498c381714f2d80b71fada",
+    "wire/transpose-s20261026-feedback/f26ef743c4d54d4cbb272b81d2e166d2.json": "8e35ad0b72be2ffa70b2e27622a30b2ad0b548a2966582a720c0963902a23946"
+  },
+  "final_correct": 2,
+  "final_promoted": 1,
+  "imported_searches": 6,
+  "final_evaluator_calls": 2,
+  "interrupted_final_evaluations": 1,
+  "generation_and_wire_unchanged": true,
+  "completed_reopen_unchanged": true,
+  "new_model_calls_during_finalization": 0,
+  "new_search_calls_during_finalization": 0,
+  "finished_utc": "2026-10-15T08:43:03.327731+00:00"
+}

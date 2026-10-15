@@ -45,6 +45,17 @@ without a final verdict. All 36 proposals / 72 request bodies are preserved, inc
 failed task’s three correct search records. It was not retried; the study does not establish
 a feedback benefit. Its evidence is separate from the incomplete old 36-job plan.
 
+**Online feedback can now commit before finalization.** `search_only` retains actual
+search correctness and timing feedback, but returns before any final-data access. The
+durable final queue imports those exact search measurements and freezes the same source
+selection. Only the selected source is finalized outside the Humanize generation budget;
+no alternative final audits, feedback or reselection occur. See the separate
+[engineering pilot](docs/phased-study-plan.md), prompted by the previous budget failure.
+Its six real proposals and six search measurements survived a final-stage process kill;
+recovery made zero model/search calls and completed two final checks: 2/2 correct,
+1/2 passing the conditional gate. CPU checks pass 119 cases on both SDKs and a fresh install.
+The initial preparation CLI exit-code failure is preserved alongside its corrected plan.
+
 ```text
 Task contract → local Qwen proposal → protocol / AST admission → independent GPU process
                          ↑                                         ↓
@@ -100,8 +111,11 @@ attributed to KDA's CC BY 4.0 documentation; this project does not redistribute 
 This server already contains the frozen environments. The old measured Humanize environment
 remains pinned to the archived source worktree; the installed project pins the updated SDK.
 The sibling `kda-humanize-portfolio` environment supplies Torch 2.6.0 and Triton
-3.2.0. The current shared study reuses an owned loopback vLLM 0.27.1 service on GPUs 2/3,
-port 8005, and evaluates on GPU4. Earlier dedicated services used different devices; their
+3.2.0. The completed 2026-10-14 sharing study used a loopback vLLM 0.27.1 service on GPUs 2/3,
+port 8005. That service is no longer live. The 2026-10-15 engineering pilot uses a newly
+started owned service on GPUs 5/6, port 18118, and evaluates on GPU4. The launcher uses
+the existing cached weights, TP2, a 32,768-token context, FP8 KV cache and eager execution;
+no adapter is registered. Earlier dedicated services used different devices; their
 runtime records remain in their own frozen studies. The 4B model revision is
 `cdbee75f17c01a7cc42f958dc650907174af0554`. The cached 27B directory alias says
 `Qwen3.8-27B-FP8`, but the actual config is `qwen3_5`; the upstream weight revision is
@@ -134,7 +148,17 @@ For a new observed-sharing experiment, provide the owned base-service PID, an ev
 device and a fresh checkpoint path:
 
 ```bash
-uv run python scripts/run_shared_campaign.py --pid SERVICE_PID --port 8005 \
+# If no owned service exists, inspect occupancy and choose two available generation GPUs first:
+KERNEL_MODEL_GPUS=5,6 bash scripts/start_cached_qwen27.sh
+# The line above runs the loopback server in the foreground; use another terminal below.
+uv run python scripts/run_phased.py --pid SERVICE_PID --port 18118 \
+  --gpu-index 4 --directory runs/my-phased-pilot --prepare
+# Remove --prepare to generate; finalization is an independent pure-evaluation phase:
+uv run python scripts/finish_deferred.py --generation runs/my-phased-pilot/generation.json \
+  --directory runs/my-phased-final
+
+# Separate full two-arm study (use the owned service's actual port and a fresh checkpoint):
+uv run python scripts/run_shared_campaign.py --pid SERVICE_PID --port 18118 \
   --gpu-index 4 --checkpoint runs/my-shared-study/checkpoint.json --prepare
 # Remove --prepare to execute the frozen twelve-job plan; requires the recorded runtime.
 # Export only committed evidence into a separate review directory:
@@ -147,6 +171,10 @@ for replication; do not overwrite those artifacts or switch a live plan's measur
 `scripts/build_report.py` rebuilds the packaged report from its `results/` evidence.
 The following entries reproduce earlier dedicated-service studies and have different
 runtime requirements:
+
+Use their frozen `results/*/sources` or measured snapshots for exact historical launcher
+settings. The current cached-model launcher has the new service configuration; legacy
+dedicated entries explicitly map its base-model alias and keep their own GPU allocation.
 
 ```bash
 cd /data/home/chenyizhou/kernel-agent

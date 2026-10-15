@@ -1,0 +1,1 @@
+Optimize row-parallel softmax by processing multiple rows per program to increase occupancy and reduce launch overhead for small row counts. Use a 2D block layout where each program handles ROWS_PER_BLOCK rows and BLOCK_SIZE columns. Maintain FP32 reductions and masked loads/stores for non-power-of-two column counts.

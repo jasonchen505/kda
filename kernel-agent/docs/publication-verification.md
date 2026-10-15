@@ -1,3 +1,31 @@
+# Latest delivery: online feedback and durable finalization
+
+The 2026-10-15 engineering pilot has two committed local-Qwen search jobs, six unedited
+proposals, six imported search measurements, two independent final evaluations, and a
+real SIGKILL before the final evaluator child started. Recovery added zero model calls
+and zero search evaluations. Final correctness is 2/2 and conditional promotion is 1/2.
+Completed-queue reopening preserved request and checkpoint hashes.
+
+A preparation-only CLI exit-code error stopped the initial supervisor. Its failure,
+initial queued plan and original sources are retained. A corrected finalization plan
+completed the same committed generation with no model retry. The experiment does not
+replace the old budget-failed task or estimate a feedback/budget-failure advantage.
+
+The current CPU suite passes 119 tests on both pinned Humanize SDKs and a fresh locked
+installation. Ruff, each shell script's syntax and offline artifact verification pass.
+The new audit also checks that imported search observations cannot change even if a
+checkpoint's outer hash is recomputed. Raw checks: `results/phased-checks.json`.
+Frozen engineering evidence: `results/phased-recovery/`.
+
+The new cached-base service uses loopback port 18118, generation GPUs 5/6 and evaluation
+GPU4. It is a new runtime identity; the old port-8005 process is gone. Weight metadata and
+shard inventory identify the cached asset; its upstream revision/full digests remain
+unverified. No paid inference, requested adapter or redistributed model weights.
+
+The entries below describe previous releases and keep their original counts.
+
+---
+
 # Publication verification
 
 ## Explicit observed-sharing condition, 2026-10-14

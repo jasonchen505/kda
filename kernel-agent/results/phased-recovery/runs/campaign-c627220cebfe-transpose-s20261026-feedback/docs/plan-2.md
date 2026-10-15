@@ -1,0 +1,1 @@
+1. Use 1D grid with linear indexing to reduce grid dimension overhead. 2. Tune BLOCK_M/BLOCK_N based on matrix size. 3. Keep 2D tile transpose for correctness. 4. Ensure all shapes 1..1024 work with masking.

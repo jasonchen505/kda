@@ -66,9 +66,14 @@ if [[ -f "results/$RESULT_NAME.json" ]]; then
     cp "results/$RESULT_NAME.json" "results/$RESULT_NAME-$ARCHIVE_STAMP.json"
   fi
 fi
-bash "$MODEL_STARTER" > runs/vllm-reproduce.log 2>&1 &
+KERNEL_MODEL_GPUS="$GENERATION_GPUS" KERNEL_MODEL_PORT="$MODEL_PORT" bash "$MODEL_STARTER" > runs/vllm-reproduce.log 2>&1 &
 MODEL_SERVER_PID=$!
+PROXY_BASE_ARGS=()
+if [[ "$MODEL_STARTER" == scripts/start_cached_qwen27.sh ]]; then
+  PROXY_BASE_ARGS=(--upstream-model-id qwen38-27b-fp8)
+fi
 "$HUMANIZE_PYTHON" scripts/local_proxy.py --model-id "$MODEL_ID" --seed "$MODEL_SEED" --upstream "http://127.0.0.1:$MODEL_PORT" \
+  "${PROXY_BASE_ARGS[@]}" \
   --trace-dir runs/reproduce-wire > runs/proxy-reproduce.log 2>&1 &
 PROXY_SERVER_PID=$!
 trap 'kill "$PROXY_SERVER_PID" "$MODEL_SERVER_PID" 2>/dev/null || true' EXIT

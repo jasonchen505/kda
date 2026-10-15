@@ -19,6 +19,9 @@ def test_published_evidence_is_self_contained():
     assert result["recovery_validation"]["unknown_outcomes"] == 1
     assert result["shared_feedback_study"]["candidate_files"] == 36
     assert result["shared_feedback_study"]["uncommitted_candidate_files"] == 3
+    assert result["phased_recovery"]["jobs"] == 2
+    assert result["phased_recovery"]["proposer_requests"] == 6
+    assert result["phased_recovery"]["new_model_calls_during_recovery"] == 0
 
 
 def test_budget_stopped_task_preserves_sources_without_inventing_a_final_result(tmp_path):
@@ -56,3 +59,20 @@ def test_search_selection_cannot_be_replaced_by_final_audit():
     run["selected_sha256"] = run["attempts"][0]["source_sha256"]
     with pytest.raises(ValueError, match="actual output differs"):
         audit.check_run(run, ROOT / "results/study8-measured")
+
+
+def test_phased_imported_search_cannot_be_changed_even_with_a_new_state_hash(tmp_path):
+    folder = tmp_path / "results/phased-recovery"
+    shutil.copytree(ROOT / "results/phased-recovery", folder)
+    path = next((folder / "final/queues").glob("*/checkpoint.json"))
+    value = json.loads(path.read_text())
+    value["search"][0]["evaluation"]["resource_audit"]["after"]["test_tamper"] = True
+    value["state_sha256"] = audit.object_digest({k: v for k, v in value.items() if k != "state_sha256"})
+    path.write_text(json.dumps(value))
+    # Even a matching edited presentation cannot replace committed generation evidence.
+    summary_path = folder / "final/summary.json"
+    summary = json.loads(summary_path.read_text())
+    next(row for row in summary["jobs"] if row["job"]["id"] == path.parent.name)["search"] = value["search"]
+    summary_path.write_text(json.dumps(summary))
+    with pytest.raises(ValueError, match="imported online-search evidence changed"):
+        audit.check_phased(tmp_path)

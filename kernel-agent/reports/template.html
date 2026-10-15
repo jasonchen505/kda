@@ -5,6 +5,7 @@
 <meta name="color-scheme" content="light"><title>Kernel Agent · 复现与改进</title>
 <style>
 :root{--ink:#172b35;--muted:#586870;--paper:#f5f3ee;--line:#d9dedb;--green:#17685d;--orange:#a74922;--blue:#416fac;--card:#fff;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+[hidden]{display:none!important}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7}a{color:var(--green)}button,select{font:inherit}button{cursor:pointer;background:var(--green);color:white;border:0;border-radius:7px;padding:9px 15px}button.secondary{background:white;color:var(--green);border:1px solid var(--line)}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #dc8d39;outline-offset:3px}nav{background:var(--ink);color:#fff;padding:13px 5vw;display:flex;gap:24px;align-items:center;flex-wrap:wrap}nav b{margin-right:auto;letter-spacing:.05em}nav a{color:#e3eee9;text-decoration:none;font-size:14px}main{max-width:1160px;margin:auto;padding:42px 28px 70px}.eyebrow{color:var(--green);font-size:13px;letter-spacing:.15em;font-weight:700}.hero{max-width:920px}h1{font-size:clamp(32px,4.8vw,58px);line-height:1.22;letter-spacing:-.035em;margin:14px 0 22px}h2{font-size:28px;line-height:1.3;margin:0 0 15px}h3{font-size:19px;margin:0 0 10px}p{margin:10px 0}.lede{font-size:19px;color:var(--muted);max-width:790px}.tag{display:inline-block;padding:2px 9px;border-radius:4px;background:#e9f1ed;color:var(--green);font-size:13px}.notice{background:#eee7da;border-left:4px solid #b28146;padding:15px 20px;margin:22px 0;color:#60472a}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}.card{padding:21px;background:var(--card);border:1px solid var(--line);border-radius:10px}.metric{font-size:36px;font-weight:750;letter-spacing:-.03em;line-height:1.3;color:var(--green)}.small{font-size:13px;color:var(--muted)}section{margin-top:52px;scroll-margin-top:18px}.section-top{display:flex;align-items:start;justify-content:space-between;gap:18px;flex-wrap:wrap}.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}.node{background:#fff;border:1px solid var(--line);border-top:4px solid var(--green);border-radius:7px;padding:17px;position:relative}.node:not(:last-child)::after{content:'→';position:absolute;right:-15px;top:36%;z-index:1;color:var(--green);font-size:23px}.node span{display:block;font-size:12px;color:var(--muted)}.feedback-line{padding:13px;border:1px dashed var(--green);border-radius:6px;color:var(--green);text-align:center;font-size:14px}.controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:18px 0}label{font-size:14px;color:var(--muted)}select{max-width:100%;border:1px solid #a7b9b0;border-radius:5px;background:white;padding:7px;color:var(--ink)}.table-wrap{overflow-x:auto;background:white;border:1px solid var(--line);border-radius:8px}table{border-collapse:collapse;width:100%;font-size:14px;text-align:left}th,td{padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}th{background:#eaf0ed;color:#344e49}tbody tr:last-child td{border-bottom:none}.ok{color:var(--green);font-weight:700}.bad{color:var(--orange);font-weight:700}.bar-row{display:grid;grid-template-columns:165px 1fr 58px;gap:10px;align-items:center;margin:14px 0;font-size:14px}.bar-track{height:23px;background:#e8eeea;border-radius:4px;overflow:hidden}.bar{height:100%;background:var(--green);min-width:1px;border-radius:4px}.bar.base{background:var(--blue)}.legend{display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.dot{display:inline-block;width:10px;height:10px;margin-right:5px;background:var(--green);border-radius:50%}.dot.blue{background:var(--blue)}.turn{background:white;border:1px solid var(--line);border-radius:8px;padding:20px;margin-top:15px}.turn-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.turn-head strong{margin-right:auto}.sha{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}.turn p{font-size:14px}details{margin:12px 0}summary{cursor:pointer;color:var(--green);font-size:14px}pre{background:#172b35;color:#e9f1ee;padding:17px;border-radius:6px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6;max-height:410px;white-space:pre-wrap;overflow-wrap:anywhere}code{font-family:var(--mono);font-size:.88em}.split-note{border-top:1px solid var(--line);padding-top:15px}.changes td{white-space:normal;vertical-align:top}.sources{font-size:14px}footer{border-top:1px solid var(--line);margin-top:45px;padding-top:18px;font-size:13px;color:var(--muted)}#summary{font-size:18px}#speed-note{min-height:1.5em}.empty{padding:20px;background:white;border:1px solid var(--line);border-radius:8px}noscript{display:block;padding:20px;background:#fff2d5}.no-print{display:block}
 @media(max-width:760px){main{padding:26px 18px 45px}.cards{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.node:nth-child(2)::after{content:''}.bar-row{grid-template-columns:110px 1fr 55px}.metric{font-size:28px}nav{gap:14px}section{margin-top:36px}h2{font-size:25px}}
 @media(max-width:420px){.flow{grid-template-columns:1fr}.node:not(:last-child)::after{content:'↓';right:50%;top:auto;bottom:-19px}.cards{gap:9px}.card{padding:14px}.lede{font-size:16px}}
@@ -12,9 +13,9 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#deferred">共卡与调度</a><a href="#shared-study">共卡对照</a><a href="#results">既有结果</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#phased">最新恢复验证</a><a href="#shared-study">共卡对照</a><a href="#results">既有结果</a><a href="#evidence">证据</a></nav>
 <main>
-<header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.14</div>
+<header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.15</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
 <p class="lede">复现 KDA 的任务工作流，用 Humanize 驱动本地 Qwen 生成 Triton 代码。改进对象是 agent 控制器：如何测试、修复、停止和选择候选。</p>
 <span class="tag">真实模型生成</span> <span class="tag">独立 GPU 评测</span> <span class="tag">离线报告</span>
@@ -31,6 +32,18 @@
 <div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流；Humanize → OpenCode → 本地 Qwen 的真实生成链路。六类 Triton 任务用于评估这个 agent。</p></div><div class="card"><h3>自己改进了什么</h3><p>结构化源码协议与分类反馈、正确候选保留、门槛优先选择、独立最终否决；再补任务恢复、预算持久化和生成／测速阶段分离。</p></div></div>
 <p>证据链：同预算反馈对照没有证明收益 → 轨迹揭示选择器缺陷 → 固定源码重测与新生成验证 → SIGKILL 恢复验证 → 多种子运行暴露设备调度瓶颈 → 共卡生成与独立测速队列。</p>
 <p class="small" id="portfolio-evidence">定位：可以写入简历的 agent harness 研究工程原型。三任务集成验证为 3/3 最终正确、2/3 晋升；最新六任务反馈对照见下方。真实生成、工程测试和历史未完成实验分别计数。</p></section>
+
+<section id="phased" hidden><div class="section-top"><h2>在线反馈保留，最终评测独立恢复</h2><span class="tag">2026.10.15 · Harness 改进</span></div>
+<p>上一轮转置任务在 900 秒预算耗尽后没有提交最终结果。这次把搜索与最终评测拆成两个持久化阶段：搜索仍接收真实数值与速度反馈，先提交候选和选择，再由独立队列完成最终否决。</p>
+<div class="cards" id="phased-metrics"></div>
+<div class="flow"><div class="node"><b>Qwen 搜索与修订</b><span>真实反馈 · 每项三个提案机会</span></div><div class="node"><b>先提交搜索结果</b><span>原始源码、测量与选择全部绑定</span></div><div class="node"><b>最终评测前 SIGKILL</b><span>真实杀进程 · 子评测尚未启动</span></div><div class="node"><b>恢复纯评测</b><span>不重放模型、不重测搜索、不重选</span></div></div>
+<div class="controls"><label for="phased-step">回放实际阶段</label><select id="phased-step"><option value="search">① 搜索已提交</option><option value="kill">② 最终评测前被杀</option><option value="final" selected>③ 恢复并完成</option></select></div>
+<div class="card"><h3 id="phased-state-title"></h3><p id="phased-state-note"></p></div>
+<div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>开发任务</th><th>已提交提案</th><th>复用搜索测量</th><th>阶段状态</th><th>最终正确 / 晋升</th></tr></thead><tbody id="phased-table"></tbody></table></div>
+<div class="two" id="phased-ratios" style="margin-top:18px"></div>
+<p class="small">搜索与最终检查使用不同形状集合；条形图用于追踪最终否决，不能作为控制器改进前后的速度对照。</p>
+<p id="phased-conclusion"></p><p class="small">两个开发任务、仅反馈组，用于验证阶段提交与恢复；新启动的服务配置不同。没有测量旧版与新版的失败率差异，不与上一轮 12 项对照合并。共享测量策略允许共卡，但不保证测量期间一定存在其他用户负载。此次故障发生在评测子进程启动前，不能外推成任意 GPU／模型调用中的精确恢复。</p>
+<details><summary>服务身份、预算、故障与恢复凭据</summary><pre id="phased-provenance"></pre></details><button class="secondary" id="download-phased">下载原始搜索检查点</button></section>
 
 <section id="deferred" hidden><div class="section-top"><h2>共卡继续生成，测速独立排队</h2><span class="tag">Agent harness · 阶段分离</span></div>
 <p>生成期间允许共卡完成搜索数值检查，保存原始模型源码。用户允许共享测量后，以独立记录的共卡条件完成搜索测速与最终否决；候选和已有模型预算可以复用。</p>
@@ -312,6 +325,25 @@ if(shared){
  showSharedRun();$('shared-run').addEventListener('change',showSharedRun);
  $('download-shared-study').addEventListener('click',()=>downloadRaw(DATA.raw_shared_checkpoint,'shared-feedback-checkpoint.json'));
 }
+const phased=DATA.phased;
+if(phased){
+ $('phased').hidden=false;
+ const generation=phased.generation,receipt=phased.receipt,final=phased.final;
+ const proposals=generation.jobs.reduce((n,r)=>n+r.result.attempts.length,0);
+ for(const [value,label] of [[String(proposals),'真实 Qwen 提案'],[String(receipt.imported_searches),'复用已有搜索测量'],[String(receipt.interrupted_final_evaluations),'最终评测前 SIGKILL'],[String(receipt.new_model_calls_during_finalization),'恢复新增模型请求']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('phased-metrics').append(card)}
+ function showPhased(){
+  const step=$('phased-step').value,done=step==='final';
+  $('phased-state-title').textContent={search:'先提交，再访问最终数据',kill:'进程被杀，选择仍然保留',final:'只恢复尚未提交的纯评测'}[step];
+  $('phased-state-note').textContent={search:`两项任务的 ${proposals} 次提案已提交，在线搜索反馈保持可用。最终结果此时尚不存在。`,kill:'已提交搜索选择；最终队列将状态写为 running 后，进程收到 SIGKILL（退出码 −9）。评测子进程尚未启动，模型和搜索测量没有重跑。',final:`恢复后复用 ${receipt.imported_searches} 条搜索测量，只启动 ${receipt.final_evaluator_calls} 次最终评测。再次打开已完成队列，检查点与请求文件保持不变。`}[step];
+  $('phased-table').replaceChildren();$('phased-ratios').hidden=!done;
+  for(const row of generation.jobs){const r=row.result,f=final.jobs.find(j=>j.job.id===row.job.id);const killed=phased.kill.queue.includes(row.job.id);const tr=node('tr');for(const t of [taskNames[row.job.task_id],String(r.attempts.length),String(f.search.length),done?'最终结果已提交':step==='kill'&&killed?'最终 running · 已被杀':'最终待执行',done?`${f.correct?'正确':'未通过'} / ${f.promoted?'晋升':'未晋升'}`:'待测'])tr.append(node('td',t));$('phased-table').append(tr)}
+ }
+ for(const row of final.jobs){const card=node('div',undefined,'card'),r=generation.jobs.find(j=>j.job.id===row.job.id).result;card.append(node('h3',taskNames[row.job.task_id]));const selected=r.selected_decision,verdict=row.final.decision;if(selected?.correct&&verdict?.correct){const max=Math.max(selected.geomean_speedup,verdict.geomean_speedup,1);for(const [label,value] of [['搜索平均',selected.geomean_speedup],['最终平均',verdict.geomean_speedup]]){const line=node('div',undefined,'bar-row'),track=node('div',undefined,'bar-track'),bar=node('div',undefined,'bar');bar.style.width=`${100*value/max}%`;track.append(bar);line.append(node('span',label),track,node('span',`${value.toFixed(3)}×`));card.append(line)}card.append(node('p',`最终最差 ${verdict.worst_speedup.toFixed(3)}×；${row.promoted?'通过性能门槛':'未通过性能门槛'}。`,'small'))}else card.append(node('p',`最终状态：${row.final.evaluation?.status||'无可验收候选'}。`));card.append(node('p',`选中 SHA：${row.selected_sha256||'无'}`,'sha'));$('phased-ratios').append(card)}
+ $('phased-conclusion').textContent=`工程验证完成：${receipt.final_correct}/2 最终正确、${receipt.final_promoted}/2 达到条件性能门槛；故障恢复新增 0 次模型请求、0 次搜索评测。它支持阶段提交与恢复的实现，不支持“反馈提高成功率”的结论。`;
+ $('phased-provenance').textContent=JSON.stringify({service:generation.plan.runtime.service,budget:generation.reservations,plan_sha256:generation.plan_sha256,initial_preparation_exit:phased.initial_exit,kill:phased.kill,recovery:receipt,checks:DATA.phased_checks},null,2);
+ $('phased-step').addEventListener('change',showPhased);showPhased();
+ $('download-phased').addEventListener('click',()=>downloadRaw(DATA.raw_phased_generation,'phased-generation.json'));
+}
 const recovery=DATA.recovery_validation, nextPlan=DATA.multiseed_preflight;
 if(recovery){
  $('recovery').hidden=false;
@@ -330,7 +362,7 @@ if(recovery){
   }
   $('recovery-note').textContent=phase==='before'?'A 的结果已提交，B 的预算预留和调用状态已落盘，C 尚未调用。此时对测试子进程发送 SIGKILL。':'A 的结果 SHA 完全复用；B 保留为未知并占据原分母；C 完成。再次启动不新增调用。以上使用测试驱动，不计入 GPU 成绩。';
  }
- const check=DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+ const check=DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
  $('upgrade-checks').textContent=check?`${check.passed_tests} 项机制与证据检查通过；lint、脚本语法和离线审计通过。`:'SIGKILL 场景与恢复断言通过；机制检查详见项目测试记录。';
  $('multiseed-note').textContent=multiseed?`旧 GPU6 计划保留为零启动的预检记录；修正评测解释器后，新计划在 GPU${multiseed.runtime.gpu_index} 上运行。已终止 ${multiseed.terminal}/${multiseed.scheduled}，结果与进度见上方多种子章节。`:nextPlan?`冻结 ${nextPlan.summary.scheduled} 次运行、108 次提案机会；已启动 ${nextPlan.summary.terminal} 次。状态：等待资源。预检记录：${nextPlan.last_event.error}。预算预留仍为 0。`:'扩展实验尚未启动。';
  $('recovery-detail').textContent=JSON.stringify({assertions:recovery.assertions,summary:recovery.summary,next_plan:nextPlan},null,2);
@@ -338,7 +370,7 @@ if(recovery){
  $('download-recovery').addEventListener('click',()=>download(recovery,'campaign-recovery-validation.json'));
  showRecovery();
 }
-const currentChecks=DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+const currentChecks=DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
 $('tests-note').textContent=(DATA.validation||'流程单元与集成检查见项目 tests/。')+(currentChecks?` 当前工程 ${currentChecks.passed_tests} 项检查通过，CPU 恢复测试另见调度章节。`:'');$('provenance').textContent=JSON.stringify({metadata:study.metadata,upstreams:DATA.upstreams,study_status:study.status},null,2);$('startup').append(node('p','启动诊断文件：'+(DATA.startup_files||[]).join('、'),'small'));$('generated').textContent=DATA.generated_utc;showSpeed();showRun();
 if(isSelectorValidation&&DATA.selector_validation_audit){$('selector-delivery').hidden=false;$('selector-delivery-data').textContent=JSON.stringify(DATA.selector_validation_audit,null,2)}
 if(shared?.status==='complete'){
@@ -351,5 +383,6 @@ if(shared?.status==='complete'){
  $('portfolio-evidence').textContent=`定位：可写入简历的 agent harness 研究工程原型。最新对照完整终止 ${shared.scheduled}/${shared.scheduled}；候选复用试跑以 0 次新生成请求完成 2/2 最终验收。真实生成、工程测试与历史未完成实验分别计数。`;
  $('provenance').textContent=JSON.stringify({latest_shared_plan:DATA.shared_feedback_checkpoint.plan,historical_three_task_metadata:study.metadata,upstreams:DATA.upstreams},null,2);
 }
+if(phased){$('main-finding').append(' 最新工程改进：在线反馈搜索先提交，最终评测通过真实 SIGKILL 与恢复验证；模型调用与已提交搜索均未重放。');$('portfolio-evidence').textContent='定位：可写入简历的 agent harness 研究工程原型。主贡献是独立评测与候选选择、预算与未知调用管理、保留在线反馈的阶段恢复；实验负结果与故障证据均可审阅。'}
 </script>
 </body></html>

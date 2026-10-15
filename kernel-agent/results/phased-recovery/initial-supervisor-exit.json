@@ -1,0 +1,6 @@
+{
+  "started_utc": "2026-10-15T08:20:38.150864+00:00",
+  "status": "failed",
+  "error": "scripts/finish_deferred.py exit 2",
+  "finished_utc": "2026-10-15T08:41:11.336592+00:00"
+}

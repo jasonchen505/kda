@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light"><title>Kernel Agent · 复现与改进</title>
+<style>
+:root{--ink:#172b35;--muted:#586870;--paper:#f5f3ee;--line:#d9dedb;--green:#17685d;--orange:#a74922;--blue:#416fac;--card:#fff;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+[hidden]{display:none!important}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7}a{color:var(--green)}button,select{font:inherit}button{cursor:pointer;background:var(--green);color:white;border:0;border-radius:7px;padding:9px 15px}button.secondary{background:white;color:var(--green);border:1px solid var(--line)}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #dc8d39;outline-offset:3px}nav{background:var(--ink);color:#fff;padding:13px 5vw;display:flex;gap:24px;align-items:center;flex-wrap:wrap}nav b{margin-right:auto;letter-spacing:.05em}nav a{color:#e3eee9;text-decoration:none;font-size:14px}main{max-width:1160px;margin:auto;padding:42px 28px 70px}.eyebrow{color:var(--green);font-size:13px;letter-spacing:.15em;font-weight:700}.hero{max-width:920px}h1{font-size:clamp(32px,4.8vw,58px);line-height:1.22;letter-spacing:-.035em;margin:14px 0 22px}h2{font-size:28px;line-height:1.3;margin:0 0 15px}h3{font-size:19px;margin:0 0 10px}p{margin:10px 0}.lede{font-size:19px;color:var(--muted);max-width:790px}.tag{display:inline-block;padding:2px 9px;border-radius:4px;background:#e9f1ed;color:var(--green);font-size:13px}.notice{background:#eee7da;border-left:4px solid #b28146;padding:15px 20px;margin:22px 0;color:#60472a}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}.card{padding:21px;background:var(--card);border:1px solid var(--line);border-radius:10px}.metric{font-size:36px;font-weight:750;letter-spacing:-.03em;line-height:1.3;color:var(--green)}.small{font-size:13px;color:var(--muted)}section{margin-top:52px;scroll-margin-top:18px}.section-top{display:flex;align-items:start;justify-content:space-between;gap:18px;flex-wrap:wrap}.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}.node{background:#fff;border:1px solid var(--line);border-top:4px solid var(--green);border-radius:7px;padding:17px;position:relative}.node:not(:last-child)::after{content:'→';position:absolute;right:-15px;top:36%;z-index:1;color:var(--green);font-size:23px}.node span{display:block;font-size:12px;color:var(--muted)}.feedback-line{padding:13px;border:1px dashed var(--green);border-radius:6px;color:var(--green);text-align:center;font-size:14px}.controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:18px 0}label{font-size:14px;color:var(--muted)}select{max-width:100%;border:1px solid #a7b9b0;border-radius:5px;background:white;padding:7px;color:var(--ink)}.table-wrap{overflow-x:auto;background:white;border:1px solid var(--line);border-radius:8px}table{border-collapse:collapse;width:100%;font-size:14px;text-align:left}th,td{padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}th{background:#eaf0ed;color:#344e49}tbody tr:last-child td{border-bottom:none}.ok{color:var(--green);font-weight:700}.bad{color:var(--orange);font-weight:700}.bar-row{display:grid;grid-template-columns:165px 1fr 58px;gap:10px;align-items:center;margin:14px 0;font-size:14px}.bar-track{height:23px;background:#e8eeea;border-radius:4px;overflow:hidden}.bar{height:100%;background:var(--green);min-width:1px;border-radius:4px}.bar.base{background:var(--blue)}.legend{display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.dot{display:inline-block;width:10px;height:10px;margin-right:5px;background:var(--green);border-radius:50%}.dot.blue{background:var(--blue)}.turn{background:white;border:1px solid var(--line);border-radius:8px;padding:20px;margin-top:15px}.turn-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.turn-head strong{margin-right:auto}.sha{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}.turn p{font-size:14px}details{margin:12px 0}summary{cursor:pointer;color:var(--green);font-size:14px}pre{background:#172b35;color:#e9f1ee;padding:17px;border-radius:6px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6;max-height:410px;white-space:pre-wrap;overflow-wrap:anywhere}code{font-family:var(--mono);font-size:.88em}.split-note{border-top:1px solid var(--line);padding-top:15px}.changes td{white-space:normal;vertical-align:top}.sources{font-size:14px}footer{border-top:1px solid var(--line);margin-top:45px;padding-top:18px;font-size:13px;color:var(--muted)}#summary{font-size:18px}#speed-note{min-height:1.5em}.empty{padding:20px;background:white;border:1px solid var(--line);border-radius:8px}noscript{display:block;padding:20px;background:#fff2d5}.no-print{display:block}
+@media(max-width:760px){main{padding:26px 18px 45px}.cards{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.node:nth-child(2)::after{content:''}.bar-row{grid-template-columns:110px 1fr 55px}.metric{font-size:28px}nav{gap:14px}section{margin-top:36px}h2{font-size:25px}}
+@media(max-width:420px){.flow{grid-template-columns:1fr}.node:not(:last-child)::after{content:'↓';right:50%;top:auto;bottom:-19px}.cards{gap:9px}.card{padding:14px}.lede{font-size:16px}}
+@media print{body{background:white}nav,.controls,button,.no-print{display:none}main{max-width:none;padding:0}.card,.turn,.node{break-inside:avoid}.two{grid-template-columns:1fr 1fr}section{margin-top:25px}details[open] pre{max-height:none}.table-wrap{overflow:visible}h1{font-size:36px}a{color:inherit}footer{margin-top:20px}}
+</style>
+</head>
+<body>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#phased">最新恢复验证</a><a href="#shared-study">共卡对照</a><a href="#results">既有结果</a><a href="#evidence">证据</a></nav>
+<main>
+<header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.15</div>
+<h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
+<p class="lede">复现 KDA 的任务工作流，用 Humanize 驱动本地 Qwen 生成 Triton 代码。改进对象是 agent 控制器：如何测试、修复、停止和选择候选。</p>
+<span class="tag">真实模型生成</span> <span class="tag">独立 GPU 评测</span> <span class="tag">离线报告</span>
+</header>
+<div class="notice">本报告的成绩来自真实模型提案与独立 GPU 评测。此前手写算子和模型实验只作辅助材料，不计入 agent 成绩。</div>
+<p id="summary" aria-live="polite"></p>
+<div class="cards" id="metrics"></div>
+<p id="main-finding"></p>
+<p class="small" id="model-info"></p>
+<p class="small" id="runtime-note"></p>
+
+<section id="portfolio"><h2>五分钟看懂这个求职项目</h2>
+<p>研究工程问题：如何让一个本地 coding agent 在数值、性能和资源约束下写出可验收的 kernel，并在失败或中断后保留可信实验记录。</p>
+<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流；Humanize → OpenCode → 本地 Qwen 的真实生成链路。六类 Triton 任务用于评估这个 agent。</p></div><div class="card"><h3>自己改进了什么</h3><p>结构化源码协议与分类反馈、正确候选保留、门槛优先选择、独立最终否决；再补任务恢复、预算持久化和生成／测速阶段分离。</p></div></div>
+<p>证据链：同预算反馈对照没有证明收益 → 轨迹揭示选择器缺陷 → 固定源码重测与新生成验证 → SIGKILL 恢复验证 → 多种子运行暴露设备调度瓶颈 → 共卡生成与独立测速队列。</p>
+<p class="small" id="portfolio-evidence">定位：可以写入简历的 agent harness 研究工程原型。三任务集成验证为 3/3 最终正确、2/3 晋升；最新六任务反馈对照见下方。真实生成、工程测试和历史未完成实验分别计数。</p></section>
+
+<section id="phased" hidden><div class="section-top"><h2>在线反馈保留，最终评测独立恢复</h2><span class="tag">2026.10.15 · Harness 改进</span></div>
+<p>上一轮转置任务在 900 秒预算耗尽后没有提交最终结果。这次把搜索与最终评测拆成两个持久化阶段：搜索仍接收真实数值与速度反馈，先提交候选和选择，再由独立队列完成最终否决。</p>
+<div class="cards" id="phased-metrics"></div>
+<div class="flow"><div class="node"><b>Qwen 搜索与修订</b><span>真实反馈 · 每项三个提案机会</span></div><div class="node"><b>先提交搜索结果</b><span>原始源码、测量与选择全部绑定</span></div><div class="node"><b>最终评测前 SIGKILL</b><span>真实杀进程 · 子评测尚未启动</span></div><div class="node"><b>恢复纯评测</b><span>不重放模型、不重测搜索、不重选</span></div></div>
+<div class="controls"><label for="phased-step">回放实际阶段</label><select id="phased-step"><option value="search">① 搜索已提交</option><option value="kill">② 最终评测前被杀</option><option value="final" selected>③ 恢复并完成</option></select></div>
+<div class="card"><h3 id="phased-state-title"></h3><p id="phased-state-note"></p></div>
+<div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>开发任务</th><th>已提交提案</th><th>复用搜索测量</th><th>阶段状态</th><th>最终正确 / 晋升</th></tr></thead><tbody id="phased-table"></tbody></table></div>
+<div class="two" id="phased-ratios" style="margin-top:18px"></div>
+<p class="small">搜索与最终检查使用不同形状集合；条形图用于追踪最终否决，不能作为控制器改进前后的速度对照。</p>
+<p id="phased-conclusion"></p><p class="small">两个开发任务、仅反馈组，用于验证阶段提交与恢复；新启动的服务配置不同。没有测量旧版与新版的失败率差异，不与上一轮 12 项对照合并。共享测量策略允许共卡，但不保证测量期间一定存在其他用户负载。此次故障发生在评测子进程启动前，不能外推成任意 GPU／模型调用中的精确恢复。</p>
+<details><summary>服务身份、预算、故障与恢复凭据</summary><pre id="phased-provenance"></pre></details><button class="secondary" id="download-phased">下载原始搜索检查点</button></section>
+
+<section id="deferred" hidden><div class="section-top"><h2>共卡继续生成，测速独立排队</h2><span class="tag">Agent harness · 阶段分离</span></div>
+<p>生成期间允许共卡完成搜索数值检查，保存原始模型源码。用户允许共享测量后，以独立记录的共卡条件完成搜索测速与最终否决；候选和已有模型预算可以复用。</p>
+<div class="cards" id="deferred-metrics"></div>
+<div class="flow"><div class="node"><b>生成与数值修订</b><span>可共卡 · 不测速度</span></div><div class="node"><b>源码进入队列</b><span>SHA 绑定 · 去重 · 原子落盘</span></div><div class="node"><b>搜索测速与选择</b><span>独立恢复 · 门槛优先</span></div><div class="node"><b>最终检查</b><span>新形状 · 只接受或否决</span></div></div>
+<div class="controls"><label for="deferred-phase">查看每阶段的职责</label><select id="deferred-phase"><option value="generation">① 共卡生成与正确性</option><option value="queue">② 排队与恢复</option><option value="selection">③ 测速、选择与最终否决</option></select></div>
+<div class="card"><h3 id="deferred-phase-title"></h3><p id="deferred-phase-note"></p></div>
+<div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>运行</th><th>提案数</th><th>可测速源码</th><th>共卡时的观察</th><th>测速状态</th></tr></thead><tbody id="deferred-table"></tbody></table></div>
+<p id="deferred-conclusion"></p><p class="small">该试跑验证阶段分离的工程链路：Softmax 既有开发任务、同一种子、两组各三次提案。反馈组只接收数值结果，不接收速度；因此不能与原来的性能反馈实验混合，也不据此估计泛化成功率。</p>
+<div id="shared-completion-detail" hidden><div class="notice">以下速度是共享环境下相对 torch.compile 的测量，不能当作独占 GPU 的加速。保留原占用拒绝记录；新测量计划复用相同提案，增加 0 次模型请求。</div><div class="table-wrap"><table><thead><tr><th>原生成条件</th><th>最终正确</th><th>共享性能门槛</th><th>平均 / 最差加速</th><th>测量前的驻留进程</th></tr></thead><tbody id="shared-completion-table"></tbody></table></div></div>
+<details><summary>冻结计划、运行状态与预算</summary><pre id="deferred-provenance"></pre></details><button class="secondary" id="download-deferred">下载阶段分离记录</button></section>
+
+<section id="shared-study" hidden><div class="section-top"><h2>共卡条件下的真实反馈对照</h2><span class="tag" id="shared-study-status"></span></div><p>六类开发任务 × 一个新种子 × 有／无评测反馈，共 12 次运行。两组各有三个提案机会，使用同一模型与门槛优先选择；该实验接收搜索数值与共享测速反馈，最终数据只用于否决。</p>
+<div class="cards" id="shared-study-metrics"></div><div class="two" id="shared-study-arms"></div>
+<div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>任务族</th><th>无反馈：正确 / 晋升</th><th>有反馈：正确 / 晋升</th><th>待运行 / 运行中</th></tr></thead><tbody id="shared-study-tasks"></tbody></table></div>
+<p id="shared-study-conclusion"></p><p class="small">共享负载没有受控固定；GPU 利用率也包含评测器本身。速度具有环境条件，种子配对不保证首轮源码相同。六类任务均参与过开发；一次种子不能代表稳定成功率。旧 36 次独占预检计划与本次共卡实验分别保留。</p>
+<div class="controls"><label for="shared-run">查看真实生成与最终否决</label><select id="shared-run"></select></div><div id="shared-trajectory"></div>
+<details><summary>实际环境、预算、条件和完整性检查</summary><pre id="shared-study-provenance"></pre></details><button class="secondary" id="download-shared-study">下载共卡实验原始检查点</button></section>
+
+<section id="multiseed" hidden><div class="section-top"><h2>多种子对照 · 状态与结果</h2><span class="tag" id="multiseed-status"></span></div>
+<p>验证评测反馈是否让 kernel agent 更稳定：六类开发任务 × 三种随机种子 × 无反馈／有反馈，共 36 次运行。两组使用同模型、门槛优先选择和三个提案机会。</p>
+<div class="cards" id="multiseed-metrics"></div><p class="small" id="multiseed-snapshot"></p>
+<div class="notice" id="multiseed-pilot-note" hidden></div><p id="multiseed-wait"></p>
+<div class="two" id="multiseed-arms"></div>
+<div class="table-wrap" style="margin-top:20px"><table><thead><tr><th>任务族</th><th>无反馈 · 最终正确 / 已终止</th><th>有反馈 · 最终正确 / 已终止</th><th>无反馈 / 有反馈 · 晋升</th></tr></thead><tbody id="multiseed-tasks"></tbody></table></div>
+<p id="multiseed-conclusion"></p><p class="small">每组每任务预定 3 次运行。待运行和运行中没有最终结论；未知中断和失败在终止后的分母中保留。仅在全部 36 次终止后给出完整比例与按任务计算的探索性区间。任务均参与过开发，配对种子也不保证首轮候选相同。</p>
+<div class="controls"><button class="secondary" id="download-multiseed">下载对照分析</button><button class="secondary" id="download-checkpoint">下载运行检查点</button></div>
+<details><summary>本次实际运行环境、检查与分析范围</summary><pre id="multiseed-provenance"></pre></details></section>
+<section id="architecture"><h2>01 · 谁负责生成，谁负责判断</h2>
+<p>KDA 提供工作流与提示参考。Humanize 提供真实的 <code>Agent.spawn/run</code> 与环境执行。下游控制器把模型提案落盘，再调用独立评测器。模型的“完成了”不是验收证据。</p>
+<div class="flow" aria-label="任务通过KDA提示、Humanize和OpenCode到达本地Qwen"><div class="node"><b>任务合约</b><span>输入 / 数值语义 / 约束</span></div><div class="node"><b>KDA 提示</b><span>草案 → 计划 → 候选</span></div><div class="node"><b>Humanize + OpenCode</b><span>真实 coding-agent 会话</span></div><div class="node"><b>本地 Qwen</b><span>输出计划与完整代码</span></div></div>
+<div class="flow" aria-label="控制器保存候选，独立测试，再测性能和决定是否晋升"><div class="node"><b>控制器准入</b><span>解析 / 基本源码检查 / SHA</span></div><div class="node"><b>正确性评测</b><span>奇数尺寸 / BF16 / 输入不变</span></div><div class="node"><b>性能评测</b><span>torch.compile / 3 次重复</span></div><div class="node"><b>候选决策</b><span>保留 / 修订 / 停止</span></div></div>
+<div class="feedback-line">改进模式：失败类型 + 实际测试信息 + 上一候选 → 新的短会话 → 新候选。最多 3 轮。普通模式重复即停；固定预算对照中，重复提案占一次机会并复用原测量。</div>
+<p class="small">最终选定源码还要接受一次新的形状与随机输入检查。最终检查结果不反馈给模型。上游 KDA 和 Humanize 的 tracked 文件未被修改。</p>
+</section>
+
+<section><h2>02 · agent 本身改了什么</h2>
+<div class="table-wrap"><table class="changes"><thead><tr><th>问题</th><th>实现</th><th>能验证的行为</th></tr></thead><tbody>
+<tr><td>模型报告成功，但代码可能错</td><td>独立进程运行参考对照；先验证再计时</td><td>未经正确性验证的候选不能晋升</td></tr>
+<tr><td>失败后缺少下一步</td><td>按数值、契约、编译、执行、协议失败生成反馈</td><td>测试的具体失败信息进入下一轮提示</td></tr>
+<tr><td>模型反复猜错 Triton API</td><td>按任务选取固定版本规则卡与官方示例，保存来源和 SHA</td><td>生成前与失败后都能收到可追溯参考</td></tr>
+<tr><td>源码提案误触发工具调用</td><td>接口层去掉工具声明；可选 JSON Schema 约束</td><td>实际请求保留审计记录；标题请求不被重写</td></tr>
+<tr><td>无限循环或重复提交</td><td>3 轮上限、token/时间预算、源码去重</td><td>终止原因写入轨迹，失败仍保留</td></tr>
+<tr><td>优化后把正确版本弄坏</td><td>保存此前通过验证的最佳候选</td><td>后续失败不会覆盖已有正确版本</td></tr>
+<tr><td>把旧测量套到新代码</td><td>源码 SHA 与候选父子关系</td><td>SHA 不符的“成功”证据被拒绝</td></tr>
+<tr><td>平均更快，却丢掉满足性能门槛的候选</td><td>正确候选先按门槛资格排序，再比较平均加速</td><td>最终检查前保留合格候选；最终数据不参与重选</td></tr>
+<tr><td>把调试结果当泛化结果</td><td>选择完成后再跑一次独立最终检查</td><td>最终失败能否决搜索阶段的晋升</td></tr>
+</tbody></table></div>
+<div class="two" style="margin-top:18px"><div class="card"><h3>JSON 正确，源码也可能错</h3><p>实际预检返回了完整字段，但 Python 多行被拼接：</p><pre>import torchimport tritonimport triton.language as tl</pre><p class="small">控制器拒绝它。不会自动拆开 imports 来制造成功。</p></div><div class="card"><h3>把行边界写进协议</h3><p>让模型输出字符串数组；控制器只按换行连接，保留每行缩进。</p><pre>{"code_lines": [
+  "import triton",
+  "",
+  "def example(x):",
+  "    return x"
+]}</pre><p class="small">这里只演示格式，不是生成实验或有效 GPU kernel。</p></div></div>
+<p class="small">这些改进位于下游 agent 控制器。它们没有修改模型权重，也不是 Humanize 内核的上游补丁。最新版本还检索固定版本的 MIT 许可示例，其中向量加法包含完整 kernel 与 wrapper。这属于示例辅助生成，不能声称无参考独立合成。源码准入是基本防错检查，不能替代完整的容器隔离或计算语义证明。</p>
+</section>
+
+<section id="results"><div class="section-top"><div><h2>03 · 选择器修复后的三任务验证</h2><p id="study-description"></p></div><button id="download">下载完整实验 JSON</button></div>
+<div class="notice" id="study-note"></div>
+<div class="two"><div class="card"><h3>最终正确 / 性能晋升</h3><div id="counts"></div><div class="legend" id="legend"></div></div><div class="card"><h3>怎样阅读结果</h3><p><b>正确</b>：最终检查通过。<b>晋升</b>：正确且几何平均加速 ≥1.05×，最差形状 ≥0.90×。</p><p>加速基线只编译参考算子。计时采用 CUDA graph，BF16，三个形状各三次重复。读取中位数。加载模型、生成代码与编译时间不计入算子延迟。</p><p>agent 时间与输出 token 单独展示。token 由 Humanize 实际记录；本地定价为 0 美元，GPU 使用仍有资源成本。</p></div></div>
+<div class="table-wrap" style="margin-top:20px"><table><thead><tr><th>任务</th><th>模式</th><th>最终正确</th><th>最终晋升</th><th>轮数</th><th>输出 token</th><th>agent 流程秒</th><th>最终加速</th></tr></thead><tbody id="run-table"></tbody></table></div>
+<div class="controls"><label for="speed-task">查看最终延迟</label><select id="speed-task"></select></div>
+<div class="card"><div id="speed-chart"></div><p class="small" id="speed-note"></p></div>
+<div class="card" style="margin-top:18px"><h3>候选轮的评测状态</h3><div id="failure-chart"></div><p class="small">按提案轮计数；重复源码单列，复用已有 GPU 测量。不能把提案轮数当独立成功试验。</p></div>
+<div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>接口条件</th><th>完整提案 / 回复</th><th>源码准入 / 回复</th><th>最终正确 / 运行</th></tr></thead><tbody id="protocol-table"></tbody></table></div><p class="small">完整提案只检查字段与类型。源码准入还检查 Python 语法和基本策略。两者都不等于 GPU 正确性。</p>
+</section>
+
+<section><h2>从这些数字能学到什么</h2><div class="two"><div class="card"><h3 id="feedback-title">反馈改变了什么</h3><p id="feedback-insight"></p><p class="small" id="feedback-limit"></p></div><div class="card"><h3>搜索晋升 ≠ 最终晋升</h3><p id="selection-insight"></p><p class="small">搜索结果用于选候选。选择完成后的新形状检查有最终否决权，未达门槛不会改判为成功。</p></div></div><div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>任务</th><th>反馈条件</th><th>选中候选的搜索加速</th><th>最终加速</th><th>最终最差形状</th><th>最终晋升</th></tr></thead><tbody id="selection-table"></tbody></table></div></section>
+
+<section id="strategy-audit" hidden><h2>候选选择是否保护了结果</h2><p>同一条生成轨迹，比较首轮、末轮、只按平均速度选择和门槛优先。每个独立搜索正确源码的最终检查只跑一次；最终数据没有用于重选。各规则共享候选，不能当作新的独立运行。</p><div class="table-wrap"><table><thead><tr><th>任务</th><th>反馈条件</th><th>取首轮</th><th>取末轮</th><th>只按平均选择</th><th id="gate-audit-heading">门槛优先（事后审计）</th><th>不同源码 SHA 数</th></tr></thead><tbody id="selection-audit-table"></tbody></table></div><p class="small" id="selection-audit-note"></p><p id="selector-divergence"></p></section>
+
+<section id="original-study" hidden><h2>原始对照与缺陷证据</h2><p id="original-study-note"></p><div class="table-wrap"><table><thead><tr><th>原任务</th><th>无反馈：正确 / 晋升</th><th>有反馈：正确 / 晋升</th></tr></thead><tbody id="original-study-table"></tbody></table></div><p class="small">原始六次运行保存在完整 JSON 中。新验证重复既有任务族，且推理服务配置改变；两阶段不合并，也不据此计算选择器的因果收益。</p></section>
+
+<section id="selection-defect"><div class="card" id="gate-case-card"><h3>原始 SiLU 案例：平均更快，为什么反而选错</h3><p id="gate-case"></p><div class="table-wrap"><table><thead><tr><th>反馈组候选</th><th>搜索平均 / 最差</th><th>搜索门槛</th><th>最终平均 / 最差</th><th>原规则</th><th>修正规则审计</th></tr></thead><tbody id="gate-case-table"></tbody></table></div><p class="small" id="recheck-note"></p><p class="small">修复：正确候选中，先比较是否满足已有两项性能门槛，再比较平均加速；相同排名保留先到者。最终检查仍能否决。固定候选重评测与新生成验证分别呈现，均不改写原实验成绩。</p></div></section>
+
+<section id="trajectory"><h2>04 · 追踪一次 agent 运行</h2><p>每轮保留模型回复、源码、外部评测与决策。失败轮也能查看和下载。</p>
+<div class="controls"><label for="run-select">运行</label><select id="run-select"></select><button class="secondary" id="download-run">下载这次轨迹</button></div>
+<div id="run-summary"></div><div id="turns"></div>
+</section>
+
+<section><h2>05 · 复现的边界</h2><div class="two"><div class="card"><h3>已经执行</h3><p>KDA 固定版本及子模块准备；Humanize 真实驱动本地 coding agent；生成任务与反馈循环；独立 GPU 正确性评测；正确候选进入计时与最终检查；可查看的完整轨迹。</p><p id="tests-note"></p></div><div class="card"><h3>尚未证明</h3><p>没有运行完整 KernelBench。没有多次随机种子的置信区间。没有训练 kernel 模型，也没有证明达到领域最优性能。</p><p>当前 agent 通过结构化提案生成源码，由控制器写文件。它已按任务路由检索固定官方示例；尚未接入自主搜索、Nsight Compute 分析与开放式 shell 工具。KDA 提示是适配版，不是对原始完整研究流程的等价复现。</p></div></div>
+<div class="notice" id="probe-note"></div><details><summary>单次成功探针：源码、最终延迟与门槛</summary><pre id="probe-detail"></pre><button class="secondary" id="download-probe">下载探针原始数据</button></details><details><summary>保留的同预算 API 规则对照</summary><p id="api-study"></p><button class="secondary" id="download-api">下载第二阶段 8 次运行</button></details><details><summary>保留的第一轮探索试验</summary><p id="initial-study"></p><button class="secondary" id="download-initial">下载先前 8 次运行</button></details>
+<details><summary>此前示例辅助版本的完整评测</summary><p id="reference-study"></p><button class="secondary" id="download-reference">下载第三阶段 4 次运行</button></details>
+<details><summary>本轮接口诊断探针与结构化输出预检</summary><pre id="transport-probes"></pre></details>
+<details><summary>接口消融的完整 12 次运行</summary><p id="transport-study"></p><button class="secondary" id="download-transport">下载第四阶段接口对照</button></details>
+<details><summary>此前第四阶段的请求审计：工具与 Schema</summary><pre id="wire-audit"></pre></details>
+<details><summary>4B 源码字符串 / 逐行数组的完整对照</summary><p id="line-study"></p><button class="secondary" id="download-lines">下载第五阶段源码表示对照</button></details>
+<details><summary>此前 27B 模型能力试验，独立保留</summary><p id="capacity-study"></p><p class="small">完整数据包含在上方完整 JSON 下载中，不与策略对照混合。</p></details>
+<p class="split-note">旧版 Humanize 的历史复现记录为 <b>5305 passed / 17 failed / 660 skipped</b>，12 项 pre-commit 检查通过。该记录保留归属于旧版。更新后的 d7f732e9 已单独核对其公开 CI 成功状态，并完成下游 API 适配；没有在本机重跑新版上游全部测试。</p>
+<details><summary>本次启动与接口问题</summary><div id="startup"></div><p>早期共享 27B 接口有请求排队；先改用独立 4B 接口做控制器诊断，完成消融后再启独立 27B 服务。只读生成角色仍需要访问模型接口，因此不能把模型联网一并禁用。新服务首次启动使用了错误的缓存根路径，随后修正为 snapshot；采样器启动遇到本机编译工具问题，最终使用已有 vLLM 的旧 model runner 与非 FlashInfer 采样路径。所有这些记录属于环境与集成记录，未计入正式生成成功率。</p></details>
+</section>
+
+<section id="recovery" hidden><div class="section-top"><h2>06 · 从一次运行，到可恢复实验</h2><span class="tag">CPU 故障注入 · 单独计数</span></div>
+<p>这轮改进实验调度器。任务开始前先持久化预算预留；完成后提交独立裁决与源码 SHA。进程中断时复用已提交的任务，未知调用保留为未知，不自动重跑。</p>
+<div class="cards"><div class="card"><div class="metric">SIGKILL</div><p>真实杀进程再启动</p></div><div class="card"><div class="metric" id="recovery-replay">—</div><p>重复调用已完成任务</p></div><div class="card"><div class="metric" id="recovery-unknown">—</div><p>未知结果仍保留在分母</p></div><div class="card"><div class="metric" id="new-plan-count">—</div><p id="new-plan-label">计划运行 · 尚未生成</p></div></div>
+<div class="controls"><label for="recovery-phase">查看恢复步骤</label><select id="recovery-phase"><option value="before">① 进程中断前</option><option value="after">② 恢复后</option></select><button class="secondary" id="download-recovery">下载故障证据</button></div>
+<div class="table-wrap"><table><thead><tr><th>任务</th><th>状态</th><th>累计预算预留</th><th>再次启动的动作</th></tr></thead><tbody id="recovery-table"></tbody></table></div><p id="recovery-note"></p>
+<div class="two"><div class="card"><h3>已经验证的工程能力</h3><p id="upgrade-checks"></p><p>单写者锁、原子检查点、计划漂移拒绝、结果 SHA 绑定、失败分母及预算不重置。A/C 执行真实 Humanize 流程，但模型回复与 GPU 裁决使用测试驱动。</p></div><div class="card"><h3>下一项实证：反馈有多可靠</h3><p id="multiseed-note"></p><p>六类任务已用于开发，不能当作未见任务。三种随机种子、两组各三次提案，温度 0.2；固定同一运行环境，按任务分组报告。资源预检通过后才会开始。</p></div></div>
+<p class="small">恢复粒度是任务边界；没有恢复任务内会话，也不保证外部调用恰好一次。预算预留是调度额度，无法代替完整的服务端 token 使用记录。GPU 预检不能排除其他用户在运行中占用设备。</p>
+<details><summary>冻结计划、资源预检与恢复断言</summary><pre id="recovery-detail"></pre></details></section>
+<section><h2>07 · 求职展示怎么讲</h2><p>可陈述的贡献是：基于 KDA 与 Humanize 实现本地 kernel 生成 agent，把候选选择交给独立评测器；加入反馈、预算、去重、回退和最终检查，并保留完整实验轨迹。对照结果以本报告真实计数为准。</p><p>项目主线是 kernel agent 的复现、改进与验证。从原始同预算对照定位选择缺陷，再补可恢复的实验调度，用真实中断验证结果复用与未知状态处理。已有 GPU 实验、CPU 故障测试和待运行的多种子计划分别呈现。稳定收益和更广任务泛化仍需后续实验。</p></section>
+
+<section id="evidence"><h2>08 · 证据、复现与表达来源</h2><p>报告是单个 HTML 文件。数据与交互代码都在文件内。断网仍可切换轨迹、查看图表与下载 JSON。</p>
+<details><summary>固定版本与源文件 SHA</summary><pre id="provenance"></pre></details>
+<details id="selector-delivery" hidden><summary>本轮实际请求、候选选择与文件核对</summary><pre id="selector-delivery-data"></pre></details>
+<details><summary>远端复现入口</summary><pre>cd /data/home/chenyizhou/kernel-agent
+# 脚本检查 GPU/端口，启动自己的服务，结束后清理
+bash scripts/reproduce.sh strategy
+# 保留原 geomean 规则，复现有无反馈对照；旧结果自动归档
+# 修正规则的新生成验证，独立服务：
+# bash scripts/reproduce.sh selector-validation
+# GPU4/5 被占用时，复用自己的空闲基础模型服务：
+# bash scripts/reproduce_existing_selector.sh 8016 3097365
+# 此入口拒绝已有验证结果；重新运行前须显式归档
+# 先前模型能力试验：bash scripts/reproduce.sh qwen27
+# 复现 4B 源码表示对照：bash scripts/reproduce.sh lines4b
+# 只生成报告，不调用模型
+python3 scripts/summarize_strategy.py
+python3 scripts/build_report.py --input results/agent-strategy-study.json</pre></details>
+<div class="sources"><p>工作流来源：<a href="https://github.com/jasonchen505/kda/tree/ef6ce617693ef0782b3ecb9f37e39bbf10226a90">KDA 固定版本</a>；运行系统：<a href="https://github.com/jasonchen505/humanize/tree/77e3d0658d9dd4c54cd9497e45940593bf6a43ff">Humanize 固定版本</a>。API 指导依据固定版本 <a href="https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/01-vector-add.py">Triton 3.2 向量加法教程</a>、<a href="https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/02-fused-softmax.py">Softmax 教程</a>和<a href="https://github.com/triton-lang/triton/blob/v3.2.0/python/tutorials/05-layer-norm.py">归一化教程</a>。本地兼容接口配置参考 <a href="https://opencode.ai/docs/providers/">OpenCode 官方文档</a>；结构化输出接口见 <a href="https://docs.vllm.ai/en/latest/features/structured_outputs/">vLLM 官方文档</a>。</p>
+<p>表达方式参考 Karpathy 最近关于易懂解释的讨论：<a href="https://x.com/karpathy/status/2105819303471976479">原始帖子</a>与<a href="https://runtimewire.com/article/karpathy-ai-explanations-custom-videos">相关报道</a>。原帖直接读取受限；“简化技术英语、图示、交互 HTML”的概括来自该报道。中文采用短句、固定术语和可追溯证据；参考 <a href="https://www.asd-ste100.org/about.html">ASD-STE100 官方介绍</a>，不声称符合这项英语标准。</p></div>
+</section>
+<footer>研究对象：生成 kernel 的 agent。报告生成时间：<span id="generated"></span>。原始手写算子项目与本报告分开计数。</footer>
+<noscript>交互部分需要 JavaScript。正文仍可阅读；原始数据也随项目保存在 results/agent-strategy-study.json。</noscript>
+</main>
+<script id="evidence-data" type="application/json">@@DATA@@</script>
+<script>
+'use strict';
+const RAW_DATA=document.getElementById('evidence-data').textContent;
+const DATA=JSON.parse(RAW_DATA), study=DATA.study, runs=study.runs;
+const names={kda_prompt:'单轮提示',evidence_loop:'普通反馈',api_guided:'API 指导',reference_guided:'示例辅助'}, taskNames={vector_add:'向量加法',softmax:'行 Softmax',rmsnorm:'RMSNorm',transpose:'矩阵转置',row_sum:'行求和',silu_mul:'SiLU 乘法融合'};
+const transportNames={passthrough:'原始工具接口','tool-free':'无工具接口','json-schema':'JSON 字符串约束','json-lines':'逐行源码约束'};
+const strategyNames={blind:'无评测反馈',feedback:'有评测反馈'};
+const isStrategy=['strategy_ablation','selector_validation'].includes(study.metadata.study_kind);
+const isSelectorValidation=study.metadata.study_kind==='selector_validation';
+const groupKey=r=>isStrategy?r.study_policy:(r.transport_policy||r.mode), runLabel=r=>isStrategy?strategyNames[r.study_policy]:(transportNames[r.transport_policy]||names[r.mode]);
+const groups=[...new Set(runs.map(groupKey))], groupNames=Object.fromEntries(runs.map(r=>[groupKey(r),runLabel(r)]));
+const $=id=>document.getElementById(id), node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e};
+const fixed=(x,n=2)=>Number.isFinite(x)?x.toFixed(n):'—';
+for(const key of groups)$('legend').append(node('span',groupNames[key]));
+function download(value,filename){downloadRaw(JSON.stringify(value,null,2),filename)}
+function downloadRaw(raw,filename){const url=URL.createObjectURL(new Blob([raw],{type:'application/json'}));const a=node('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function counts(condition,key){const group=runs.filter(r=>groupKey(r)===condition);return [group.filter(r=>r[key]).length,group.length]}
+const policies=study.metadata.transport_policies||[];
+$('study-description').textContent=`${new Set(runs.map(r=>r.task_id)).size} 类任务，${groups.length} 个条件。图表按条件分别展示最终检查计数。`;
+$('study-note').textContent=isSelectorValidation?'修正规则的真实生成验证：固定缓存 27B、参考、三个提案机会和评测反馈，使用门槛优先选择。RMSNorm、行求和和 SiLU 是既有任务族的复现；没有无反馈对照。每任务一次，只验证端到端选择路径，不能估计稳定成功率或反馈本身的因果收益。':isStrategy?'主线实验：固定同一缓存 27B、参考和三个提案机会，比较无评测反馈与有评测反馈。RMSNorm 是开发任务；行求和和 SiLU 融合是实验开始前新增的任务族。两组都保留搜索最优候选，首轮/末轮选择仅做事后审计；最终数据不参与重选或模型修复。每任务每条件一次，不能估计稳定成功率。':study.metadata.model_id==='kernel-qwen-local-27b'?'本地较大模型的能力试验：保持最新参考、逐行源码、错误回传、最多三轮和 4096-token 请求限制。生成使用两张 GPU；评测仍为 GPU6。每类开发任务只运行一次，不能据此归因于控制器改进或估计稳定成功率。目录名是本地别名；实际模型配置为 qwen3_5，上游权重版本未核实。':policies.includes('json-lines')?'源码表示实验：JSON 源码字符串与逐行数组。两组共享新的错误源码回传控制器、参考资料、最多三轮和 4096-token 请求上限；区别是表示与格式提示。每次系统提示包含不同工作目录，数组也增加输出开销。开发任务上的小样本不能估计稳定成功率。':policies.length>1?'接口消融：原始工具接口、无工具接口、无工具加 JSON 字符串约束。模型、控制器、参考、最多三轮和 4096-token 请求上限相同。12 次运行按固定顺序随机打乱。每次系统提示包含不同工作目录，因此输入不是逐字相同；这是开发任务上的小样本观察，不能估计稳定成功率。':'这是连续开发的示例辅助版本。联合改进角色、参考与上下文；最多三轮、每次请求最多 4096 token。任务族参与开发；历史阶段分开保留，小样本不能估计稳定成功率。';
+for(const key of groups){const group=runs.filter(r=>groupKey(r)===key), tr=node('tr'), metrics=group.map(r=>DATA.proposal_metrics[r.run_id]);const sum=field=>metrics.reduce((n,m)=>n+m[field],0);for(const value of [groupNames[key],`${sum('parsed')}/${sum('replies')}`,`${sum('admitted')}/${sum('replies')}`,`${group.filter(r=>r.correct).length}/${group.length}`])tr.append(node('td',value));$('protocol-table').append(tr)}
+const successful=runs.filter(r=>r.correct).length,promoted=runs.filter(r=>r.promoted).length;
+if(isStrategy){
+ const summary=DATA.strategy_summary;
+ if(isSelectorValidation){
+  const condition=summary.conditions[0], unique=summary.runs.reduce((n,row)=>n+row.unique_sources,0), duplicates=summary.runs.reduce((n,row)=>n+row.duplicate_proposals,0);
+  const divergent=summary.runs.filter(row=>row.selections.best.source_sha256!==row.selections.gate_first.source_sha256);
+  const prefixDivergent=summary.runs.filter(row=>row.search_prefix_rankings.some(p=>p.diverged));
+  $('main-finding').textContent=`修正规则的新生成验证：${condition.final_correct}/${condition.completed_runs} 最终正确，${condition.final_promoted}/${condition.completed_runs} 晋升。${prefixDivergent.length}/${condition.completed_runs} 条轨迹在生成过程中产生选择规则分歧，三轮结束后仍有 ${divergent.length}/${condition.completed_runs} 条选择不同。`+' 原始六次对照与固定源码复测继续单独保留。';
+  $('feedback-title').textContent='这一轮验证什么';
+  $('feedback-insight').textContent=`带评测反馈和门槛优先选择完成 ${condition.completed_runs}/${condition.planned_runs} 次运行，最终正确 ${condition.final_correct}/${condition.completed_runs}，晋升 ${condition.final_promoted}/${condition.completed_runs}。`;
+  $('feedback-limit').textContent=`${summary.runs.reduce((n,row)=>n+row.proposals,0)} 次提案产生 ${unique} 份不同 SHA 和 ${duplicates} 次重复。没有无反馈对照，也没有把这些复现任务当成新任务泛化证据。`;
+ } else {
+ $('main-finding').textContent='本轮的关键发现：控制器丢掉了一个最终加速 1.287× 的合格候选。选择规则已修复；固定候选的三次独立重评测支持这一差异，但尚未开展修正规则的新一轮模型生成实验。';
+ const countsFor=policy=>{const rs=summary.runs.filter(r=>r.policy===policy);return {unique:rs.reduce((n,r)=>n+r.unique_sources,0),duplicates:rs.reduce((n,r)=>n+r.duplicate_proposals,0),tokens:rs.reduce((n,r)=>n+r.output_tokens,0)}};
+ const blind=countsFor('blind'),fb=countsFor('feedback');
+ $('feedback-insight').textContent=`两组最终正确均为 3/3、最终晋升均为 0/3。各 9 次提案中，无反馈产生 ${blind.unique} 份不同 SHA 源码、${blind.duplicates} 次重复；有反馈为 ${fb.unique} 份、${fb.duplicates} 次重复。两个新任务在两组都最终正确。`;
+ $('feedback-limit').textContent=`不同 SHA 包含注释变化。无反馈 / 有反馈实际输出为 ${blind.tokens} / ${fb.tokens} token；修复与审计耗时不同。首轮用户提示相同，但工作目录与首轮源码不同；每条件仅一次，不能证明反馈的稳定因果收益。`;
+ }
+ const original=DATA.original_strategy_study||study;
+ const r=original.runs.find(r=>r.task_id==='silu_mul'&&r.study_policy==='feedback');
+ const auditedDigest=r?.attempts.filter(a=>a.decision?.correct).reduce((best,a)=>{
+   if(!best)return a;
+   const x=a.decision,y=best.decision;
+   return (x.promoted&&!y.promoted)||(x.promoted===y.promoted&&x.geomean_speedup>y.geomean_speedup)?a:best;
+ },null)?.source_sha256;
+ if(r){
+ $('gate-case').textContent='原规则只看平均加速，忽略最差形状门槛。第 2 轮满足两项门槛，却被第 1 轮略高的平均加速挤掉；第 3 轮又重复首轮。最终审计发现：被丢弃的第 2 轮能通过验收。原实验仍记失败。';
+ for(const a of r.attempts.slice(0,2)){const d=a.decision,f=r.candidate_final_evaluations[a.source_sha256].decision;const tr=node('tr');for(const v of ['第 '+a.iteration+' 轮',`${fixed(d.geomean_speedup,4)}× / ${fixed(d.worst_speedup,3)}×`,d.promoted?'通过':'未通过',`${fixed(f.geomean_speedup,3)}× / ${fixed(f.worst_speedup,3)}×`,a.source_sha256===r.selected_sha256?'选中':'丢弃',a.source_sha256===auditedDigest?'选中':'丢弃'])tr.append(node('td',v));$('gate-case-table').append(tr)}
+ const recheck=DATA.selector_recheck;
+ if(recheck){const describe=digest=>{const item=recheck.candidates.find(c=>c.source_sha256===digest),summary=item?.summary;if(!summary)return '未找到固定候选重评测。';const range=values=>`${fixed(Math.min(...values),3)}–${fixed(Math.max(...values),3)}×`;return `${summary.runs} 次独立最终评测：${summary.correct}/${summary.runs} 正确，${summary.promoted}/${summary.runs} 晋升；平均 ${range(summary.geomean_speedups)}，最差 ${range(summary.worst_speedups)}`};$('recheck-note').textContent=`固定源码重评测（GPU6、${recheck.repeat} 次新进程）：原选中第 1 轮 ${describe(r.attempts[0].source_sha256)}；被丢弃第 2 轮 ${describe(r.attempts[1].source_sha256)}。它不调用模型、不重新选择候选，也不替换原实验成绩。`}
+ }
+ if(isSelectorValidation){
+  $('original-study').hidden=false;
+  $('original-study-note').textContent=`原始同预算对照 ${original.runs.length} 次：${original.runs.filter(r=>r.correct).length}/${original.runs.length} 最终正确，${original.runs.filter(r=>r.promoted).length}/${original.runs.length} 晋升。原选择器只按搜索平均速度排序。`;
+  for(const task of new Set(original.runs.map(r=>r.task_id))){const tr=node('tr');tr.append(node('td',taskNames[task]));for(const policy of ['blind','feedback']){const prior=original.runs.find(r=>r.task_id===task&&r.study_policy===policy);tr.append(node('td',`${prior?.correct?'通过':'失败'} / ${prior?.promoted?'晋升':'未晋升'}`))}$('original-study-table').append(tr)}
+ }
+}else{
+ $('feedback-title').textContent='有效 Python ≠ 正确 kernel';$('feedback-insight').textContent='4B 同预算源码表示对照：字符串 0/12、逐行数组 9/12 回复通过源码准入；两组最终正确都为 0/4。';$('feedback-limit').textContent='逐行协议减少格式障碍，没有显示 GPU 正确率提升。';
+}
+const veto=runs.find(r=>r.search_promoted&&!r.promoted);$('selection-insight').textContent=veto?`${taskNames[veto.task_id]}：搜索阶段 ${fixed(veto.selected_decision?.geomean_speedup,3)}×，最终 ${fixed(veto.final_decision?.geomean_speedup,3)}×，未达到晋升门槛。`: '选中候选必须独立通过最终正确性和性能门槛。搜索时的成功标记不能替代最终结果。';
+for(const r of runs){const tr=node('tr');for(const value of [taskNames[r.task_id],runLabel(r),fixed(r.selected_decision?.geomean_speedup,3)+'×',fixed(r.final_decision?.geomean_speedup,3)+'×',fixed(r.final_decision?.worst_speedup,3)+'×',r.promoted?'通过':'未通过'])tr.append(node('td',value));$('selection-table').append(tr)}
+const failures={}, failureNames={correct:'搜索检查通过',protocol_error:'提案格式 / 准入',compile_error:'Triton 编译',runtime_error:'候选执行',numeric_error:'数值不符',duplicate:'重复源码',harness_error:'会话 / 环境'};
+for(const r of runs)for(const a of r.attempts){const status=a.duplicate_of?'duplicate':a.evaluation?.status||'unknown';failures[status]=(failures[status]||0)+1}
+const totalAttempts=Object.values(failures).reduce((sum,n)=>sum+n,0);
+for(const [status,count] of Object.entries(failures)){const row=node('div',undefined,'bar-row'),track=node('div',undefined,'bar-track'),bar=node('div',undefined,'bar');bar.style.width=count/totalAttempts*100+'%';bar.style.background=status==='correct'?'var(--green)':'var(--orange)';track.append(bar);row.append(node('span',failureNames[status]||status),track,node('b',String(count)+' 轮'));$('failure-chart').append(row)}
+$('summary').textContent=study.status==='complete'?`${isSelectorValidation?'选择器修复后的三任务验证：':'所选历史任务集：'}${runs.length} 次真实 agent 运行，${successful} 次最终正确、${promoted} 次性能晋升。最新共卡对照在下方单独呈现。`:`实验尚未完成：当前保留 ${runs.length} 次已结束运行。以下只展示已有证据。`;
+for(const [label,value,caption] of [['生成任务',String(new Set(runs.map(r=>r.task_id)).size),[...new Set(runs.map(r=>taskNames[r.task_id]))].join(' / ')],['真实 agent 运行',String(runs.length),'由本地模型输出源码'],['最终正确',`${successful}/${runs.length}`,'新的形状和随机输入'],['最终性能晋升',`${promoted}/${runs.length}`,'正确性 + 两项加速门槛']]){const c=node('div',undefined,'card');c.append(node('div',label,'small'),node('div',value,'metric'),node('div',caption,'small'));$('metrics').append(c)}
+$('model-info').textContent=`${study.metadata.model} · ${study.metadata.model_revision||'上游权重版本未核实，配置指纹见证据'} · 温度 ${study.metadata.temperature} · seed ${study.metadata.seed} · 生成 GPU ${study.metadata.generation_gpus||'5'} / 评测 GPU 6 · ${study.started_utc}`;
+if(study.metadata.generation_service?.mode==='existing_owner_service')$('runtime-note').textContent='本轮复用已有空闲本地服务，仅请求基础模型；未请求注册的 LoRA。与原独立服务相比，上下文上限、KV 精度、缓存和生成 GPU 改变，配置与路由源码指纹随证据保存。因此成绩用于端到端复现，不能作严格的修复前后收益比较。';
+for(const key of ['correct','promoted'])for(const condition of groups){const [n,d]=counts(condition,key),row=node('div',undefined,'bar-row'),track=node('div',undefined,'bar-track'),bar=node('div',undefined,'bar'+(['passthrough','evidence_loop','kda_prompt'].includes(condition)?' base':''));bar.style.width=(d?n/d*100:0)+'%';track.append(bar);row.append(node('span',(key==='correct'?'正确 · ':'晋升 · ')+groupNames[condition]),track,node('b',`${n}/${d}`));$('counts').append(row)}
+for(const r of runs){const tr=node('tr');for(const value of [taskNames[r.task_id],runLabel(r),r.correct?'通过':'未通过',r.promoted?'通过':'未通过',r.attempts.length,r.usage?.output_tokens??'未记录',fixed(r.elapsed_seconds,1),r.final_decision?.geomean_speedup?fixed(r.final_decision.geomean_speedup,3)+'×':'—'])tr.append(node('td',String(value)));tr.children[2].className=r.correct?'ok':'bad';tr.children[3].className=r.promoted?'ok':'bad';$('run-table').append(tr)}
+if(isStrategy){
+ $('strategy-audit').hidden=false;
+ $('gate-audit-heading').textContent=isSelectorValidation?'门槛优先（实际执行）':'门槛优先（事后审计）';
+ $('selection-audit-note').textContent=isSelectorValidation?'每格显示最终正确性 / 晋升 / 加速几何平均。门槛优先是本轮实际规则；其他规则只使用同一轨迹的搜索证据做事后选择，再查已有最终评测。它们不是新运行。SHA 数含注释变化。':'每格显示最终正确性 / 晋升 / 加速几何平均。只按平均选择是原实际规则；门槛优先是发现缺陷后的搜索证据审计，没有新生成，也不改写原成绩。SHA 数含注释变化。';
+ let divergences=0,selectionMatches=0,prefixDivergences=0;
+ for(const r of runs){const analyzed=DATA.strategy_summary.runs.find(x=>x.task===r.task_id&&x.policy===r.study_policy),choices=analyzed.selections;const describe=which=>{const d=choices[which];return `${d.correct?'正确':'失败'} / ${d.promoted?'晋升':'未晋升'} / ${fixed(d.geomean_speedup,3)}×`};const tr=node('tr');for(const value of [taskNames[r.task_id]+(r.task_split==='prospective'?'（新任务）':''),runLabel(r),describe('first'),describe('last'),describe('best'),describe('gate_first'),String(new Set(r.attempts.map(a=>a.source_sha256).filter(Boolean)).size)])tr.append(node('td',value));$('selection-audit-table').append(tr);divergences+=choices.best.source_sha256!==choices.gate_first.source_sha256;selectionMatches+=r.selected_sha256===choices.gate_first.source_sha256;prefixDivergences+=analyzed.search_prefix_rankings.some(p=>p.diverged)}
+ if(isSelectorValidation){$('selector-divergence').textContent=`${selectionMatches}/${runs.length} 次实际最终选择与搜索证据计算的门槛优先结果一致；${prefixDivergences}/${runs.length} 条轨迹在中途排序产生分歧，三轮结束后 ${divergences}/${runs.length} 条仍不同。`+(divergences?'最终成绩仍以实际选中候选为准。':prefixDivergences?'后续提案消除了最终选择差异；中途分支被触发，但不能把最终成功归因于选择器修复。':'本轮未触发原缺陷的排序分支；该分支由确定性的流程回归覆盖。');for(const row of DATA.strategy_summary.runs){const divergent=row.search_prefix_rankings.filter(p=>p.diverged);if(divergent.length)$('strategy-audit').append(node('p',`${taskNames[row.task]}：截至第 ${divergent.map(p=>p.iteration).join('、')} 轮，按已记录的搜索证据重建两种排序，候选不同。此重建不使用最终数据；实际运行规则由受测源码与最终 SHA 核对。`,'small'))}}
+}
+for(const [i,r] of runs.entries())$('run-select').append(new Option(`${taskNames[r.task_id]} / ${runLabel(r)}`,String(i)));
+for(const task of new Set(runs.map(r=>r.task_id)))$('speed-task').append(new Option(taskNames[task],task));
+function showSpeed(){const task=$('speed-task').value;const group=runs.filter(r=>r.task_id===task&&r.final_evaluation?.status==='correct');$('speed-chart').replaceChildren();if(!group.length){$('speed-chart').append(node('div','没有通过最终检查的候选延迟。','empty'));$('speed-note').textContent='失败不被替换为手写 kernel，也不填入假定加速值。';return}const all=group.flatMap(r=>r.final_evaluation.timings.flatMap(t=>[t.compiled_us,t.candidate_us]));const max=Math.max(...all);for(const r of group){$('speed-chart').append(node('h3',runLabel(r)));for(const t of r.final_evaluation.timings){const row=node('div',undefined,'bar-row'),track=node('div',undefined,'bar-track'),bar=node('div',undefined,'bar'+(['api_guided','reference_guided'].includes(r.mode)?'':' base'));bar.style.width=t.candidate_us/max*100+'%';track.append(bar);row.append(node('span',t.shape.join('×')),track,node('b',fixed(t.candidate_us)+' µs'));$('speed-chart').append(row);$('speed-chart').append(node('div',`参考 ${fixed(t.compiled_us)} µs；加速 ${fixed(t.compiled_us/t.candidate_us,3)}×`,'small'))}}$('speed-note').textContent='条形表示候选延迟，越短越好。同一任务使用相同最终输入形状；参考延迟也会有运行间波动。'}
+function detail(title,value){const d=node('details');d.append(node('summary',title),node('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));return d}
+function showRun(){const r=runs[Number($('run-select').value)];$('turns').replaceChildren();if(!r)return;$('run-summary').textContent=`搜索停止原因：${r.terminal}；最终正确：${r.correct?'通过':'未通过'}；最终晋升：${r.promoted?'通过':'未通过'}。`;for(const a of r.attempts){const c=node('article',undefined,'turn'),h=node('div',undefined,'turn-head');h.append(node('strong','第 '+a.iteration+' 轮'),node('span',(a.duplicate_of?'复用第 '+a.duplicate_of+' 轮':a.evaluation?.status||'未记录'),'tag'),node('span',fixed(a.elapsed_seconds,1)+' 秒','small'));c.append(h,node('p','候选 SHA：'+(a.source_sha256||'尚无可执行源码'),'sha'),node('p','父候选：'+(a.parent_sha256||(a.iteration===1?'首轮':'前一轮没有准入 SHA')),'sha'),detail('外部评测与决策',{evaluation:a.evaluation,decision:a.decision,usage:a.usage}),detail('本轮提示',a.prompt),detail('模型原始回复',a.reply||'未取得回复'));if(a.code)c.append(detail('生成的完整代码',a.code));else if(a.proposed_code)c.append(detail('源码提案（未作为新候选执行）',a.proposed_code));$('turns').append(c)}if(!r.attempts.length)$('turns').append(node('div',r.error||'运行未进入候选阶段','empty'));if(r.retrieved_example)$('turns').append(detail('检索示例的来源与 SHA',r.retrieved_example));if(r.final_evaluation)$('turns').append(detail('选择完成后的最终检查（未反馈给模型）',{evaluation:r.final_evaluation,decision:r.final_decision}));if(isStrategy)$('turns').append(detail('所有候选的最终选择审计',r.candidate_final_evaluations))}
+$('speed-task').addEventListener('change',showSpeed);$('run-select').addEventListener('change',showRun);$('download').addEventListener('click',()=>downloadRaw(RAW_DATA,'kernel-agent-evidence.json'));$('download-run').addEventListener('click',()=>{const r=runs[Number($('run-select').value)];if(r)download(r,r.run_id+'.json')});
+$('initial-study').textContent=DATA.initial_study?`先前单轮生成与普通三轮反馈共 ${DATA.initial_study.runs.length} 次运行，最终正确 ${DATA.initial_study.runs.filter(r=>r.correct).length} 次。这些失败用于开发 API 规则卡，独立保留，未混入正式对照计数。`:'尚无先前探索记录。';$('download-initial').addEventListener('click',()=>{if(DATA.initial_study)download(DATA.initial_study,'agent-pilot-unguided.json')});
+$('api-study').textContent=DATA.api_study?`普通反馈与 API 规则卡共 ${DATA.api_study.runs.length} 次运行，最终正确 ${DATA.api_study.runs.filter(r=>r.correct).length} 次，性能晋升 ${DATA.api_study.runs.filter(r=>r.promoted).length} 次。两组都最多 3 轮；未观察到成功率提高。`:'没有第二阶段记录。';
+$('download-api').addEventListener('click',()=>{if(DATA.api_study)download(DATA.api_study,'agent-pilot-api-comparison.json')});
+const probeRun=DATA.probe?.runs?.[0];
+$('probe-note').textContent=probeRun?`独立开发探针中，向量加法最终正确 ${probeRun.correct?'通过':'未通过'}，性能晋升 ${probeRun.promoted?'通过':'未通过'}。最终几何平均 ${fixed(probeRun.final_decision?.geomean_speedup,3)}×，最差 ${fixed(probeRun.final_decision?.worst_speedup,3)}×。该探针没有加入上方完整任务集计数；重复运行稳定性以完整评测为准。`:'没有探针记录。';
+$('probe-detail').textContent=JSON.stringify(probeRun?{attempt_statuses:probeRun.attempts.map(a=>a.evaluation.status),selected_sha256:probeRun.selected_sha256,selected_source:probeRun.attempts.find(a=>a.source_sha256===probeRun.selected_sha256)?.code,final_evaluation:probeRun.final_evaluation,final_decision:probeRun.final_decision}:null,null,2);
+$('download-probe').addEventListener('click',()=>{if(DATA.probe)download(DATA.probe,'proposer-probe.json')});
+$('reference-study').textContent=DATA.reference_study?`第三阶段完整评测：${DATA.reference_study.runs.filter(r=>r.correct).length}/${DATA.reference_study.runs.length} 最终正确，${DATA.reference_study.runs.filter(r=>r.promoted).length} 次晋升。与后续接口实验分开计数。`:'暂无记录。';
+$('download-reference').addEventListener('click',()=>{if(DATA.reference_study)download(DATA.reference_study,'agent-pilot-reference.json')});
+$('transport-probes').textContent=JSON.stringify({wire_probe:DATA.wire_probe,schema_preflight:DATA.schema_preflight},null,2);
+$('transport-study').textContent=DATA.transport_study?DATA.transport_study.metadata.transport_policies.map(p=>{const rs=DATA.transport_study.runs.filter(r=>r.transport_policy===p);return `${transportNames[p]}：${rs.filter(r=>r.correct).length}/${rs.length} 正确，${rs.filter(r=>r.promoted).length} 次晋升。`}).join(' '):'暂无记录。';
+$('download-transport').addEventListener('click',()=>{if(DATA.transport_study)download(DATA.transport_study,'agent-pilot-transport.json')});
+$('wire-audit').textContent=JSON.stringify(DATA.wire_audit||null,null,2);
+$('line-study').textContent=DATA.line_study?DATA.line_study.metadata.transport_policies.map(p=>{const rs=DATA.line_study.runs.filter(r=>r.transport_policy===p),as=rs.flatMap(r=>r.attempts);return `${transportNames[p]}：${as.filter(a=>a.source_sha256).length}/${as.length} 回复通过基础源码准入，${rs.filter(r=>r.correct).length}/${rs.length} 最终正确。`}).join(' '):'暂无记录。';
+$('download-lines').addEventListener('click',()=>{if(DATA.line_study)download(DATA.line_study,'agent-pilot-lines.json')});
+$('capacity-study').textContent=DATA.capacity_study?`此前较大模型试验：${DATA.capacity_study.runs.filter(r=>r.correct).length}/${DATA.capacity_study.runs.length} 最终正确，${DATA.capacity_study.runs.filter(r=>r.promoted).length} 次晋升。它改变了模型能力配置，不能证明控制器单独有效。`:'暂无记录。';
+const multiseed=DATA.multiseed_summary;
+if(multiseed){
+ $('multiseed').hidden=false;
+ const s=multiseed.statuses;
+ $('multiseed-status').textContent=multiseed.status==='complete'?'已完成':multiseed.execution_status==='resource_wait_expired'?'等待已超时 · 可恢复':multiseed.execution_status==='waiting_for_resources'?'等待 GPU4 · 未完成':'运行进度快照 · 未完成';
+ for(const [value,label] of [[`${multiseed.terminal}/${multiseed.scheduled}`,'已终止任务'],[`${multiseed.resolved_pairs}/18`,'已完成的种子配对'],[String(s.running||0),'运行中'],[String(s.pending||0),'待运行']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('multiseed-metrics').append(card)}
+ $('multiseed-snapshot').textContent=`快照时间 ${multiseed.captured_utc}；生成 GPU ${multiseed.runtime.service.generation_gpus}，评测 GPU ${multiseed.runtime.gpu_index}，温度 ${multiseed.generation.temperature}。报告文件是离线快照，服务端实验独立运行。`;
+ if(DATA.multiseed_pilot_qualification){$('multiseed-pilot-note').hidden=false;$('multiseed-pilot-note').textContent='此前 GPU4 集成试跑完成一次 Softmax 数值检查，但其他用户的 CUDA 进程在途中启动；原评测器记录的性能晋升不算干净测量。原始轨迹、候选与干扰记录保留在完整 JSON 和仓库中，不合并到下面的新对照。';}
+ $('multiseed-wait').textContent=multiseed.resource_wait?.waiting?`资源观察：${multiseed.resource_wait.reason}。${multiseed.execution_status==='resource_wait_expired'?`本次 3 小时等待已结束，进程退出，保留 ${s.pending||0} 个待运行任务。`:'单次最多等待 3 小时。'}等待不调用模型、不预留新任务预算。评测前后还会检查其他 CUDA 进程，发现干扰就否决速度证据。`:'每次评测前后检查 GPU 上的其他 CUDA 进程；发现干扰不采纳速度证据。边界检查不能排除短暂的中途干扰。';
+ for(const arm of multiseed.arms){const card=node('div',undefined,'card');card.append(node('h3',arm.policy==='blind'?'无反馈修订':'实际评测反馈'),node('p',`已终止 ${arm.terminal}/${arm.scheduled}；最终正确 ${arm.correct}，性能晋升 ${arm.promoted}。`),node('p',`运行中 ${arm.running}，待运行 ${arm.pending}；已记录 ${arm.proposals} 次提案，${arm.duplicate_proposals} 次重复；${arm.resource_interrupted_jobs||0} 次因资源问题提前终止。`,'small'));$('multiseed-arms').append(card)}
+ for(const row of multiseed.tasks){const a=row.arms.blind,b=row.arms.feedback,tr=node('tr');const cell=r=>`${r.terminal?`${r.correct}/${r.terminal}`:'—'}；待 ${r.pending} / 运行中 ${r.running}`;for(const text of [taskNames[row.task_id]||row.task_id,cell(a),cell(b),`${a.promoted} / ${b.promoted}`])tr.append(node('td',text));$('multiseed-tasks').append(tr)}
+ $('multiseed-conclusion').textContent=multiseed.status==='complete'?`全部 ${multiseed.scheduled} 次已终止。按任务平均的反馈－无反馈差异：正确性 ${(multiseed.contrasts.correct.macro_task_difference*100).toFixed(1)} 个百分点；晋升 ${(multiseed.contrasts.promoted.macro_task_difference*100).toFixed(1)} 个百分点。探索性区间和每种子差异见下载；不能单独作因果归因。`:'本轮尚未完成，暂不计算反馈收益、完整成功率或区间。首轮、每次修订与最终裁决均单独保留，后续失败不会选择性重跑。';
+ $('multiseed-provenance').textContent=JSON.stringify({runtime:multiseed.runtime,generation:multiseed.generation,plan_sha256:multiseed.plan_sha256,budget_allocations:multiseed.budget_allocations,resource_wait:multiseed.resource_wait,checks:DATA.multiseed_checks,scope:multiseed.scope},null,2);
+ $('download-multiseed').addEventListener('click',()=>download(multiseed,'agent-multiseed-summary.json'));
+ $('download-checkpoint').addEventListener('click',()=>downloadRaw(DATA.raw_multiseed_checkpoint,'agent-multiseed-checkpoint.json'));
+}
+const deferred=DATA.deferred_summary;
+if(deferred){
+ $('deferred').hidden=false;
+ const completion=DATA.shared_completion, measured=completion?.jobs||[],proposals=deferred.jobs.reduce((n,j)=>n+j.proposals,0),eligible=deferred.jobs.reduce((n,j)=>n+j.numerically_eligible_sources,0),complete=completion?measured.filter(j=>j.status==='complete').length:deferred.jobs.filter(j=>j.timing_status==='complete').length;
+ for(const [value,label] of [[String(proposals),'真实模型提案'],[String(eligible),'已保存的可测速源码'],[`${complete}/${deferred.scheduled}`,completion?'完成独立评测 · 共卡':'完成独立测速的任务'],[completion?'0':'GPU4',completion?'恢复评测的新增模型请求':'共卡数值检查']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('deferred-metrics').append(card)}
+ const phaseNotes={generation:['先推进 agent','本地模型生成源码，独立 GPU 进程检查搜索形状和数值。其他 CUDA 进程存在时仍可执行；数值通过只代表可以进入测速，不代表性能晋升。'],queue:['保留成果，独立恢复','可测速的唯一源码按 SHA 持久化。占用检查拒绝测速时，记录原因并保留队列；恢复不会再次请求模型。未知的纯评测可以重测，已提交的测量复用。'],selection:['先冻结选择，再打开最终数据','全部搜索测速结束后，按性能门槛和平均加速选择。选中 SHA 先落盘，随后检查最终形状；最终结果只接受或否决，不能反馈修复或重选源码。']};
+ const show=()=>{const [title,note]=phaseNotes[$('deferred-phase').value];$('deferred-phase-title').textContent=title;$('deferred-phase-note').textContent=note};show();$('deferred-phase').addEventListener('change',show);
+ for(const j of deferred.jobs){const before=j.shared_evaluations.map(a=>a.before).filter(Boolean),maxUsed=Math.max(0,...before.map(a=>a.used_mib)),resident=before.some(a=>a.pids.length),done=measured.find(m=>m.job.id===j.job.id),tr=node('tr');for(const t of [j.job.study_policy==='feedback'?'数值反馈修订':'无反馈修订',String(j.proposals),String(j.numerically_eligible_sources),resident?`存在其他 CUDA 进程；占用最高 ${maxUsed} MiB`:'未观察到驻留进程',done?.status==='complete'?'已完成 · 共卡条件':j.timing_status==='complete'?'已完成':j.timing_status==='awaiting_measurement_resources'?'等待测量窗口':'已入队'])tr.append(node('td',t));$('deferred-table').append(tr)}
+ const outcomes=completion?measured:deferred.jobs;
+ $('deferred-conclusion').textContent=complete===deferred.scheduled?`阶段分离的生成和独立测量均已结束；最终正确 ${outcomes.filter(j=>j.correct).length}/${deferred.scheduled}，${completion?'共享条件下的':'最终'}性能门槛通过 ${outcomes.filter(j=>j.promoted).length}/${deferred.scheduled}。这是工程集成试跑，不是反馈收益对照。`:`已完成生成并保存 ${eligible} 份可测速源码。尚有 ${deferred.scheduled-complete} 个任务等待独立测量，不报告其速度、最终正确性或性能晋升。`;
+ if(completion){$('shared-completion-detail').hidden=false;for(const j of measured){const decision=j.final.decision||{},audit=j.final.evaluation?.resource_audit||{},tr=node('tr');for(const t of [j.job.study_policy==='feedback'?'数值反馈修订':'无反馈修订',j.correct?'通过':'未通过',j.promoted?'通过':'未通过',decision.geomean_speedup?`${decision.geomean_speedup.toFixed(3)}× / ${decision.worst_speedup.toFixed(3)}×`:'—',`${audit.before?.pids?.length||0} 个；${audit.before?.used_mib||0} MiB`])tr.append(node('td',t));$('shared-completion-table').append(tr)}}
+ $('deferred-provenance').textContent=JSON.stringify({original_summary:deferred,shared_completion:completion,checks:DATA.coexecution_checks||DATA.delivery_checks},null,2);
+ $('download-deferred').addEventListener('click',()=>downloadRaw(DATA.raw_deferred_evidence,'deferred-evaluation.json'));
+}
+const shared=DATA.shared_feedback;
+if(shared){
+ $('shared-study').hidden=false;const s=shared.statuses;
+ $('shared-study-status').textContent=shared.status==='complete'?'全部已终止 · 可审计':'实际运行中 · 快照';
+ for(const [value,label] of [[`${shared.terminal}/${shared.scheduled}`,'已终止运行'],[`${shared.resolved_pairs}/6`,'双方均已终止的配对'],[String(s.running||0),'运行中'],[String(s.pending||0),'待运行']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('shared-study-metrics').append(card)}
+ for(const arm of shared.arms){const card=node('div',undefined,'card');card.append(node('h3',arm.policy==='blind'?'无反馈修订':'实际搜索评测反馈'),node('p',`最终正确 ${arm.correct}，共享性能门槛通过 ${arm.promoted}；已终止 ${arm.terminal}/${arm.scheduled}。`),node('p',`已提交任务中 ${arm.proposals} 次提案、${arm.duplicate_proposals} 次重复，${arm.reported_output_tokens} 个已报告输出 tokens。`,'small'));const failures=DATA.shared_failed_traces.filter(r=>r.job.study_policy===arm.policy);if(failures.length)card.append(node('p',`${failures.length} 次未获最终裁决；流程预算耗尽的转置保留在分母，未重跑。另存 ${failures.reduce((n,r)=>n+r.trace_attempts.length,0)} 条搜索记录。`,'bad'));$('shared-study-arms').append(card)}
+ for(const row of shared.tasks){const a=row.arms.blind,b=row.arms.feedback,tr=node('tr');for(const t of [taskNames[row.task_id]||row.task_id,a.terminal?`${a.correct} / ${a.promoted}`:'—',b.terminal?`${b.correct} / ${b.promoted}`:'—',`${a.pending+b.pending} / ${a.running+b.running}`])tr.append(node('td',t));$('shared-study-tasks').append(tr)}
+ const describeContrast=key=>{const c=shared.contrasts[key],i=c.exploratory_interval;return `${(c.macro_task_difference*100).toFixed(1)} 个百分点，任务重采样区间 [${(i.low*100).toFixed(1)}, ${(i.high*100).toFixed(1)}]`};
+ $('shared-study-conclusion').textContent=shared.status==='complete'?`全部 ${shared.scheduled} 次已终止。反馈－无反馈差异：最终正确 ${describeContrast('correct')}；共享性能门槛 ${describeContrast('promoted')}。这是六个开发任务、单次种子的探索性描述；零差异区间也不能证明策略等效，不能据此作稳定收益或因果归因。`:'正在执行真实模型提案与独立 GPU 检查；完整比例和任务级探索性区间待全部运行终止后再计算。';
+ $('shared-study-provenance').textContent=JSON.stringify({snapshot:shared.captured_utc,runtime:shared.runtime,generation:shared.generation,plan_sha256:shared.plan_sha256,budget_allocations:shared.budget_allocations,contrasts:shared.contrasts,checks:DATA.coexecution_checks},null,2);
+ const committed=[...DATA.shared_feedback_checkpoint.jobs.filter(j=>j.status==='completed'),...DATA.shared_failed_traces];
+ for(const [i,j] of committed.entries()){const option=node('option',`${taskNames[j.job.task_id]||j.job.task_id} / ${j.job.study_policy==='feedback'?'实际反馈':'无反馈'}${j.status==='completed'?'':' / 预算停止'}`);option.value=String(i);$('shared-run').append(option)}
+ function showSharedRun(){
+  const row=committed[Number($('shared-run').value)],target=$('shared-trajectory');target.replaceChildren();if(!row){target.append(node('p','暂无已提交的生成结果。'));return}const r=row.result||{attempts:row.trace_attempts};
+  if(row.status!=='completed')target.append(node('p',`流程预算停止：${row.error}。保存 ${r.attempts.length} 条搜索记录；没有已提交的最终裁决，不计为最终正确或晋升。`,`notice`));else target.append(node('p',`实际最终检查：${r.correct?'数值正确':'未获正确裁决'}；共享性能门槛：${r.promoted?'通过':'未通过'}。选中源码 ${r.selected_sha256?.slice(0,16)||'无'}。`));
+  const selected=r.attempts.find(a=>a.source_sha256===r.selected_sha256),finalDecision=r.final_decision;
+  if(selected?.decision?.correct&&finalDecision?.correct){target.append(node('p',`选中候选的搜索平均 / 最差：${selected.decision.geomean_speedup.toFixed(3)}× / ${selected.decision.worst_speedup.toFixed(3)}×；最终平均 / 最差：${finalDecision.geomean_speedup.toFixed(3)}× / ${finalDecision.worst_speedup.toFixed(3)}×。`));if(selected.decision.promoted&&!r.promoted)target.append(node('p','实际触发最终否决：搜索达到性能门槛，最终形状未达到；选中源码保持不变，没有用最终数据重新挑选。','notice'))}
+  for(const a of r.attempts){const card=node('div',undefined,'turn');card.append(node('strong',`提案 ${a.iteration} · ${a.evaluation.status}${a.duplicate_of?' · 重复，复用评测':''}`));if(a.decision?.correct)card.append(node('p',`搜索平均 ${a.decision.geomean_speedup.toFixed(3)}×；最差 ${a.decision.worst_speedup.toFixed(3)}×；${a.decision.promoted?'已达搜索门槛':'未达搜索门槛'}。`));for(const [title,value] of [['模型提案（原样保存）',a.reply],['独立搜索评测',a.evaluation],['源码与父 SHA',{source_sha256:a.source_sha256,parent_sha256:a.parent_sha256,code:a.code}]]){const details=node('details');details.append(node('summary',title),node('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));card.append(details)}target.append(card)}
+  if(row.status==='completed'){const final=node('details');final.append(node('summary','最终检查：不反馈、不重选'),node('pre',JSON.stringify(r.final_evaluation,null,2)));target.append(final)}
+ }
+ showSharedRun();$('shared-run').addEventListener('change',showSharedRun);
+ $('download-shared-study').addEventListener('click',()=>downloadRaw(DATA.raw_shared_checkpoint,'shared-feedback-checkpoint.json'));
+}
+const phased=DATA.phased;
+if(phased){
+ $('phased').hidden=false;
+ const generation=phased.generation,receipt=phased.receipt,final=phased.final;
+ const proposals=generation.jobs.reduce((n,r)=>n+r.result.attempts.length,0);
+ for(const [value,label] of [[String(proposals),'真实 Qwen 提案'],[String(receipt.imported_searches),'复用已有搜索测量'],[String(receipt.interrupted_final_evaluations),'最终评测前 SIGKILL'],[String(receipt.new_model_calls_during_finalization),'恢复新增模型请求']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('phased-metrics').append(card)}
+ function showPhased(){
+  const step=$('phased-step').value,done=step==='final';
+  $('phased-state-title').textContent={search:'先提交，再访问最终数据',kill:'进程被杀，选择仍然保留',final:'只恢复尚未提交的纯评测'}[step];
+  $('phased-state-note').textContent={search:`两项任务的 ${proposals} 次提案已提交，在线搜索反馈保持可用。最终结果此时尚不存在。`,kill:'已提交搜索选择；最终队列将状态写为 running 后，进程收到 SIGKILL（退出码 −9）。评测子进程尚未启动，模型和搜索测量没有重跑。',final:`恢复后复用 ${receipt.imported_searches} 条搜索测量，只启动 ${receipt.final_evaluator_calls} 次最终评测。再次打开已完成队列，检查点与请求文件保持不变。`}[step];
+  $('phased-table').replaceChildren();$('phased-ratios').hidden=!done;
+  for(const row of generation.jobs){const r=row.result,f=final.jobs.find(j=>j.job.id===row.job.id);const killed=phased.kill.queue.includes(row.job.id);const tr=node('tr');for(const t of [taskNames[row.job.task_id],String(r.attempts.length),String(f.search.length),done?'最终结果已提交':step==='kill'&&killed?'最终 running · 已被杀':'最终待执行',done?`${f.correct?'正确':'未通过'} / ${f.promoted?'晋升':'未晋升'}`:'待测'])tr.append(node('td',t));$('phased-table').append(tr)}
+ }
+ for(const row of final.jobs){const card=node('div',undefined,'card'),r=generation.jobs.find(j=>j.job.id===row.job.id).result;card.append(node('h3',taskNames[row.job.task_id]));const selected=r.selected_decision,verdict=row.final.decision;if(selected?.correct&&verdict?.correct){const max=Math.max(selected.geomean_speedup,verdict.geomean_speedup,1);for(const [label,value] of [['搜索平均',selected.geomean_speedup],['最终平均',verdict.geomean_speedup]]){const line=node('div',undefined,'bar-row'),track=node('div',undefined,'bar-track'),bar=node('div',undefined,'bar');bar.style.width=`${100*value/max}%`;track.append(bar);line.append(node('span',label),track,node('span',`${value.toFixed(3)}×`));card.append(line)}card.append(node('p',`最终最差 ${verdict.worst_speedup.toFixed(3)}×；${row.promoted?'通过性能门槛':'未通过性能门槛'}。`,'small'))}else card.append(node('p',`最终状态：${row.final.evaluation?.status||'无可验收候选'}。`));card.append(node('p',`选中 SHA：${row.selected_sha256||'无'}`,'sha'));$('phased-ratios').append(card)}
+ $('phased-conclusion').textContent=`工程验证完成：${receipt.final_correct}/2 最终正确、${receipt.final_promoted}/2 达到条件性能门槛；故障恢复新增 0 次模型请求、0 次搜索评测。它支持阶段提交与恢复的实现，不支持“反馈提高成功率”的结论。`;
+ $('phased-provenance').textContent=JSON.stringify({service:generation.plan.runtime.service,budget:generation.reservations,plan_sha256:generation.plan_sha256,initial_preparation_exit:phased.initial_exit,kill:phased.kill,recovery:receipt,checks:DATA.phased_checks},null,2);
+ $('phased-step').addEventListener('change',showPhased);showPhased();
+ $('download-phased').addEventListener('click',()=>downloadRaw(DATA.raw_phased_generation,'phased-generation.json'));
+}
+const recovery=DATA.recovery_validation, nextPlan=DATA.multiseed_preflight;
+if(recovery){
+ $('recovery').hidden=false;
+ $('recovery-replay').textContent=String(recovery.worker_calls.filter(c=>c.job_id==='A').length-1);
+ $('recovery-unknown').textContent=String(recovery.summary.interrupted_unknown);
+ $('new-plan-count').textContent=multiseed?`${multiseed.terminal}/${multiseed.scheduled}`:nextPlan?String(nextPlan.summary.scheduled):'待计划';
+ if(multiseed)$('new-plan-label').textContent='扩展实验 · 已终止';
+ const statusNames={completed:'已提交',running:'调用中 · 结果未知',pending:'待启动',interrupted_unknown:'未知 · 不重放'};
+ function showRecovery(){
+  const phase=$('recovery-phase').value, state=recovery[phase];let seconds=0,tokens=0;
+  $('recovery-table').replaceChildren();
+  for(const row of state.jobs){
+   if(row.status!=='pending'){seconds+=state.plan.per_job_budget.duration_seconds;tokens+=state.plan.per_job_budget.output_tokens}
+   const action=row.job.id==='A'?'复用已提交结果':row.job.id==='B'?'保留未知结果，不自动重跑':'从待启动任务继续';
+   const tr=node('tr');for(const value of [row.job.id,statusNames[row.status]||row.status,`${seconds} 秒 / ${tokens.toLocaleString()} tokens`,action])tr.append(node('td',value));$('recovery-table').append(tr);
+  }
+  $('recovery-note').textContent=phase==='before'?'A 的结果已提交，B 的预算预留和调用状态已落盘，C 尚未调用。此时对测试子进程发送 SIGKILL。':'A 的结果 SHA 完全复用；B 保留为未知并占据原分母；C 完成。再次启动不新增调用。以上使用测试驱动，不计入 GPU 成绩。';
+ }
+ const check=DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+ $('upgrade-checks').textContent=check?`${check.passed_tests} 项机制与证据检查通过；lint、脚本语法和离线审计通过。`:'SIGKILL 场景与恢复断言通过；机制检查详见项目测试记录。';
+ $('multiseed-note').textContent=multiseed?`旧 GPU6 计划保留为零启动的预检记录；修正评测解释器后，新计划在 GPU${multiseed.runtime.gpu_index} 上运行。已终止 ${multiseed.terminal}/${multiseed.scheduled}，结果与进度见上方多种子章节。`:nextPlan?`冻结 ${nextPlan.summary.scheduled} 次运行、108 次提案机会；已启动 ${nextPlan.summary.terminal} 次。状态：等待资源。预检记录：${nextPlan.last_event.error}。预算预留仍为 0。`:'扩展实验尚未启动。';
+ $('recovery-detail').textContent=JSON.stringify({assertions:recovery.assertions,summary:recovery.summary,next_plan:nextPlan},null,2);
+ $('recovery-phase').addEventListener('change',showRecovery);
+ $('download-recovery').addEventListener('click',()=>download(recovery,'campaign-recovery-validation.json'));
+ showRecovery();
+}
+const currentChecks=DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+$('tests-note').textContent=(DATA.validation||'流程单元与集成检查见项目 tests/。')+(currentChecks?` 当前工程 ${currentChecks.passed_tests} 项检查通过，CPU 恢复测试另见调度章节。`:'');$('provenance').textContent=JSON.stringify({metadata:study.metadata,upstreams:DATA.upstreams,study_status:study.status},null,2);$('startup').append(node('p','启动诊断文件：'+(DATA.startup_files||[]).join('、'),'small'));$('generated').textContent=DATA.generated_utc;showSpeed();showRun();
+if(isSelectorValidation&&DATA.selector_validation_audit){$('selector-delivery').hidden=false;$('selector-delivery-data').textContent=JSON.stringify(DATA.selector_validation_audit,null,2)}
+if(shared?.status==='complete'){
+ const correct=shared.arms.reduce((n,a)=>n+a.correct,0),passed=shared.arms.reduce((n,a)=>n+a.promoted,0),blind=shared.arms.find(a=>a.policy==='blind'),feedbackArm=shared.arms.find(a=>a.policy==='feedback');
+ $('summary').textContent=`最新共享条件对照：六类任务、两组策略、${shared.scheduled} 次真实运行全部结束；最终正确 ${correct}/${shared.scheduled}，共享性能门槛通过 ${passed}/${shared.scheduled}。`;
+ $('metrics').replaceChildren();for(const [label,value,caption] of [['任务族','6','六类已用于开发的任务'],['真实 agent 运行',String(shared.scheduled),'两组各三个提案机会'],['最终正确',`${correct}/${shared.scheduled}`,'独立最终形状检查'],['共享性能门槛',`${passed}/${shared.scheduled}`,'条件速度 · 不代表稳定成功率']]){const c=node('div',undefined,'card');c.append(node('div',label,'small'),node('div',value,'metric'),node('div',caption,'small'));$('metrics').append(c)}
+ $('main-finding').textContent=`有反馈：${feedbackArm.correct}/6 最终正确、${feedbackArm.promoted}/6 达到性能门槛；无反馈：${blind.correct}/6 最终正确、${blind.promoted}/6 达到性能门槛。一次流程预算耗尽没有最终裁决，保留分母。主要工程证据还包括选择缺陷修复、SIGKILL 恢复与 0 次新增生成请求的候选复用。`;
+ $('model-info').textContent=`本地缓存 Qwen 27B FP8（配置 qwen3_5，上游权重版本未核实）· 温度 ${shared.generation.temperature} · seed 20261025 · 生成 GPU ${shared.runtime.service.generation_gpus} / 评测 GPU ${shared.runtime.gpu_index} · 快照 ${shared.captured_utc}`;
+ $('runtime-note').textContent='该轮采用共享测量、单次种子与开发任务集；首轮源码可能不同，背景负载未固定。原三任务验证、旧 36 次未完成实验和候选复用的测量计划保留独立口径。';
+ $('portfolio-evidence').textContent=`定位：可写入简历的 agent harness 研究工程原型。最新对照完整终止 ${shared.scheduled}/${shared.scheduled}；候选复用试跑以 0 次新生成请求完成 2/2 最终验收。真实生成、工程测试与历史未完成实验分别计数。`;
+ $('provenance').textContent=JSON.stringify({latest_shared_plan:DATA.shared_feedback_checkpoint.plan,historical_three_task_metadata:study.metadata,upstreams:DATA.upstreams},null,2);
+}
+if(phased){$('main-finding').append(' 最新工程改进：在线反馈搜索先提交，最终评测通过真实 SIGKILL 与恢复验证；模型调用与已提交搜索均未重放。');$('portfolio-evidence').textContent='定位：可写入简历的 agent harness 研究工程原型。主贡献是独立评测与候选选择、预算与未知调用管理、保留在线反馈的阶段恢复；实验负结果与故障证据均可审阅。'}
+</script>
+</body></html>

@@ -1,0 +1,1 @@
+Optimize transpose by tuning block sizes and using 1D grid to reduce launch overhead for small shapes. Use larger blocks for better memory coalescing on larger matrices.

@@ -377,6 +377,109 @@ def check_shared_study(root):
             "measurement_condition": "shared_observed"}
 
 
+def check_phased(root):
+    folder = root / "results/phased-recovery"
+    if not (folder / "generation.json").exists():
+        return None
+    state = json.loads((folder / "generation.json").read_text())
+    plan = audit_state(state, folder / "sources")
+    receipt = json.loads((folder / "supervisor-exit.json").read_text())
+    final = json.loads((folder / "final/summary.json").read_text())
+    require(receipt["status"] == final["status"] == "complete" and len(state["jobs"]) == len(final["jobs"]) == 2,
+            "phased pilot incomplete or denominator changed")
+    require(digest(folder / "generation.json") == receipt["generation_sha256"]
+            and final["plan"]["origin_checkpoint_sha256"] == state["state_sha256"], "phased origin changed")
+    require(final["new_model_requests"] == receipt["new_model_calls_during_finalization"] ==
+            receipt["new_search_calls_during_finalization"] == 0 and receipt["completed_reopen_unchanged"]
+            and receipt["generation_and_wire_unchanged"], "phased recovery replayed committed work")
+    require(final["plan_sha256"] == object_digest(final["plan"]), "phased final plan changed")
+    for name, expected in final["plan"]["source_sha256"].items():
+        require(digest(folder / "final/sources" / name) == expected, f"phased final source changed: {name}")
+    source_files = proposer_count = imported = interrupted = final_calls = 0
+    summaries = {r["job"]["id"]: r for r in final["jobs"]}
+    for row in state["jobs"]:
+        require(row["status"] == "completed", "phased generation was not committed")
+        run = row["result"]
+        require(run["evaluation_mode"] == "search_only" and run["measurement_state"] == "final_pending"
+                and run["final_evaluation"] is None and not run["candidate_final_evaluations"],
+                "generation accessed final evidence")
+        for attempt in run["attempts"]:
+            if attempt.get("source_sha256"):
+                require(digest(folder / "runs" / run["run_id"] / f"candidate-{attempt['iteration']}.py") ==
+                        attempt["source_sha256"], "phased candidate changed")
+                source_files += 1
+        traces = []
+        for path in sorted((folder / "wire" / row["job"]["id"]).glob("*.json")):
+            relative = str(path.relative_to(folder))
+            require(digest(path) == receipt["wire_sha256"][relative], "phased request bytes changed")
+            trace = json.loads(path.read_text())
+            require(trace["model"] == plan["runtime"]["service"]["base_model"] and trace["seed"] == row["job"]["seed"]
+                    and trace["temperature"] == .2, "phased request settings changed")
+            traces.append(trace)
+        proposer = [t for t in traces if t.get("response_format")]
+        require(len(proposer) == len(run["attempts"]) and all(not t.get("tools") for t in proposer),
+                "phased model-call denominator changed")
+        proposer_count += len(proposer)
+        path = folder / "final/queues" / row["job"]["id"] / "checkpoint.json"
+        stored = json.loads(path.read_text())
+        require(stored["state_sha256"] == object_digest({k: v for k, v in stored.items() if k != "state_sha256"})
+                and stored["plan_sha256"] == object_digest(stored["plan"]), "phased queue hash changed")
+        require(stored["plan"]["generation_result"] == run
+                and stored["plan"]["generation_result_sha256"] == row["result_sha256"]
+                and stored["selected_sha256"] == run["selected_sha256"] and stored["selection_committed"]
+                and stored["plan"]["measurement_condition"] == "shared_observed"
+                and stored["plan"]["runtime"] == final["plan"]["runtime"], "phased selection or source origin changed")
+        require([r["source_sha256"] for r in stored["search"]] == run["timing_candidates"],
+                "phased search schedule changed")
+        original_search = {}
+        for attempt in run["attempts"]:
+            if attempt.get("decision", {}).get("correct"):
+                original_search.setdefault(attempt["source_sha256"], attempt["evaluation"])
+        summary = summaries[row["job"]["id"]]
+        require(stored["status"] == summary["status"] == "complete" and stored["search"] == summary["search"]
+                and stored["final"] == summary["final"]
+                and (stored["correct"], stored["promoted"]) == (summary["correct"], summary["promoted"]),
+                "phased final summary differs from queue")
+        for measured in stored["search"]:
+            require(measured["status"] == "measured"
+                    and measured["evaluation"] == original_search[measured["source_sha256"]],
+                    "imported online-search evidence changed")
+            require(same_decision(decision(measured["evaluation"]), measured["decision"]),
+                    "phased imported decision changed")
+            require(len(measured["observations"]) == 1
+                    and measured["observations"][0]["status"] == "imported_committed_search",
+                    "phased search was replayed")
+            require(digest(path.parent / f"{measured['source_sha256']}.py") == measured["source_sha256"],
+                    "phased queued source changed")
+            imported += 1
+        observations = stored["final"]["observations"]
+        interrupted += sum(o.get("status") == "interrupted_evaluation" for o in observations)
+        final_calls += sum("evaluation" in o for o in observations)
+        if stored["final"]["status"] == "measured":
+            value = stored["final"]["evaluation"]
+            verdict = decision(value)
+            require(same_decision(verdict, stored["final"]["decision"])
+                    and (stored["correct"], stored["promoted"]) == (verdict["correct"], verdict["promoted"]),
+                    "phased final verdict changed")
+            if verdict["correct"]:
+                require(value["source_sha256"] == stored["selected_sha256"], "phased final source changed")
+                check_resource_evidence(value, plan)
+    require(len(receipt["wire_sha256"]) == receipt["wire_files"] and proposer_count == 6,
+            "phased wire/request count changed")
+    kill = json.loads((folder / "final/kill-receipt.json").read_text())
+    require(kill["exit_code"] == -9 and kill["barrier"]["phase"] == "final_before_child_launch"
+            and kill["barrier"]["model_calls"] == kill["barrier"]["search_evaluator_calls"] ==
+            kill["barrier"]["final_child_calls"] == 0 and interrupted == 1, "phased kill boundary changed")
+    require((imported, final_calls, interrupted) == (receipt["imported_searches"], receipt["final_evaluator_calls"],
+                                                   receipt["interrupted_final_evaluations"]), "phased recovery ledger changed")
+    require((sum(bool(r["correct"]) for r in final["jobs"]), sum(bool(r["promoted"]) for r in final["jobs"])) ==
+            (receipt["final_correct"], receipt["final_promoted"]), "phased headline changed")
+    return {"status": "verified", "jobs": 2, "proposer_requests": proposer_count, "candidate_files": source_files,
+            "imported_searches": imported, "final_evaluator_calls": final_calls,
+            "interrupted_final_evaluations": interrupted, "new_model_calls_during_recovery": 0,
+            "correct": receipt["final_correct"], "promoted": receipt["final_promoted"]}
+
+
 def verify(root=ROOT):
     raw = root / "results/agent-selector-validation.json"
     study = json.loads(raw.read_text())
@@ -414,6 +517,7 @@ def verify(root=ROOT):
             "multiseed_campaigns": check_campaigns(root),
             "deferred_evaluation": check_deferred(root),
             "shared_completion": check_shared_completion(root), "shared_feedback_study": check_shared_study(root),
+            "phased_recovery": check_phased(root),
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

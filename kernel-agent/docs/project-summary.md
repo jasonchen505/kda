@@ -108,4 +108,25 @@ Promotion difference is zero; end-to-end correctness difference is −1/6 due to
 stop. Exploratory task-bootstrap intervals are [0, 0] and [−0.5, 0], respectively, not proof
 of equivalence or stable causal effects. The five pairs with complete results had different
 first sources. The old 23/36 study remains incomplete and is not patched with this condition.
-CPU checks pass 114 cases on both SDKs; model/GPU counts are separate.
+CPU checks pass 119 cases on both SDKs; model/GPU counts are separate.
+
+## Online feedback with durable finalization (2026-10-15)
+
+The previous budget failure motivated a new `search_only` mode: retain online numerical
+and timing feedback, commit the source pool, original search measurements and selected
+source before final-data access, then import those measurements into a durable final
+queue. Only the selected source is finalized; final evidence cannot trigger reselection.
+
+A newly started cached 27B service on GPUs 5/6 generated six proposals across transpose
+and Softmax, reporting 5,325 SDK output tokens. All six independent search checks passed.
+A real SIGKILL after durable selection, before evaluator-child launch, left the final
+evaluation in `running`. Recovery imported all six search measurements and ran two final
+checks, with zero new model requests or search evaluations. Reopening completed queues
+left request/checkpoint hashes unchanged. Final correctness is 2/2; Softmax passes the
+conditional performance gate (mean 1.257×, worst 1.014×), transpose does not (0.979×, 0.957×).
+
+An initial `--prepare` CLI exit-code defect stopped the supervisor before measurement.
+After correcting it, a separate frozen finalization plan reused the unchanged committed
+generation. Both the initial failure and sources are preserved. This engineering pilot
+does not replace the old failed job, establish a feedback benefit, compare budget-failure
+rates, or demonstrate recovery during an in-flight model request/GPU kernel.

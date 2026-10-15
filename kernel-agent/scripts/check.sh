@@ -7,4 +7,6 @@ uv sync --extra dev --frozen
 uv run --frozen pytest -q
 uv run --frozen ruff check flows scripts src tests
 python3 scripts/verify_evidence.py
-bash -n scripts/reproduce.sh scripts/reproduce_existing_selector.sh scripts/start_cached_qwen27.sh scripts/start_local_model.sh
+for script in scripts/*.sh; do
+  bash -n "$script"
+done

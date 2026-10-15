@@ -1,0 +1,1 @@
+1. Use 2D grid (num_pid_m, num_pid_n) instead of 1D for better occupancy. 2. Tune BLOCK_M/BLOCK_N based on M,N: small matrices get 32x32, medium 64x64, large 128x128. 3. Keep tl.trans for in-register transpose. 4. Ensure correct masking for all odd sizes.

@@ -1,0 +1,1 @@
+Transpose 2D CUDA tensor via Triton. Allocate contiguous output of shape (N, M). 2D grid of blocks. Each program loads a BLOCK_M x BLOCK_N tile from x using row-major strides, transposes via tl.trans, and stores to output with swapped strides. Masks handle odd dimensions. No torch compute fallback.
