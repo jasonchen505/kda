@@ -1,0 +1,69 @@
+{
+  "status": "evaluator_error",
+  "message": "Traceback (most recent call last):\n  File \"/data/home/chenyizhou/kernel-agent-semantic-review/scripts/evaluate_candidate.py\", line 15, in <module>\n    from kernel_agent.protocol import admit\nModuleNotFoundError: No module named 'kernel_agent'\n",
+  "resource_audit": {
+    "gpu_index": 4,
+    "policy": "shared_observed",
+    "minimum_free_mib": 1024,
+    "sample_period_seconds": 0.5,
+    "samples": [
+      {
+        "observed_utc": "2026-10-15T17:29:05.623769+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 65.16,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:06.200035+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 65.18,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:06.794555+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 65.18,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      }
+    ],
+    "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+    "before": {
+      "observed_utc": "2026-10-15T17:29:05.050448+00:00",
+      "free_mib": 24199,
+      "used_mib": 12,
+      "utilization_percent": 4,
+      "sm_clock_mhz": 2520,
+      "power_watts": 59.89,
+      "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "pids": []
+    },
+    "after": {
+      "observed_utc": "2026-10-15T17:29:06.945851+00:00",
+      "free_mib": 24199,
+      "used_mib": 12,
+      "utilization_percent": 0,
+      "sm_clock_mhz": 585,
+      "power_watts": 64.88,
+      "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "pids": []
+    }
+  },
+  "cooperative_queue": {
+    "lock_file": "/data/home/chenyizhou/kernel-agent-semantic-review/results/semantic-smoke/gpu4.lock",
+    "wait_seconds": 3.920122981071472e-05,
+    "pid": 2549893,
+    "scope": "serializes this project's workers only"
+  }
+}

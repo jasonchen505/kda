@@ -1,0 +1,509 @@
+{
+  "status": "correct",
+  "source_sha256": "79c7e6ed263c4c4b3614880fc69d9c320ff017fcdf08d37be21a3040d8310287",
+  "checks_passed": 28,
+  "timings": [
+    {
+      "shape": [
+        4099
+      ],
+      "dtype": "bfloat16",
+      "compiled_us": 0.8886033901944757,
+      "candidate_us": 1.178114558570087,
+      "samples_us": {
+        "compiled": [
+          0.8886033901944757,
+          0.8915389771573246,
+          0.8861625683493912
+        ],
+        "candidate": [
+          1.178114558570087,
+          1.1756840394809842,
+          1.1787894181907177
+        ]
+      },
+      "orders": [
+        [
+          "compiled",
+          "candidate"
+        ],
+        [
+          "compiled",
+          "candidate"
+        ],
+        [
+          "compiled",
+          "candidate"
+        ]
+      ]
+    },
+    {
+      "shape": [
+        65537
+      ],
+      "dtype": "bfloat16",
+      "compiled_us": 1.2903546448796988,
+      "candidate_us": 1.2879279674962163,
+      "samples_us": {
+        "compiled": [
+          1.2960659805685282,
+          1.2903546448796988,
+          1.287399441935122
+        ],
+        "candidate": [
+          1.2891942169517279,
+          1.286230282858014,
+          1.2879279674962163
+        ]
+      },
+      "orders": [
+        [
+          "compiled",
+          "candidate"
+        ],
+        [
+          "compiled",
+          "candidate"
+        ],
+        [
+          "candidate",
+          "compiled"
+        ]
+      ]
+    },
+    {
+      "shape": [
+        1048576
+      ],
+      "dtype": "bfloat16",
+      "compiled_us": 7.0028649643063545,
+      "candidate_us": 2.2241570986807346,
+      "samples_us": {
+        "compiled": [
+          7.004252169281244,
+          6.998423486948013,
+          7.0028649643063545
+        ],
+        "candidate": [
+          2.2241570986807346,
+          2.2265336010605097,
+          2.2227270528674126
+        ]
+      },
+      "orders": [
+        [
+          "candidate",
+          "compiled"
+        ],
+        [
+          "compiled",
+          "candidate"
+        ],
+        [
+          "compiled",
+          "candidate"
+        ]
+      ]
+    }
+  ],
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "torch": "2.6.0+cu124",
+  "semantic_probes": [
+    {
+      "id": "fp32-asymmetric-0",
+      "phase": "search_only",
+      "inputs": [
+        {
+          "shape": [
+            5
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "torch.float32",
+          "values": [
+            -2.3333334922790527,
+            -1.6666667461395264,
+            -1.0,
+            -0.3333333432674408,
+            0.3333333432674408
+          ],
+          "values_truncated": false
+        },
+        {
+          "shape": [
+            5
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "torch.float32",
+          "values": [
+            -1.75,
+            -1.0,
+            -0.25,
+            0.5,
+            1.25
+          ],
+          "values_truncated": false
+        }
+      ],
+      "expected": {
+        "shape": [
+          5
+        ],
+        "stride": [
+          1
+        ],
+        "dtype": "torch.float32",
+        "values": [
+          -4.083333492279053,
+          -2.6666667461395264,
+          -1.25,
+          0.1666666567325592,
+          1.5833333730697632
+        ],
+        "values_truncated": false
+      },
+      "actual": {
+        "shape": [
+          5
+        ],
+        "stride": [
+          1
+        ],
+        "dtype": "torch.float32",
+        "values": [
+          -4.083333492279053,
+          -2.6666667461395264,
+          -1.25,
+          0.1666666567325592,
+          1.5833333730697632
+        ],
+        "values_truncated": false
+      }
+    },
+    {
+      "id": "fp32-asymmetric-1",
+      "phase": "search_only",
+      "inputs": [
+        {
+          "shape": [
+            7
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "torch.float32",
+          "values": [
+            -2.0,
+            -1.5,
+            -1.0,
+            -0.5,
+            0.0,
+            0.5,
+            1.0
+          ],
+          "values_truncated": false
+        },
+        {
+          "shape": [
+            7
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "torch.float32",
+          "values": [
+            -1.600000023841858,
+            -1.0,
+            -0.4000000059604645,
+            0.20000000298023224,
+            0.800000011920929,
+            1.399999976158142,
+            2.0
+          ],
+          "values_truncated": false
+        }
+      ],
+      "expected": {
+        "shape": [
+          7
+        ],
+        "stride": [
+          1
+        ],
+        "dtype": "torch.float32",
+        "values": [
+          -3.5999999046325684,
+          -2.5,
+          -1.399999976158142,
+          -0.30000001192092896,
+          0.800000011920929,
+          1.899999976158142,
+          3.0
+        ],
+        "values_truncated": false
+      },
+      "actual": {
+        "shape": [
+          7
+        ],
+        "stride": [
+          1
+        ],
+        "dtype": "torch.float32",
+        "values": [
+          -3.5999999046325684,
+          -2.5,
+          -1.399999976158142,
+          -0.30000001192092896,
+          0.800000011920929,
+          1.899999976158142,
+          3.0
+        ],
+        "values_truncated": false
+      }
+    }
+  ],
+  "device_audit": {
+    "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "device_index": 0,
+    "device_count": 1,
+    "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50"
+  },
+  "device_binding": {
+    "expected_gpu_index": 4,
+    "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "actual": {
+      "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "device_index": 0,
+      "device_count": 1,
+      "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50"
+    },
+    "verified": true
+  },
+  "measurement_condition": "shared_observed",
+  "resource_audit": {
+    "gpu_index": 4,
+    "policy": "shared_observed",
+    "minimum_free_mib": 1024,
+    "sample_period_seconds": 0.5,
+    "samples": [
+      {
+        "observed_utc": "2026-10-15T17:29:34.128994+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 64.76,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:34.698703+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 64.84,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:35.253759+00:00",
+        "free_mib": 24169,
+        "used_mib": 43,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 55.13,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:35.815406+00:00",
+        "free_mib": 23745,
+        "used_mib": 467,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 56.38,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:36.383745+00:00",
+        "free_mib": 23703,
+        "used_mib": 509,
+        "utilization_percent": 1,
+        "sm_clock_mhz": 2520,
+        "power_watts": 64.25,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:36.971371+00:00",
+        "free_mib": 23703,
+        "used_mib": 509,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 64.28,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:37.555909+00:00",
+        "free_mib": 23703,
+        "used_mib": 509,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 64.25,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:38.156920+00:00",
+        "free_mib": 23703,
+        "used_mib": 509,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 64.56,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:38.727098+00:00",
+        "free_mib": 23687,
+        "used_mib": 525,
+        "utilization_percent": 6,
+        "sm_clock_mhz": 2520,
+        "power_watts": 64.9,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:39.298538+00:00",
+        "free_mib": 23685,
+        "used_mib": 527,
+        "utilization_percent": 10,
+        "sm_clock_mhz": 2520,
+        "power_watts": 65.31,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:39.866833+00:00",
+        "free_mib": 23687,
+        "used_mib": 525,
+        "utilization_percent": 6,
+        "sm_clock_mhz": 2520,
+        "power_watts": 65.46,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:40.436181+00:00",
+        "free_mib": 23687,
+        "used_mib": 525,
+        "utilization_percent": 11,
+        "sm_clock_mhz": 2520,
+        "power_watts": 66.62,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:41.006183+00:00",
+        "free_mib": 23671,
+        "used_mib": 541,
+        "utilization_percent": 27,
+        "sm_clock_mhz": 2520,
+        "power_watts": 75.08,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:41.574086+00:00",
+        "free_mib": 23671,
+        "used_mib": 541,
+        "utilization_percent": 30,
+        "sm_clock_mhz": 2520,
+        "power_watts": 84.59,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:42.140357+00:00",
+        "free_mib": 23669,
+        "used_mib": 543,
+        "utilization_percent": 4,
+        "sm_clock_mhz": 2520,
+        "power_watts": 84.56,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550439
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:42.707169+00:00",
+        "free_mib": 24196,
+        "used_mib": 15,
+        "utilization_percent": 5,
+        "sm_clock_mhz": 2520,
+        "power_watts": 71.08,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      }
+    ],
+    "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+    "before": {
+      "observed_utc": "2026-10-15T17:29:33.556931+00:00",
+      "free_mib": 24199,
+      "used_mib": 12,
+      "utilization_percent": 4,
+      "sm_clock_mhz": 2520,
+      "power_watts": 64.62,
+      "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "pids": []
+    },
+    "after": {
+      "observed_utc": "2026-10-15T17:29:43.066101+00:00",
+      "free_mib": 24199,
+      "used_mib": 12,
+      "utilization_percent": 0,
+      "sm_clock_mhz": 2520,
+      "power_watts": 64.8,
+      "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "pids": []
+    }
+  },
+  "cooperative_queue": {
+    "lock_file": "/data/home/chenyizhou/kernel-agent-semantic-review/results/semantic-smoke/gpu4.lock",
+    "wait_seconds": 4.846230149269104e-05,
+    "pid": 2550434,
+    "scope": "serializes this project's workers only"
+  }
+}

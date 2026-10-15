@@ -1,4 +1,24 @@
-# Latest delivery: contract planning and counterexample repair
+# Latest delivery: grounded semantic repair
+
+All 22 paired blocks and 66 arm outcomes terminated; 115 actual dispatches.
+Executed source/plan, shared initial/review, exact policy request content, model responses,
+expression evaluations, GPU UUID binding and selection-before-final checks reproduce offline.
+Previous published result/frozen-analysis files (3700) remain byte-identical to commit
+`58ed1ded9c291cfb0162122efe45fdc5438c2a67`.
+
+CPU checks: 176 passed independently on both pinned SDKs and a fresh locked install,
+plus Ruff, shell syntax and offline evidence. Raw outputs: `results/semantic-checks.json`.
+Executed source is in `results/semantic-study/sources/`; post-run analysis/presentation
+is frozen separately in `results/semantic-analysis/`. Browser proof, policy decision,
+completion audit and delivery manifest use the `semantic-` prefix. Regression and fresh
+strata remain separate; reference-expression agreement is not full-kernel proof.
+The initial PYTHONPATH smoke failure is preserved and consumed no model requests.
+One analysis-only correction canonicalizes timeline ordering across filesystems; all
+metrics/records are unchanged, with original summary/source and correction hashes retained.
+
+---
+
+# Earlier delivery: contract planning and counterexample repair
 
 The prospective factorial study terminates all 64 arm outcomes on 16 blocks, with
 152 actual model dispatches. Shared initial source/verdict, unchanged search selection,

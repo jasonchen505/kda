@@ -11,9 +11,31 @@ and auditable evidence. KDA, Humanize/OpenCode, Qwen and Triton are reused compo
 
 Start with [the project summary](docs/project-summary.md),
 [Chinese resume and interview notes](docs/project-summary.zh.md), and
-[the offline HTML report](reports/kernel-agent-report.html#repair-study).
+[the offline HTML report](reports/kernel-agent-report.html#semantic-study).
 
-**Latest generation/repair evaluation: 64/64 terminal outcomes**, eight families ×
+## Latest iteration: machine-grounded semantic repair
+
+The preceding factorial's negative result motivated a separate reviewer and bounded AST
+interpreter over complete asymmetric FP32 search probes. Verified expressions and factual
+validation traces replace unverified review narratives for the grounded writer. A failed
+check falls back without another request; kernels are never hand-edited.
+
+The new 22-block, three-arm study resolved all 66 outcomes with 115 physical dispatches.
+Known-failure regression: rewrite 7/14, critic 7/14, grounded 7/14.
+Fresh generation: rewrite 7/8, critic 7/8, grounded 7/8.
+Each arm has two extra model opportunities, with one review shared between the critic
+variants; this is not an equal-kernel-count experiment. Strata are reported separately,
+clustered by five/eight families, and are not a blind external benchmark. Keep ordinary
+generation/repair as the default; semantic variants remain experimental. Mathematical
+agreement does not prove layout or API correctness.
+
+Three-service idle admission/EWMA scheduling and physical GPU4 proof remain active.
+The CPU suite passes 176 tests on both pinned SDKs and a fresh locked installation.
+See [results](docs/semantic-study-results.zh.md), [failure analysis](docs/semantic-failure-analysis.zh.md),
+[reproduction](docs/semantic-reproduction.md), and `results/semantic-study/`.
+
+
+**Preceding generation/repair evaluation: 64/64 terminal outcomes**, eight families ×
 two seeds × a 2×2 factorial. Contract planning is **11/16 first-proposal correct**
 versus **12/16** for ordinary prompting. Full contract+counterexample configuration
 is **13/16 final-correct**, versus **15/16** for ordinary generation+repair.
@@ -24,7 +46,7 @@ initial-failure pairs yield 5 versus 5 rescues. Actual calls: **152/160**. See
 The new native Chat backend, tokenizer-based context packing and dynamic Qwen discovery
 are common to all arms. Idle admission, process binding and latency-EWMA queue allocation
 cover 3 GPU groups. Independent GPU4 evaluations remain cooperatively serialized.
-No manually fixed kernels, model-call replay or final-data reselection. Tests pass **159 cases**
+No manually fixed kernels, model-call replay or final-data reselection. The preceding release passed **159 cases**
 on both pinned SDKs and a fresh locked installation; model/GPU evidence is counted separately.
 
 Earlier evidence remains separate: the 24-job service-pool engineering validation,
@@ -54,7 +76,9 @@ python3 -m http.server 8765 --bind 127.0.0.1
 
 The standard-library evidence verifier checks 18 frozen measured files, nine proposed
 candidate files, the recorded selection/final verdicts and nine local proposer requests.
-It also verifies the separate CPU SIGKILL recovery artifact and its frozen sources.
+It also audits the new 22-block semantic study: shared starts/reviews, exact assigned
+request contexts, numerical expression validation and selection-before-final bindings.
+The separate CPU SIGKILL recovery artifact and its frozen sources are checked as well.
 The new pilot's candidate/request artifacts, interference qualification and guarded
 campaign snapshot are checked separately; pending jobs do not become failed trials.
 It verifies recorded artifacts; it does not execute the model or recompute GPU timings.

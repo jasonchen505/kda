@@ -1,0 +1,1643 @@
+{
+  "status": "semantic_mechanisms_passed",
+  "oracle_probe_checks": 16,
+  "rows": [
+    {
+      "task": "vector_add",
+      "expression": "x0+x1",
+      "validation": {
+        "valid": true,
+        "probes": [
+          {
+            "probe": "fp32-asymmetric-0",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                5
+              ],
+              "values": [
+                -4.083333492279053,
+                -2.6666667461395264,
+                -1.25,
+                0.1666666567325592,
+                1.5833333432674408
+              ]
+            },
+            "target_shape": [
+              5
+            ]
+          },
+          {
+            "probe": "fp32-asymmetric-1",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                7
+              ],
+              "values": [
+                -3.600000023841858,
+                -2.5,
+                -1.4000000059604645,
+                -0.29999999701976776,
+                0.800000011920929,
+                1.899999976158142,
+                3.0
+              ]
+            },
+            "target_shape": [
+              7
+            ]
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "fp32-asymmetric-0",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                5
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.3333334922790527,
+                -1.6666667461395264,
+                -1.0,
+                -0.3333333432674408,
+                0.3333333432674408
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                5
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.75,
+                -1.0,
+                -0.25,
+                0.5,
+                1.25
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              -4.083333492279053,
+              -2.6666667461395264,
+              -1.25,
+              0.1666666567325592,
+              1.5833333730697632
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        },
+        {
+          "id": "fp32-asymmetric-1",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                7
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.0,
+                -1.5,
+                -1.0,
+                -0.5,
+                0.0,
+                0.5,
+                1.0
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                7
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.600000023841858,
+                -1.0,
+                -0.4000000059604645,
+                0.20000000298023224,
+                0.800000011920929,
+                1.399999976158142,
+                2.0
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              7
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              -3.5999999046325684,
+              -2.5,
+              -1.399999976158142,
+              -0.30000001192092896,
+              0.800000011920929,
+              1.899999976158142,
+              3.0
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        }
+      ]
+    },
+    {
+      "task": "row_sum",
+      "expression": "sum_last(x0,False)",
+      "validation": {
+        "valid": true,
+        "probes": [
+          {
+            "probe": "fp32-asymmetric-0",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                2
+              ],
+              "values": [
+                -5.000000238418579,
+                0.33333349227905273
+              ]
+            },
+            "target_shape": [
+              2
+            ]
+          },
+          {
+            "probe": "fp32-asymmetric-1",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                3
+              ],
+              "values": [
+                -5.0,
+                3.0,
+                -0.5
+              ]
+            },
+            "target_shape": [
+              3
+            ]
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "fp32-asymmetric-0",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                2,
+                5
+              ],
+              "stride": [
+                5,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.3333334922790527,
+                -1.6666667461395264,
+                -1.0,
+                -0.3333333432674408,
+                0.3333333432674408,
+                1.0,
+                1.6666667461395264,
+                2.3333334922790527,
+                -2.6666667461395264,
+                -2.0
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              2
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              -5.000000476837158,
+              0.33333349227905273
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        },
+        {
+          "id": "fp32-asymmetric-1",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                3,
+                4
+              ],
+              "stride": [
+                4,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.0,
+                -1.5,
+                -1.0,
+                -0.5,
+                0.0,
+                0.5,
+                1.0,
+                1.5,
+                2.0,
+                2.5,
+                -2.75,
+                -2.25
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              3
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              -5.0,
+              3.0,
+              -0.5
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        }
+      ]
+    },
+    {
+      "task": "row_mean",
+      "expression": "mean_last(x0,False)",
+      "validation": {
+        "valid": true,
+        "probes": [
+          {
+            "probe": "fp32-asymmetric-0",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                2
+              ],
+              "values": [
+                -1.0000000476837159,
+                0.06666669845581055
+              ]
+            },
+            "target_shape": [
+              2
+            ]
+          },
+          {
+            "probe": "fp32-asymmetric-1",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                3
+              ],
+              "values": [
+                -1.25,
+                0.75,
+                -0.125
+              ]
+            },
+            "target_shape": [
+              3
+            ]
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "fp32-asymmetric-0",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                2,
+                5
+              ],
+              "stride": [
+                5,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.3333334922790527,
+                -1.6666667461395264,
+                -1.0,
+                -0.3333333432674408,
+                0.3333333432674408,
+                1.0,
+                1.6666667461395264,
+                2.3333334922790527,
+                -2.6666667461395264,
+                -2.0
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              2
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              -1.0000001192092896,
+              0.06666669994592667
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        },
+        {
+          "id": "fp32-asymmetric-1",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                3,
+                4
+              ],
+              "stride": [
+                4,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.0,
+                -1.5,
+                -1.0,
+                -0.5,
+                0.0,
+                0.5,
+                1.0,
+                1.5,
+                2.0,
+                2.5,
+                -2.75,
+                -2.25
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              3
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              -1.25,
+              0.75,
+              -0.125
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        }
+      ]
+    },
+    {
+      "task": "softmax",
+      "expression": "exp(x0-max_last(x0,True))/sum_last(exp(x0-max_last(x0,True)),True)",
+      "validation": {
+        "valid": true,
+        "probes": [
+          {
+            "probe": "fp32-asymmetric-0",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                2,
+                5
+              ],
+              "values": [
+                0.03506018976763648,
+                0.06828793052329929,
+                0.13300673744383207,
+                0.25906174763542605,
+                0.5045833946298062,
+                0.14669744530918502,
+                0.2857276306720472,
+                0.5565214769581961,
+                0.0037498113215722953,
+                0.007303635738999377
+              ]
+            },
+            "target_shape": [
+              2,
+              5
+            ]
+          },
+          {
+            "probe": "fp32-asymmetric-1",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                3,
+                4
+              ],
+              "values": [
+                0.1015363240915518,
+                0.16740509727844333,
+                0.27600434470659363,
+                0.45505423392341127,
+                0.1015363240915518,
+                0.16740509727844333,
+                0.27600434470659363,
+                0.45505423392341127,
+                0.3743023192184463,
+                0.6171201953678418,
+                0.0032383495796991604,
+                0.005339135834012825
+              ]
+            },
+            "target_shape": [
+              3,
+              4
+            ]
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "fp32-asymmetric-0",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                2,
+                5
+              ],
+              "stride": [
+                5,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.3333334922790527,
+                -1.6666667461395264,
+                -1.0,
+                -0.3333333432674408,
+                0.3333333432674408,
+                1.0,
+                1.6666667461395264,
+                2.3333334922790527,
+                -2.6666667461395264,
+                -2.0
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              2,
+              5
+            ],
+            "stride": [
+              5,
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              0.03506019338965416,
+              0.0682879313826561,
+              0.1330067366361618,
+              0.2590617537498474,
+              0.5045833587646484,
+              0.14669746160507202,
+              0.2857276499271393,
+              0.5565215349197388,
+              0.003749812487512827,
+              0.007303636521100998
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        },
+        {
+          "id": "fp32-asymmetric-1",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                3,
+                4
+              ],
+              "stride": [
+                4,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.0,
+                -1.5,
+                -1.0,
+                -0.5,
+                0.0,
+                0.5,
+                1.0,
+                1.5,
+                2.0,
+                2.5,
+                -2.75,
+                -2.25
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              3,
+              4
+            ],
+            "stride": [
+              4,
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              0.101536326110363,
+              0.1674051135778427,
+              0.2760043442249298,
+              0.45505422353744507,
+              0.101536326110363,
+              0.1674051135778427,
+              0.2760043442249298,
+              0.45505422353744507,
+              0.37430229783058167,
+              0.6171201467514038,
+              0.0032383494544774294,
+              0.00533913541585207
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        }
+      ]
+    },
+    {
+      "task": "rmsnorm",
+      "expression": "x1*x0*rsqrt(mean_last(x0*x0,True)+0.000001)",
+      "validation": {
+        "valid": true,
+        "probes": [
+          {
+            "probe": "fp32-asymmetric-0",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                2,
+                5
+              ],
+              "values": [
+                2.9710606622036737,
+                1.2126777965254874,
+                0.181901660805076,
+                -0.12126777748411195,
+                0.3031694437102799,
+                -0.8677980942182265,
+                -0.8264744148552993,
+                -0.28926605111076015,
+                -0.6611795200614287,
+                -1.239711563168895
+              ]
+            },
+            "target_shape": [
+              2,
+              5
+            ]
+          },
+          {
+            "probe": "fp32-asymmetric-1",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                3,
+                4
+              ],
+              "values": [
+                2.336948990325657,
+                1.0954448228917517,
+                0.29211862379070713,
+                -0.07302965594767678,
+                -0.0,
+                -0.5345221783836912,
+                -0.4276177490789539,
+                0.3207133118092154,
+                -1.3381333390771335,
+                -1.0454166555760884,
+                0.45998333530776464,
+                -0.1881750008077219
+              ]
+            },
+            "target_shape": [
+              3,
+              4
+            ]
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "fp32-asymmetric-0",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                2,
+                5
+              ],
+              "stride": [
+                5,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.3333334922790527,
+                -1.6666667461395264,
+                -1.0,
+                -0.3333333432674408,
+                0.3333333432674408,
+                1.0,
+                1.6666667461395264,
+                2.3333334922790527,
+                -2.6666667461395264,
+                -2.0
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                5
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.75,
+                -1.0,
+                -0.25,
+                0.5,
+                1.25
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              2,
+              5
+            ],
+            "stride": [
+              5,
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              2.9710609912872314,
+              1.2126779556274414,
+              0.18190167844295502,
+              -0.12126778811216354,
+              0.30316945910453796,
+              -0.8677980303764343,
+              -0.8264743685722351,
+              -0.28926602005958557,
+              -0.6611794829368591,
+              -1.2397115230560303
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        },
+        {
+          "id": "fp32-asymmetric-1",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                3,
+                4
+              ],
+              "stride": [
+                4,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.0,
+                -1.5,
+                -1.0,
+                -0.5,
+                0.0,
+                0.5,
+                1.0,
+                1.5,
+                2.0,
+                2.5,
+                -2.75,
+                -2.25
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                4
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.600000023841858,
+                -1.0,
+                -0.4000000059604645,
+                0.20000000298023224
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              3,
+              4
+            ],
+            "stride": [
+              4,
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              2.336949110031128,
+              1.0954447984695435,
+              0.292118638753891,
+              -0.07302965968847275,
+              -0.0,
+              -0.5345221757888794,
+              -0.42761775851249695,
+              0.3207133114337921,
+              -1.3381333351135254,
+              -1.0454167127609253,
+              0.45998334884643555,
+              -0.1881750077009201
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        }
+      ]
+    },
+    {
+      "task": "silu_mul",
+      "expression": "x0*sigmoid(x0)*x1",
+      "validation": {
+        "valid": true,
+        "probes": [
+          {
+            "probe": "fp32-asymmetric-0",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                5
+              ],
+              "values": [
+                0.3609653208822383,
+                0.2647818363940813,
+                0.06723535534249878,
+                -0.06957163392704413,
+                0.24273759426669067
+              ]
+            },
+            "target_shape": [
+              5
+            ]
+          },
+          {
+            "probe": "fp32-asymmetric-1",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                7
+              ],
+              "values": [
+                0.3814493561548144,
+                0.2736382857095345,
+                0.10757657015101384,
+                -0.03775406744239398,
+                0.0,
+                0.43572152442100476,
+                1.4621171572600098
+              ]
+            },
+            "target_shape": [
+              7
+            ]
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "fp32-asymmetric-0",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                5
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.3333334922790527,
+                -1.6666667461395264,
+                -1.0,
+                -0.3333333432674408,
+                0.3333333432674408
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                5
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.75,
+                -1.0,
+                -0.25,
+                0.5,
+                1.25
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              0.3609652817249298,
+              0.2647818326950073,
+              0.06723535805940628,
+              -0.06957163661718369,
+              0.24273760616779327
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        },
+        {
+          "id": "fp32-asymmetric-1",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                7
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.0,
+                -1.5,
+                -1.0,
+                -0.5,
+                0.0,
+                0.5,
+                1.0
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                7
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.600000023841858,
+                -1.0,
+                -0.4000000059604645,
+                0.20000000298023224,
+                0.800000011920929,
+                1.399999976158142,
+                2.0
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              7
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              0.3814493417739868,
+              0.2736382782459259,
+              0.10757657140493393,
+              -0.03775407001376152,
+              0.0,
+              0.4357215464115143,
+              1.462117075920105
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        }
+      ]
+    },
+    {
+      "task": "transpose",
+      "expression": "transpose(x0)",
+      "validation": {
+        "valid": true,
+        "probes": [
+          {
+            "probe": "fp32-asymmetric-0",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                5,
+                2
+              ],
+              "values": [
+                -2.3333334922790527,
+                1.0,
+                -1.6666667461395264,
+                1.6666667461395264,
+                -1.0,
+                2.3333334922790527,
+                -0.3333333432674408,
+                -2.6666667461395264,
+                0.3333333432674408,
+                -2.0
+              ]
+            },
+            "target_shape": [
+              5,
+              2
+            ]
+          },
+          {
+            "probe": "fp32-asymmetric-1",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                4,
+                3
+              ],
+              "values": [
+                -2.0,
+                0.0,
+                2.0,
+                -1.5,
+                0.5,
+                2.5,
+                -1.0,
+                1.0,
+                -2.75,
+                -0.5,
+                1.5,
+                -2.25
+              ]
+            },
+            "target_shape": [
+              4,
+              3
+            ]
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "fp32-asymmetric-0",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                2,
+                5
+              ],
+              "stride": [
+                5,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.3333334922790527,
+                -1.6666667461395264,
+                -1.0,
+                -0.3333333432674408,
+                0.3333333432674408,
+                1.0,
+                1.6666667461395264,
+                2.3333334922790527,
+                -2.6666667461395264,
+                -2.0
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              5,
+              2
+            ],
+            "stride": [
+              2,
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              -2.3333334922790527,
+              1.0,
+              -1.6666667461395264,
+              1.6666667461395264,
+              -1.0,
+              2.3333334922790527,
+              -0.3333333432674408,
+              -2.6666667461395264,
+              0.3333333432674408,
+              -2.0
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        },
+        {
+          "id": "fp32-asymmetric-1",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                3,
+                4
+              ],
+              "stride": [
+                4,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.0,
+                -1.5,
+                -1.0,
+                -0.5,
+                0.0,
+                0.5,
+                1.0,
+                1.5,
+                2.0,
+                2.5,
+                -2.75,
+                -2.25
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              4,
+              3
+            ],
+            "stride": [
+              3,
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              -2.0,
+              0.0,
+              2.0,
+              -1.5,
+              0.5,
+              2.5,
+              -1.0,
+              1.0,
+              -2.75,
+              -0.5,
+              1.5,
+              -2.25
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        }
+      ]
+    },
+    {
+      "task": "layer_norm",
+      "expression": "(x0-mean_last(x0,True))*rsqrt(mean_last((x0-mean_last(x0,True))*(x0-mean_last(x0,True)),True)+0.00001)*x1+x2",
+      "validation": {
+        "valid": true,
+        "probes": [
+          {
+            "probe": "fp32-asymmetric-0",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                2,
+                5
+              ],
+              "values": [
+                1.0748598922666024,
+                0.10710277042010385,
+                0.19999999033624957,
+                1.3535514002919766,
+                0.16775695391055745,
+                -2.2103868950027987,
+                -1.393848484835508,
+                -0.08115466768164187,
+                0.3219210988413008,
+                -2.881734499671298
+              ]
+            },
+            "target_shape": [
+              2,
+              5
+            ]
+          },
+          {
+            "probe": "fp32-asymmetric-1",
+            "status": "match",
+            "predicted": {
+              "shape": [
+                3,
+                4
+              ],
+              "values": [
+                0.8132575721368802,
+                -0.2194602462807262,
+                -0.17888257876722027,
+                0.934990554685712,
+                0.8132575721368802,
+                -0.2194602462807262,
+                -0.17888257876722027,
+                0.934990554685712,
+                -2.7570452155449443,
+                -1.7658559603019648,
+                0.4396757160585119,
+                0.48870270622548395
+              ]
+            },
+            "target_shape": [
+              3,
+              4
+            ]
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "fp32-asymmetric-0",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                2,
+                5
+              ],
+              "stride": [
+                5,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.3333334922790527,
+                -1.6666667461395264,
+                -1.0,
+                -0.3333333432674408,
+                0.3333333432674408,
+                1.0,
+                1.6666667461395264,
+                2.3333334922790527,
+                -2.6666667461395264,
+                -2.0
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                5
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.75,
+                -1.0,
+                -0.25,
+                0.5,
+                1.25
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                5
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.399999976158142,
+                -0.6000000238418579,
+                0.20000000298023224,
+                1.0,
+                -1.600000023841858
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              2,
+              5
+            ],
+            "stride": [
+              5,
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              1.0748594999313354,
+              0.10710263252258301,
+              0.19999997317790985,
+              1.3535513877868652,
+              0.16775691509246826,
+              -2.2103867530822754,
+              -1.3938484191894531,
+              -0.08115468919277191,
+              0.32192111015319824,
+              -2.8817343711853027
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        },
+        {
+          "id": "fp32-asymmetric-1",
+          "phase": "search_only",
+          "inputs": [
+            {
+              "shape": [
+                3,
+                4
+              ],
+              "stride": [
+                4,
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -2.0,
+                -1.5,
+                -1.0,
+                -0.5,
+                0.0,
+                0.5,
+                1.0,
+                1.5,
+                2.0,
+                2.5,
+                -2.75,
+                -2.25
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                4
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.600000023841858,
+                -1.0,
+                -0.4000000059604645,
+                0.20000000298023224
+              ],
+              "values_truncated": false
+            },
+            {
+              "shape": [
+                4
+              ],
+              "stride": [
+                1
+              ],
+              "dtype": "torch.float32",
+              "values": [
+                -1.3333333730697632,
+                -0.6666666865348816,
+                0.0,
+                0.6666666865348816
+              ],
+              "values_truncated": false
+            }
+          ],
+          "expected": {
+            "shape": [
+              3,
+              4
+            ],
+            "stride": [
+              4,
+              1
+            ],
+            "dtype": "torch.float32",
+            "values": [
+              0.8132575750350952,
+              -0.21946027874946594,
+              -0.17888256907463074,
+              0.9349905252456665,
+              0.8132575750350952,
+              -0.21946027874946594,
+              -0.17888256907463074,
+              0.9349905252456665,
+              -2.757045269012451,
+              -1.7658560276031494,
+              0.4396757185459137,
+              0.4887027144432068
+            ],
+            "values_truncated": false
+          },
+          "actual_error": "[Errno 2] No such file or directory: '/tmp/tmpbxjl65be/no-candidate.py'"
+        }
+      ]
+    }
+  ],
+  "missing_factor_rejected": {
+    "valid": false,
+    "probes": [
+      {
+        "probe": "fp32-asymmetric-0",
+        "status": "mismatch",
+        "predicted": {
+          "shape": [
+            5
+          ],
+          "values": [
+            -0.1546994126971838,
+            -0.15886909426098006,
+            -0.06723535534249878,
+            0.2087148955609438,
+            0.7282127610976405
+          ]
+        },
+        "target_shape": [
+          5
+        ]
+      },
+      {
+        "probe": "fp32-asymmetric-1",
+        "status": "mismatch",
+        "predicted": {
+          "shape": [
+            7
+          ],
+          "values": [
+            -0.1907246780774072,
+            -0.18242552380635635,
+            -0.10757657015101384,
+            0.07550813488478796,
+            0.4000000059604645,
+            0.8714430488420095,
+            1.4621171572600098
+          ]
+        },
+        "target_shape": [
+          7
+        ]
+      }
+    ]
+  },
+  "wrong_shape_rejected": {
+    "valid": false,
+    "probes": [
+      {
+        "probe": "fp32-asymmetric-0",
+        "status": "mismatch",
+        "predicted": {
+          "shape": [
+            2,
+            5
+          ],
+          "values": [
+            -2.3333334922790527,
+            -1.6666667461395264,
+            -1.0,
+            -0.3333333432674408,
+            0.3333333432674408,
+            1.0,
+            1.6666667461395264,
+            2.3333334922790527,
+            -2.6666667461395264,
+            -2.0
+          ]
+        },
+        "target_shape": [
+          5,
+          2
+        ]
+      },
+      {
+        "probe": "fp32-asymmetric-1",
+        "status": "mismatch",
+        "predicted": {
+          "shape": [
+            3,
+            4
+          ],
+          "values": [
+            -2.0,
+            -1.5,
+            -1.0,
+            -0.5,
+            0.0,
+            0.5,
+            1.0,
+            1.5,
+            2.0,
+            2.5,
+            -2.75,
+            -2.25
+          ]
+        },
+        "target_shape": [
+          4,
+          3
+        ]
+      }
+    ]
+  },
+  "scope": "Trusted Torch FP32 oracle versus bounded interpreter; no candidate success counts or model work",
+  "device_audit": {
+    "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "device_index": 0,
+    "device_count": 1,
+    "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50"
+  },
+  "device_binding": {
+    "expected_gpu_index": 4,
+    "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "actual": {
+      "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "device_index": 0,
+      "device_count": 1,
+      "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50"
+    },
+    "verified": true
+  },
+  "measurement_condition": "shared_observed",
+  "resource_audit": {
+    "gpu_index": 4,
+    "policy": "shared_observed",
+    "minimum_free_mib": 1024,
+    "sample_period_seconds": 0.5,
+    "samples": [
+      {
+        "observed_utc": "2026-10-15T17:29:27.891348+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 210,
+        "power_watts": 23.08,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:28.501391+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 210,
+        "power_watts": 22.9,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:29.122240+00:00",
+        "free_mib": 24179,
+        "used_mib": 33,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 22.49,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550241
+        ]
+      },
+      {
+        "observed_utc": "2026-10-15T17:29:29.692592+00:00",
+        "free_mib": 23745,
+        "used_mib": 467,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 2520,
+        "power_watts": 36.15,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2550241
+        ]
+      }
+    ],
+    "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+    "before": {
+      "observed_utc": "2026-10-15T17:29:27.301765+00:00",
+      "free_mib": 24199,
+      "used_mib": 12,
+      "utilization_percent": 0,
+      "sm_clock_mhz": 210,
+      "power_watts": 23.08,
+      "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "pids": []
+    },
+    "after": {
+      "observed_utc": "2026-10-15T17:29:29.965469+00:00",
+      "free_mib": 24199,
+      "used_mib": 12,
+      "utilization_percent": 0,
+      "sm_clock_mhz": 2520,
+      "power_watts": 39.07,
+      "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "pids": []
+    }
+  },
+  "cooperative_queue": {
+    "lock_file": "/data/home/chenyizhou/kernel-agent-semantic-review/results/semantic-smoke/gpu4.lock",
+    "wait_seconds": 4.908815026283264e-05,
+    "pid": 2550234
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "created_utc": "2026-10-15T18:22:37.590Z",
+  "status": "verified",
+  "caseOptions": 22,
+  "effectPoints": 6,
+  "overflow": false,
+  "summary": "最新语义修复对照：22 个配对块、66 个结局均已结束。已知失败回归：连续重写 7/14，原始审查 7/14，核验审查 7/14；新生成验证：连续重写 7/8，原始审查 7/8，核验审查 7/8。",
+  "tests": "控制器、兼容性与证据测试单独计数；真实模型运行使用独立 GPU 裁决。 当前工程 176 项检查通过，CPU 恢复测试另见调度章节。",
+  "url": "http://127.0.0.1:8765/reports/kernel-agent-report.html#semantic-strata",
+  "viewport": [
+    426,
+    725
+  ],
+  "errors": [],
+  "report_sha256": "bdf6d4f3babb8d921cf23642465b534cea5b8616075a7e584c8f6226a0dd2730",
+  "raw_checkpoint_sha256": "87b0bb7bf2be2a1c2392688e8902cc70a76983d196dc17523c9dbe0b9d4d1abd",
+  "embedded_checkpoint_byte_identical": true,
+  "checked_interactions": {
+    "full_timeline_marks": 236,
+    "raw_timeline_records": 236,
+    "rejected_reference_case": "reg-silu_mul-s20261102-contract-s20261112",
+    "rejected_reference_verdict": "reference not validated; candidate matches actual",
+    "failed_case": "fresh-transpose-s20261113",
+    "both_buttons_updated_selection": true
+  },
+  "screenshot": "reports/semantic-preview.png",
+  "scope": "Normal 426x725 viewport, no resize override; live DOM/render and interaction checks, not new model or GPU trials"
+}

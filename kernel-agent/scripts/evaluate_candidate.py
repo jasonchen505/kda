@@ -80,6 +80,44 @@ def counterexample(task, module, dtype):
     return value
 
 
+def semantic_probes(task, source):
+    """Search-only asymmetric FP32 probes; reference values are never model authored."""
+    module, load_error = None, None
+    try:
+        admit(Path(source).read_text())
+        spec = importlib.util.spec_from_file_location("semantic_candidate", source)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    except Exception as error:  # noqa: BLE001 -- a broken implementation still has a task oracle
+        load_error = str(error)[-500:]
+    def snapshot(t):
+        if not isinstance(t, torch.Tensor) or not torch.isfinite(t).all() or t.numel() > 64:
+            return {"unobservable": True}
+        return {"shape": list(t.shape), "stride": list(t.stride()), "dtype": str(t.dtype),
+                "values": t.float().flatten().cpu().tolist(), "values_truncated": False}
+    rows = []
+    vector = task in {"vector_add", "silu_mul"}
+    for index, shape in enumerate(([5], [7]) if vector else ([2, 5], [3, 4])):
+        args = inputs(task, shape, torch.float32)
+        for i, t in enumerate(args):
+            values = torch.arange(t.numel(), device=t.device).reshape(t.shape)
+            t.copy_((((values * (i + 2) + 1 + 2 * index) % (17 + 6 * index))
+                     - (8 + 3 * index)) / (3 + i + index))
+        expected = reference(task, *args)
+        row = {"id": f"fp32-asymmetric-{index}", "phase": "search_only",
+               "inputs": [snapshot(t) for t in args], "expected": snapshot(expected)}
+        try:
+            if load_error:
+                raise ValueError(load_error)
+            actual = module.run(*(t.clone() for t in args))
+            torch.cuda.synchronize()
+            row["actual"] = snapshot(actual)
+        except Exception as error:  # noqa: BLE001 -- never replace the authoritative search verdict
+            row["actual_error"] = str(error)[-500:]
+        rows.append(row)
+    return rows
+
+
 def main(task, source, final=False, timing=True, diagnostics=False):
     code = Path(source).read_text()
     try:
@@ -186,8 +224,12 @@ if __name__ == "__main__":
                         "gpu_uuid": str(torch.cuda.get_device_properties(index).uuid)}
         if "--correctness-only" in sys.argv and "--final" in sys.argv:
             raise ValueError("deferred generation may not inspect final shapes")
+        if "--semantic-probes" in sys.argv and "--final" in sys.argv:
+            raise ValueError("semantic probes are search-only")
         result = main(sys.argv[1], sys.argv[2], final="--final" in sys.argv,
                       timing="--correctness-only" not in sys.argv, diagnostics="--diagnostics" in sys.argv)
+        if "--semantic-probes" in sys.argv:
+            result["semantic_probes"] = semantic_probes(sys.argv[1], sys.argv[2])
     except Exception as error:  # noqa: BLE001 -- always return machine-readable evaluator failure
         result = {"status": "resource_exhausted" if isinstance(error, torch.OutOfMemoryError) else "evaluator_error",
                   "message": str(error), "traceback": traceback.format_exc()[-4000:]}

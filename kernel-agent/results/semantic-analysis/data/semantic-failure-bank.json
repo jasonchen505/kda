@@ -1,0 +1,1275 @@
+{
+  "selection": "All admitted, non-infrastructure failed initial candidates from the preceding frozen 2x2 study; excludes one protocol failure without admitted source and one infrastructure failure. No outcome-based subsampling of valid candidates.",
+  "parent_plan_sha256": "2ba73df83678e6ae9987894944518953a5009b833d9c9e1a35f30e5da92c88fe",
+  "parent_summary_sha256": "a8a6c358edd1cdb04e018f72716906c7dd19badf2ab1e7147b0d0c51ab956fc1",
+  "cases": [
+    {
+      "id": "row_mean-s20261101-baseline",
+      "task_id": "row_mean",
+      "source_path": "results/repair-study/blocks/row_mean-s20261101/candidates/297c3905a767b00c5516d65a34a976983cb104948e117ff2a37625cafeaf3a00.py",
+      "source_sha256": "297c3905a767b00c5516d65a34a976983cb104948e117ff2a37625cafeaf3a00",
+      "initial": {
+        "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _mean_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += a\n    total = tl.sum(acc, axis=0)\n    mean = total / N\n    tl.store(Y, mean)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, width = x.shape\n    y = torch.empty_like(x, memory_format=torch.contiguous_format)[:, :0]\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    BLOCK_SIZE = 1024\n    grid = (rows,)\n    _mean_kernel[grid](x, y, width, width, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n\n",
+        "draft": "Mean over last dim. Allocate output. Kernel sums masked FP32 values, divides by actual width, casts to input dtype. Grid rows. Handle odd widths via masks.",
+        "evaluation": {
+          "checks_passed": 2,
+          "cooperative_queue": {
+            "lock_file": "/data/home/chenyizhou/kernel-agent-repair-experiment-v2/gpu4.lock",
+            "pid": 2370586,
+            "scope": "serializes this project's workers only",
+            "wait_seconds": 4.678219556808472e-05
+          },
+          "counterexample": {
+            "actual": {
+              "dtype": "torch.float32",
+              "shape": [
+                2
+              ],
+              "stride": [
+                1
+              ],
+              "values": [
+                0.6666666865348816,
+                0.6666666865348816
+              ],
+              "values_truncated": false
+            },
+            "expected": {
+              "dtype": "torch.float32",
+              "shape": [
+                2
+              ],
+              "stride": [
+                1
+              ],
+              "values": [
+                0.6666666865348816,
+                1.6666667461395264
+              ],
+              "values_truncated": false
+            },
+            "inputs": [
+              {
+                "dtype": "torch.float32",
+                "shape": [
+                  2,
+                  3
+                ],
+                "stride": [
+                  3,
+                  1
+                ],
+                "values": [
+                  0.3333333432674408,
+                  0.6666666865348816,
+                  1.0,
+                  1.3333333730697632,
+                  1.6666667461395264,
+                  2.0
+                ],
+                "values_truncated": false
+              }
+            ],
+            "phase": "search_only"
+          },
+          "device_audit": {
+            "device_count": 1,
+            "device_index": 0,
+            "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+          },
+          "device_binding": {
+            "actual": {
+              "device_count": 1,
+              "device_index": 0,
+              "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+            },
+            "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "expected_gpu_index": 4,
+            "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "verified": true
+          },
+          "dtype": "torch.float32",
+          "measurement_condition": "shared_observed",
+          "message": "Tensor-likes are not close!\n\nMismatched elements: 2 / 3 (66.7%)\nGreatest absolute difference: 0.38716211915016174 at index (1,) (up to 2e-05 allowed)\nGreatest relative difference: 1.0 at index (1,) (up to 0.0002 allowed)",
+          "resource_audit": {
+            "after": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T12:47:32.284723+00:00",
+              "pids": [],
+              "power_watts": 63.5,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "before": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T12:47:29.303061+00:00",
+              "pids": [],
+              "power_watts": 63.91,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "gpu_index": 4,
+            "minimum_free_mib": 1024,
+            "policy": "shared_observed",
+            "sample_period_seconds": 0.5,
+            "samples": [
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:47:29.869967+00:00",
+                "pids": [],
+                "power_watts": 63.78,
+                "sm_clock_mhz": 975,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:47:30.432577+00:00",
+                "pids": [],
+                "power_watts": 48.99,
+                "sm_clock_mhz": 750,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23809,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:47:31.009953+00:00",
+                "pids": [
+                  2370590
+                ],
+                "power_watts": 30.47,
+                "sm_clock_mhz": 2520,
+                "used_mib": 403,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:47:31.579963+00:00",
+                "pids": [
+                  2370590
+                ],
+                "power_watts": 47.0,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:47:32.156037+00:00",
+                "pids": [
+                  2370590
+                ],
+                "power_watts": 63.36,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              }
+            ],
+            "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim"
+          },
+          "scale": 1.0,
+          "shape": [
+            3,
+            33
+          ],
+          "status": "numeric_error"
+        },
+        "parent_sha256": null,
+        "plan": "Host: allocate contiguous output, compute grid, launch. Kernel: loop over width in BLOCK chunks, load masked, sum in FP32, divide by N, store cast.",
+        "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _mean_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += a\n    total = tl.sum(acc, axis=0)\n    mean = total / N\n    tl.store(Y, mean)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, width = x.shape\n    y = torch.empty_like(x, memory_format=torch.contiguous_format)[:, :0]\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    BLOCK_SIZE = 1024\n    grid = (rows,)\n    _mean_kernel[grid](x, y, width, width, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n\n",
+        "reply": "{\"draft\":\"Mean over last dim. Allocate output. Kernel sums masked FP32 values, divides by actual width, casts to input dtype. Grid rows. Handle odd widths via masks.\",\"plan\":\"Host: allocate contiguous output, compute grid, launch. Kernel: loop over width in BLOCK chunks, load masked, sum in FP32, divide by N, store cast.\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def _mean_kernel(\",\"    X,\",\"    Y,\",\"    stride,\",\"    N,\",\"    BLOCK_SIZE: tl.constexpr,\",\"):\",\"    row = tl.program_id(0)\",\"    X += row * stride\",\"    Y += row * stride\",\"    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\",\"    for off in range(0, N, BLOCK_SIZE):\",\"        cols = off + tl.arange(0, BLOCK_SIZE)\",\"        mask = cols < N\",\"        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\"        acc += a\",\"    total = tl.sum(acc, axis=0)\",\"    mean = total / N\",\"    tl.store(Y, mean)\",\"\",\"\",\"def run(x: torch.Tensor) -> torch.Tensor:\",\"    assert x.is_cuda\",\"    assert x.dim() == 2\",\"    assert x.is_contiguous()\",\"    rows, width = x.shape\",\"    y = torch.empty_like(x, memory_format=torch.contiguous_format)[:, :0]\",\"    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\",\"    BLOCK_SIZE = 1024\",\"    grid = (rows,)\",\"    _mean_kernel[grid](x, y, width, width, BLOCK_SIZE=BLOCK_SIZE)\",\"    return y\",\"\"]}",
+        "request_id": "initial-baseline",
+        "source_sha256": "297c3905a767b00c5516d65a34a976983cb104948e117ff2a37625cafeaf3a00"
+      },
+      "parent_generation": "baseline"
+    },
+    {
+      "id": "row_mean-s20261102-baseline",
+      "task_id": "row_mean",
+      "source_path": "results/repair-study/blocks/row_mean-s20261102/candidates/e90162c7538953580398399fa813a2ca17f10b17d2d9d0cab6c7527d104207d0.py",
+      "source_sha256": "e90162c7538953580398399fa813a2ca17f10b17d2d9d0cab6c7527d104207d0",
+      "initial": {
+        "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _row_mean_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += a\n    total = tl.sum(acc, axis=0)\n    mean = total / N\n    tl.store(Y, mean)\n\n\ndef run(x):\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, width = x.shape\n    out = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    if rows == 0 or width == 0:\n        return out\n    BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_mean_kernel[grid](x, out, width, width, BLOCK_SIZE=BLOCK_SIZE)\n    return out\n",
+        "draft": "Triton kernel sums each row in FP32 over actual width, divides by width, stores in input dtype. Host allocates contiguous output, launches one program per row, returns output.",
+        "evaluation": {
+          "checks_passed": 2,
+          "cooperative_queue": {
+            "lock_file": "/data/home/chenyizhou/kernel-agent-repair-experiment-v2/gpu4.lock",
+            "pid": 2386895,
+            "scope": "serializes this project's workers only",
+            "wait_seconds": 4.396960139274597e-05
+          },
+          "counterexample": {
+            "actual": {
+              "dtype": "torch.float32",
+              "shape": [
+                2
+              ],
+              "stride": [
+                1
+              ],
+              "values": [
+                0.6666666865348816,
+                1.6666667461395264
+              ],
+              "values_truncated": false
+            },
+            "expected": {
+              "dtype": "torch.float32",
+              "shape": [
+                2
+              ],
+              "stride": [
+                1
+              ],
+              "values": [
+                0.6666666865348816,
+                1.6666667461395264
+              ],
+              "values_truncated": false
+            },
+            "inputs": [
+              {
+                "dtype": "torch.float32",
+                "shape": [
+                  2,
+                  3
+                ],
+                "stride": [
+                  3,
+                  1
+                ],
+                "values": [
+                  0.3333333432674408,
+                  0.6666666865348816,
+                  1.0,
+                  1.3333333730697632,
+                  1.6666667461395264,
+                  2.0
+                ],
+                "values_truncated": false
+              }
+            ],
+            "phase": "search_only"
+          },
+          "device_audit": {
+            "device_count": 1,
+            "device_index": 0,
+            "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+          },
+          "device_binding": {
+            "actual": {
+              "device_count": 1,
+              "device_index": 0,
+              "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+            },
+            "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "expected_gpu_index": 4,
+            "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "verified": true
+          },
+          "dtype": "torch.float32",
+          "measurement_condition": "shared_observed",
+          "message": "Tensor-likes are not close!\n\nMismatched elements: 2 / 3 (66.7%)\nGreatest absolute difference: 0.38716211915016174 at index (1,) (up to 2e-05 allowed)\nGreatest relative difference: 1.0 at index (1,) (up to 0.0002 allowed)",
+          "resource_audit": {
+            "after": {
+              "free_mib": 20091,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T12:59:13.121311+00:00",
+              "pids": [
+                2386659
+              ],
+              "power_watts": 202.18,
+              "sm_clock_mhz": 2715,
+              "used_mib": 4121,
+              "utilization_percent": 23
+            },
+            "before": {
+              "free_mib": 20091,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T12:59:10.247741+00:00",
+              "pids": [
+                2386659
+              ],
+              "power_watts": 101.07,
+              "sm_clock_mhz": 2715,
+              "used_mib": 4121,
+              "utilization_percent": 18
+            },
+            "gpu_index": 4,
+            "minimum_free_mib": 1024,
+            "policy": "shared_observed",
+            "sample_period_seconds": 0.5,
+            "samples": [
+              {
+                "free_mib": 20091,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:59:10.808800+00:00",
+                "pids": [
+                  2386659
+                ],
+                "power_watts": 100.97,
+                "sm_clock_mhz": 2715,
+                "used_mib": 4121,
+                "utilization_percent": 17
+              },
+              {
+                "free_mib": 20091,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:59:11.374937+00:00",
+                "pids": [
+                  2386659
+                ],
+                "power_watts": 94.72,
+                "sm_clock_mhz": 2520,
+                "used_mib": 4121,
+                "utilization_percent": 17
+              },
+              {
+                "free_mib": 19639,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:59:11.925424+00:00",
+                "pids": [
+                  2386659,
+                  2386899
+                ],
+                "power_watts": 84.62,
+                "sm_clock_mhz": 2520,
+                "used_mib": 4572,
+                "utilization_percent": 15
+              },
+              {
+                "free_mib": 19639,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:59:12.478644+00:00",
+                "pids": [
+                  2386659,
+                  2386899
+                ],
+                "power_watts": 192.06,
+                "sm_clock_mhz": 2715,
+                "used_mib": 4572,
+                "utilization_percent": 100
+              },
+              {
+                "free_mib": 19639,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T12:59:13.060971+00:00",
+                "pids": [
+                  2386659
+                ],
+                "power_watts": 208.63,
+                "sm_clock_mhz": 2715,
+                "used_mib": 4572,
+                "utilization_percent": 23
+              }
+            ],
+            "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim"
+          },
+          "scale": 1.0,
+          "shape": [
+            3,
+            33
+          ],
+          "status": "numeric_error"
+        },
+        "parent_sha256": null,
+        "plan": "Allocate out = torch.empty_like(x). Launch grid (rows,). Kernel: loop width in BLOCK chunks, masked load to fp32, accumulate, divide by width, store to out row.",
+        "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _row_mean_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += a\n    total = tl.sum(acc, axis=0)\n    mean = total / N\n    tl.store(Y, mean)\n\n\ndef run(x):\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, width = x.shape\n    out = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    if rows == 0 or width == 0:\n        return out\n    BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_mean_kernel[grid](x, out, width, width, BLOCK_SIZE=BLOCK_SIZE)\n    return out\n",
+        "reply": "{\"draft\":\"Triton kernel sums each row in FP32 over actual width, divides by width, stores in input dtype. Host allocates contiguous output, launches one program per row, returns output.\",\"plan\":\"Allocate out = torch.empty_like(x). Launch grid (rows,). Kernel: loop width in BLOCK chunks, masked load to fp32, accumulate, divide by width, store to out row.\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def _row_mean_kernel(\",\"    X,\",\"    Y,\",\"    stride,\",\"    N,\",\"    BLOCK_SIZE: tl.constexpr,\",\"):\",\"    row = tl.program_id(0)\",\"    X += row * stride\",\"    Y += row * stride\",\"    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\",\"    for off in range(0, N, BLOCK_SIZE):\",\"        cols = off + tl.arange(0, BLOCK_SIZE)\",\"        mask = cols < N\",\"        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\"        acc += a\",\"    total = tl.sum(acc, axis=0)\",\"    mean = total / N\",\"    tl.store(Y, mean)\",\"\",\"\",\"def run(x):\",\"    assert x.is_cuda\",\"    assert x.dim() == 2\",\"    assert x.is_contiguous()\",\"    rows, width = x.shape\",\"    out = torch.empty((rows,), dtype=x.dtype, device=x.device)\",\"    if rows == 0 or width == 0:\",\"        return out\",\"    BLOCK_SIZE = 1024\",\"    grid = (rows,)\",\"    _row_mean_kernel[grid](x, out, width, width, BLOCK_SIZE=BLOCK_SIZE)\",\"    return out\"]}",
+        "request_id": "initial-baseline",
+        "source_sha256": "e90162c7538953580398399fa813a2ca17f10b17d2d9d0cab6c7527d104207d0"
+      },
+      "parent_generation": "baseline"
+    },
+    {
+      "id": "silu_mul-s20261102-contract",
+      "task_id": "silu_mul",
+      "source_path": "results/repair-study/blocks/silu_mul-s20261102/candidates/d6b6a421e878eda8c824e49f633d3686d2a2c720d606502c25c84a99a29fc42d.py",
+      "source_sha256": "d6b6a421e878eda8c824e49f633d3686d2a2c720d606502c25c84a99a29fc42d",
+      "initial": {
+        "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef silu_mul_kernel(x_ptr,\n                           y_ptr,\n                           out_ptr,\n                           n_elements,\n                           BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask, other=0.0)\n    y = tl.load(y_ptr + offsets, mask=mask, other=0.0)\n    x_f32 = x.to(tl.float32)\n    y_f32 = y.to(tl.float32)\n    sig = 1.0 / (1.0 + tl.exp(-x_f32))\n    out = sig * y_f32\n    tl.store(out_ptr + offsets, out, mask=mask)\n\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.is_contiguous() and y.is_contiguous()\n    out = torch.empty_like(x)\n    n = x.numel()\n    if n == 0:\n        return out\n    BLOCK_SIZE = 1024\n    grid = (triton.cdiv(n, BLOCK_SIZE),)\n    silu_mul_kernel[grid](x, y, out, n, BLOCK_SIZE=BLOCK_SIZE)\n    return out\n",
+        "draft": "Output shape equals x.shape; contiguous strides are 1. Flat offset i maps to x[i], y[i], out[i]. For shape (3,5), coord (2,4) -> flat 14; x_ptr+14, y_ptr+14, out_ptr+14. Odd total N=15 handled by mask offsets<N. No layout assumption beyond contiguous.",
+        "evaluation": {
+          "checks_passed": 0,
+          "cooperative_queue": {
+            "lock_file": "/data/home/chenyizhou/kernel-agent-repair-experiment-v2/gpu4.lock",
+            "pid": 2403203,
+            "scope": "serializes this project's workers only",
+            "wait_seconds": 2.205339841544628
+          },
+          "counterexample": {
+            "actual": {
+              "dtype": "torch.float32",
+              "shape": [
+                7
+              ],
+              "stride": [
+                1
+              ],
+              "values": [
+                0.38838014006614685,
+                0.6607563495635986,
+                0.9747447967529297,
+                1.3189858198165894,
+                1.6822618246078491,
+                2.0551934242248535,
+                2.430934190750122
+              ],
+              "values_truncated": false
+            },
+            "expected": {
+              "dtype": "torch.float32",
+              "shape": [
+                7
+              ],
+              "stride": [
+                1
+              ],
+              "values": [
+                0.12946006655693054,
+                0.440504252910614,
+                0.9747447371482849,
+                1.7586477994918823,
+                2.803769826889038,
+                4.110386371612549,
+                5.67218017578125
+              ],
+              "values_truncated": false
+            },
+            "inputs": [
+              {
+                "dtype": "torch.float32",
+                "shape": [
+                  7
+                ],
+                "stride": [
+                  1
+                ],
+                "values": [
+                  0.3333333432674408,
+                  0.6666666865348816,
+                  1.0,
+                  1.3333333730697632,
+                  1.6666667461395264,
+                  2.0,
+                  2.3333334922790527
+                ],
+                "values_truncated": false
+              },
+              {
+                "dtype": "torch.float32",
+                "shape": [
+                  7
+                ],
+                "stride": [
+                  1
+                ],
+                "values": [
+                  0.6666666865348816,
+                  1.0,
+                  1.3333333730697632,
+                  1.6666667461395264,
+                  2.0,
+                  2.3333334922790527,
+                  2.6666667461395264
+                ],
+                "values_truncated": false
+              }
+            ],
+            "phase": "search_only"
+          },
+          "device_audit": {
+            "device_count": 1,
+            "device_index": 0,
+            "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+          },
+          "device_binding": {
+            "actual": {
+              "device_count": 1,
+              "device_index": 0,
+              "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+            },
+            "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "expected_gpu_index": 4,
+            "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "verified": true
+          },
+          "dtype": "torch.float32",
+          "measurement_condition": "shared_observed",
+          "message": "Tensor-likes are not close!\n\nMismatched elements: 1 / 1 (100.0%)\nGreatest absolute difference: 0.2212715595960617 at index (0,) (up to 2e-05 allowed)\nGreatest relative difference: 3.099954843521118 at index (0,) (up to 0.0002 allowed)",
+          "resource_audit": {
+            "after": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:10:51.043418+00:00",
+              "pids": [],
+              "power_watts": 64.32,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "before": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:10:48.004627+00:00",
+              "pids": [],
+              "power_watts": 64.69,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "gpu_index": 4,
+            "minimum_free_mib": 1024,
+            "policy": "shared_observed",
+            "sample_period_seconds": 0.5,
+            "samples": [
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:10:48.573005+00:00",
+                "pids": [],
+                "power_watts": 64.8,
+                "sm_clock_mhz": 2520,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:10:49.156904+00:00",
+                "pids": [],
+                "power_watts": 64.81,
+                "sm_clock_mhz": 2520,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 24181,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:10:49.749848+00:00",
+                "pids": [
+                  2403223
+                ],
+                "power_watts": 51.56,
+                "sm_clock_mhz": 630,
+                "used_mib": 31,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:10:50.317103+00:00",
+                "pids": [
+                  2403223
+                ],
+                "power_watts": 53.34,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:10:50.875741+00:00",
+                "pids": [
+                  2403223
+                ],
+                "power_watts": 64.42,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              }
+            ],
+            "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim"
+          },
+          "scale": 1.0,
+          "shape": [
+            1
+          ],
+          "status": "numeric_error"
+        },
+        "parent_sha256": null,
+        "plan": "Padded lanes use other=0.0; mask offsets<N on load/store. BLOCK_SIZE=1024 constexpr. Load x,y as pointers (dtype encoded); compute sigmoid in FP32: x_f32=x.to(tl.float32); s=1/(1+exp(-x_f32)); out=s*y.to(tl.float32); store casts to output dtype. Allocate torch.empty_like(x).",
+        "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef silu_mul_kernel(x_ptr,\n                           y_ptr,\n                           out_ptr,\n                           n_elements,\n                           BLOCK_SIZE: tl.constexpr):\n    pid = tl.program_id(axis=0)\n    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\n    mask = offsets < n_elements\n    x = tl.load(x_ptr + offsets, mask=mask, other=0.0)\n    y = tl.load(y_ptr + offsets, mask=mask, other=0.0)\n    x_f32 = x.to(tl.float32)\n    y_f32 = y.to(tl.float32)\n    sig = 1.0 / (1.0 + tl.exp(-x_f32))\n    out = sig * y_f32\n    tl.store(out_ptr + offsets, out, mask=mask)\n\n\ndef run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and y.is_cuda\n    assert x.shape == y.shape\n    assert x.is_contiguous() and y.is_contiguous()\n    out = torch.empty_like(x)\n    n = x.numel()\n    if n == 0:\n        return out\n    BLOCK_SIZE = 1024\n    grid = (triton.cdiv(n, BLOCK_SIZE),)\n    silu_mul_kernel[grid](x, y, out, n, BLOCK_SIZE=BLOCK_SIZE)\n    return out\n",
+        "reply": "{\"draft\":\"Output shape equals x.shape; contiguous strides are 1. Flat offset i maps to x[i], y[i], out[i]. For shape (3,5), coord (2,4) -> flat 14; x_ptr+14, y_ptr+14, out_ptr+14. Odd total N=15 handled by mask offsets<N. No layout assumption beyond contiguous.\",\"plan\":\"Padded lanes use other=0.0; mask offsets<N on load/store. BLOCK_SIZE=1024 constexpr. Load x,y as pointers (dtype encoded); compute sigmoid in FP32: x_f32=x.to(tl.float32); s=1/(1+exp(-x_f32)); out=s*y.to(tl.float32); store casts to output dtype. Allocate torch.empty_like(x).\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def silu_mul_kernel(x_ptr,\",\"                           y_ptr,\",\"                           out_ptr,\",\"                           n_elements,\",\"                           BLOCK_SIZE: tl.constexpr):\",\"    pid = tl.program_id(axis=0)\",\"    offsets = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)\",\"    mask = offsets < n_elements\",\"    x = tl.load(x_ptr + offsets, mask=mask, other=0.0)\",\"    y = tl.load(y_ptr + offsets, mask=mask, other=0.0)\",\"    x_f32 = x.to(tl.float32)\",\"    y_f32 = y.to(tl.float32)\",\"    sig = 1.0 / (1.0 + tl.exp(-x_f32))\",\"    out = sig * y_f32\",\"    tl.store(out_ptr + offsets, out, mask=mask)\",\"\",\"\",\"def run(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:\",\"    assert x.is_cuda and y.is_cuda\",\"    assert x.shape == y.shape\",\"    assert x.is_contiguous() and y.is_contiguous()\",\"    out = torch.empty_like(x)\",\"    n = x.numel()\",\"    if n == 0:\",\"        return out\",\"    BLOCK_SIZE = 1024\",\"    grid = (triton.cdiv(n, BLOCK_SIZE),)\",\"    silu_mul_kernel[grid](x, y, out, n, BLOCK_SIZE=BLOCK_SIZE)\",\"    return out\"]}",
+        "request_id": "initial-contract",
+        "source_sha256": "d6b6a421e878eda8c824e49f633d3686d2a2c720d606502c25c84a99a29fc42d"
+      },
+      "parent_generation": "contract"
+    },
+    {
+      "id": "rmsnorm-s20261101-baseline",
+      "task_id": "rmsnorm",
+      "source_path": "results/repair-study/blocks/rmsnorm-s20261101/candidates/911c39ebea1e77536d8b7005af79793844af5c5d3af5e0bee7b53afcfdcc1558.py",
+      "source_sha256": "911c39ebea1e77536d8b7005af79793844af5c5d3af5e0bee7b53afcfdcc1558",
+      "initial": {
+        "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,\n    Y,\n    W,\n    stride,\n    N,\n    eps,\n    BLOCK_SIZE: tl.constexpr,\n    DTYPE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    # Compute sum of squares in FP32\n    _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        _sum_sq += a * a\n    sum_sq = tl.sum(_sum_sq, axis=0)\n    mean_sq = sum_sq / N\n    rstd = 1.0 / tl.sqrt(mean_sq + eps)\n\n    # Normalize, cast to input dtype, multiply by weight, store\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = x * rstd\n        x_hat = x_hat.to(DTYPE)\n        w = tl.load(W + cols, mask=mask)\n        y = w * x_hat\n        tl.store(Y + cols, y, mask=mask)\n\n\ndef run(x, weight):\n    rows, width = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(width)\n    if BLOCK_SIZE > 4096:\n        BLOCK_SIZE = 4096\n\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x,\n        out,\n        weight,\n        width,\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n        DTYPE=x.dtype,\n    )\n    return out\n",
+        "draft": "RMSNorm kernel: one program per row. Load x in FP32, compute mean of squares over width (masked), rstd=rsqrt(mean+eps). Normalize, cast to input dtype, multiply by weight, store. Handle odd widths via masking.",
+        "evaluation": {
+          "checks_passed": 0,
+          "cooperative_queue": {
+            "lock_file": "/data/home/chenyizhou/kernel-agent-repair-experiment-v2/gpu4.lock",
+            "pid": 2416774,
+            "scope": "serializes this project's workers only",
+            "wait_seconds": 4.566460847854614e-05
+          },
+          "device_audit": {
+            "device_count": 1,
+            "device_index": 0,
+            "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+          },
+          "device_binding": {
+            "actual": {
+              "device_count": 1,
+              "device_index": 0,
+              "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+            },
+            "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "expected_gpu_index": 4,
+            "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "verified": true
+          },
+          "dtype": "torch.float32",
+          "measurement_condition": "shared_observed",
+          "message": "at 32:16:\n        _sum_sq += a * a\n    sum_sq = tl.sum(_sum_sq, axis=0)\n    mean_sq = sum_sq / N\n    rstd = 1.0 / tl.sqrt(mean_sq + eps)\n\n    # Normalize, cast to input dtype, multiply by weight, store\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = x * rstd\n        x_hat = x_hat.to(DTYPE)\n                ^",
+          "resource_audit": {
+            "after": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:22:12.505574+00:00",
+              "pids": [],
+              "power_watts": 59.06,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 2
+            },
+            "before": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:22:09.753670+00:00",
+              "pids": [],
+              "power_watts": 24.89,
+              "sm_clock_mhz": 210,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "gpu_index": 4,
+            "minimum_free_mib": 1024,
+            "policy": "shared_observed",
+            "sample_period_seconds": 0.5,
+            "samples": [
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:22:10.316390+00:00",
+                "pids": [],
+                "power_watts": 24.68,
+                "sm_clock_mhz": 210,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:22:10.886832+00:00",
+                "pids": [],
+                "power_watts": 24.68,
+                "sm_clock_mhz": 210,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 24181,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:22:11.473863+00:00",
+                "pids": [
+                  2416778
+                ],
+                "power_watts": 24.72,
+                "sm_clock_mhz": 210,
+                "used_mib": 30,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:22:12.039834+00:00",
+                "pids": [
+                  2416778
+                ],
+                "power_watts": 35.4,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              }
+            ],
+            "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim"
+          },
+          "shape": [
+            1,
+            1
+          ],
+          "status": "compile_error",
+          "traceback": "Traceback (most recent call last):\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/language/core.py\", line 35, in wrapper\n    return fn(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/language/core.py\", line 999, in to\n    return semantic.cast(self, dtype, _builder, fp_downcast_rounding)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/language/semantic.py\", line 839, in cast\n    dst_ty = tl.block_type(dst_ty.scalar, input.type.get_block_shapes())\n                           ^^^^^^^^^^^^^\nAttributeError: 'torch.dtype' object has no attribute 'scalar'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/data/home/chenyizhou/kernel-agent-repair-source-v2/scripts/evaluate_candidate.py\", line 125, in main\n    actual = module.run(*args)\n             ^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kernel-agent-repair-experiment-v2/blocks/rmsnorm-s20261101/candidates/911c39ebea1e77536d8b7005af79793844af5c5d3af5e0bee7b53afcfdcc1558.py\", line 53, in run\n    _rmsnorm_kernel[grid](\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/runtime/jit.py\", line 330, in <lambda>\n    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)\n                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/runtime/jit.py\", line 623, in run\n    kernel = self.compile(\n             ^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/compiler/compiler.py\", line 273, in compile\n    module = src.make_ir(options, codegen_fns, module_map, context)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/compiler/compiler.py\", line 100, in make_ir\n    return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntriton.compiler.errors.CompilationError: at 32:16:\n        _sum_sq += a * a\n    sum_sq = tl.sum(_sum_sq, axis=0)\n    mean_sq = sum_sq / N\n    rstd = 1.0 / tl.sqrt(mean_sq + eps)\n\n    # Normalize, cast to input dtype, multiply by weight, store\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = x * rstd\n        x_hat = x_hat.to(DTYPE)\n                ^\n"
+        },
+        "parent_sha256": null,
+        "plan": "Grid=(rows,). Kernel loops over width in BLOCK_SIZE chunks. Accumulate sum of squares in FP32. Compute rstd. Second loop: load x, normalize, cast to dtype, multiply weight, store. Host allocates output, launches kernel.",
+        "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _rmsnorm_kernel(\n    X,\n    Y,\n    W,\n    stride,\n    N,\n    eps,\n    BLOCK_SIZE: tl.constexpr,\n    DTYPE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    Y += row * stride\n\n    # Compute sum of squares in FP32\n    _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        _sum_sq += a * a\n    sum_sq = tl.sum(_sum_sq, axis=0)\n    mean_sq = sum_sq / N\n    rstd = 1.0 / tl.sqrt(mean_sq + eps)\n\n    # Normalize, cast to input dtype, multiply by weight, store\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = x * rstd\n        x_hat = x_hat.to(DTYPE)\n        w = tl.load(W + cols, mask=mask)\n        y = w * x_hat\n        tl.store(Y + cols, y, mask=mask)\n\n\ndef run(x, weight):\n    rows, width = x.shape\n    out = torch.empty_like(x)\n\n    BLOCK_SIZE = triton.next_power_of_2(width)\n    if BLOCK_SIZE > 4096:\n        BLOCK_SIZE = 4096\n\n    grid = (rows,)\n    _rmsnorm_kernel[grid](\n        x,\n        out,\n        weight,\n        width,\n        width,\n        1e-6,\n        BLOCK_SIZE=BLOCK_SIZE,\n        DTYPE=x.dtype,\n    )\n    return out\n",
+        "reply": "{\"draft\":\"RMSNorm kernel: one program per row. Load x in FP32, compute mean of squares over width (masked), rstd=rsqrt(mean+eps). Normalize, cast to input dtype, multiply by weight, store. Handle odd widths via masking.\",\"plan\":\"Grid=(rows,). Kernel loops over width in BLOCK_SIZE chunks. Accumulate sum of squares in FP32. Compute rstd. Second loop: load x, normalize, cast to dtype, multiply weight, store. Host allocates output, launches kernel.\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def _rmsnorm_kernel(\",\"    X,\",\"    Y,\",\"    W,\",\"    stride,\",\"    N,\",\"    eps,\",\"    BLOCK_SIZE: tl.constexpr,\",\"    DTYPE: tl.constexpr,\",\"):\",\"    row = tl.program_id(0)\",\"    X += row * stride\",\"    Y += row * stride\",\"\",\"    # Compute sum of squares in FP32\",\"    _sum_sq = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\",\"    for off in range(0, N, BLOCK_SIZE):\",\"        cols = off + tl.arange(0, BLOCK_SIZE)\",\"        mask = cols < N\",\"        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\"        _sum_sq += a * a\",\"    sum_sq = tl.sum(_sum_sq, axis=0)\",\"    mean_sq = sum_sq / N\",\"    rstd = 1.0 / tl.sqrt(mean_sq + eps)\",\"\",\"    # Normalize, cast to input dtype, multiply by weight, store\",\"    for off in range(0, N, BLOCK_SIZE):\",\"        cols = off + tl.arange(0, BLOCK_SIZE)\",\"        mask = cols < N\",\"        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\"        x_hat = x * rstd\",\"        x_hat = x_hat.to(DTYPE)\",\"        w = tl.load(W + cols, mask=mask)\",\"        y = w * x_hat\",\"        tl.store(Y + cols, y, mask=mask)\",\"\",\"\",\"def run(x, weight):\",\"    rows, width = x.shape\",\"    out = torch.empty_like(x)\",\"\",\"    BLOCK_SIZE = triton.next_power_of_2(width)\",\"    if BLOCK_SIZE > 4096:\",\"        BLOCK_SIZE = 4096\",\"\",\"    grid = (rows,)\",\"    _rmsnorm_kernel[grid](\",\"        x,\",\"        out,\",\"        weight,\",\"        width,\",\"        width,\",\"        1e-6,\",\"        BLOCK_SIZE=BLOCK_SIZE,\",\"        DTYPE=x.dtype,\",\"    )\",\"    return out\"]}",
+        "request_id": "initial-baseline",
+        "source_sha256": "911c39ebea1e77536d8b7005af79793844af5c5d3af5e0bee7b53afcfdcc1558"
+      },
+      "parent_generation": "baseline"
+    },
+    {
+      "id": "layer_norm-s20261101-contract",
+      "task_id": "layer_norm",
+      "source_path": "results/repair-study/blocks/layer_norm-s20261101/candidates/2302d3d7a5ee677f0f5bbcdb7c05b5d407aad5de87456af406c68c82e8d41a56.py",
+      "source_sha256": "2302d3d7a5ee677f0f5bbcdb7c05b5d407aad5de87456af406c68c82e8d41a56",
+      "initial": {
+        "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _layer_norm_kernel(\n    X,\n    Y,\n    W,\n    B,\n    stride_x,\n    stride_y,\n    N,\n    eps,\n    BLOCK_SIZE: tl.constexpr,\n    OUT_DTYPE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    x_ptr = X + row * stride_x\n    y_ptr = Y + row * stride_y\n    cols = tl.arange(0, BLOCK_SIZE)\n    mask = cols < N\n    x = tl.load(x_ptr + cols, mask=mask, other=0.0).to(tl.float32)\n    w = tl.load(W + cols, mask=mask, other=0.0).to(tl.float32)\n    b = tl.load(B + cols, mask=mask, other=0.0).to(tl.float32)\n    mean = tl.sum(x, axis=0) / N\n    centered = tl.where(mask, x - mean, 0.0)\n    var = tl.sum(centered * centered, axis=0) / N\n    rstd = 1.0 / tl.sqrt(var + eps)\n    y = centered * rstd * w + b\n    tl.store(y_ptr + cols, y.to(OUT_DTYPE), mask=mask)\n\n\ndef run(x, weight, bias):\n    assert x.is_cuda and x.dim() == 2\n    R, W = x.shape\n    out = torch.empty_like(x)\n    BLOCK_SIZE = triton.next_power_of_2(W)\n    grid = (R,)\n    _layer_norm_kernel[grid](\n        x, out, weight, bias,\n        x.stride(0), out.stride(0),\n        W, 1e-5,\n        BLOCK_SIZE=BLOCK_SIZE,\n        OUT_DTYPE=x.dtype,\n    )\n    return out\n",
+        "draft": "Output shape (R,W) contiguous. Row r, col c: out[r,c]=x[r,c] at flat r*W+c. Check R=3,W=5: (0,4)->4; (2,0)->10. Kernel: one program per row. Load x row to fp32, mean=sum/W, var=sum((x-mean)^2)/W, rstd=rsqrt(var+1e-5). y=(x-mean)*rstd*w+b. Store cast to x.dtype. Mask cols<W with other=0.",
+        "evaluation": {
+          "checks_passed": 0,
+          "cooperative_queue": {
+            "lock_file": "/data/home/chenyizhou/kernel-agent-repair-experiment-v2/gpu4.lock",
+            "pid": 2423095,
+            "scope": "serializes this project's workers only",
+            "wait_seconds": 4.420056939125061e-05
+          },
+          "device_audit": {
+            "device_count": 1,
+            "device_index": 0,
+            "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+          },
+          "device_binding": {
+            "actual": {
+              "device_count": 1,
+              "device_index": 0,
+              "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+            },
+            "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "expected_gpu_index": 4,
+            "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "verified": true
+          },
+          "dtype": "torch.float32",
+          "measurement_condition": "shared_observed",
+          "message": "at 26:27:\n    y_ptr = Y + row * stride_y\n    cols = tl.arange(0, BLOCK_SIZE)\n    mask = cols < N\n    x = tl.load(x_ptr + cols, mask=mask, other=0.0).to(tl.float32)\n    w = tl.load(W + cols, mask=mask, other=0.0).to(tl.float32)\n    b = tl.load(B + cols, mask=mask, other=0.0).to(tl.float32)\n    mean = tl.sum(x, axis=0) / N\n    centered = tl.where(mask, x - mean, 0.0)\n    var = tl.sum(centered * centered, axis=0) / N\n    rstd = 1.0 / tl.sqrt(var + eps)\n    y = centered * rstd * w + b\n    tl.store(y_ptr + cols, y.to(OUT_DTYPE), mask=mask)\n                           ^",
+          "resource_audit": {
+            "after": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:25:41.790411+00:00",
+              "pids": [],
+              "power_watts": 59.28,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 4
+            },
+            "before": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:25:39.162935+00:00",
+              "pids": [],
+              "power_watts": 25.0,
+              "sm_clock_mhz": 210,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "gpu_index": 4,
+            "minimum_free_mib": 1024,
+            "policy": "shared_observed",
+            "sample_period_seconds": 0.5,
+            "samples": [
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:25:39.726453+00:00",
+                "pids": [],
+                "power_watts": 25.0,
+                "sm_clock_mhz": 210,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:25:40.285238+00:00",
+                "pids": [],
+                "power_watts": 24.97,
+                "sm_clock_mhz": 210,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23809,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:25:40.859152+00:00",
+                "pids": [
+                  2423099
+                ],
+                "power_watts": 24.75,
+                "sm_clock_mhz": 2520,
+                "used_mib": 403,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:25:41.426325+00:00",
+                "pids": [
+                  2423099
+                ],
+                "power_watts": 41.65,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              }
+            ],
+            "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim"
+          },
+          "shape": [
+            1,
+            1
+          ],
+          "status": "compile_error",
+          "traceback": "ent call last):\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/language/core.py\", line 35, in wrapper\n    return fn(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/language/core.py\", line 999, in to\n    return semantic.cast(self, dtype, _builder, fp_downcast_rounding)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/language/semantic.py\", line 839, in cast\n    dst_ty = tl.block_type(dst_ty.scalar, input.type.get_block_shapes())\n                           ^^^^^^^^^^^^^\nAttributeError: 'torch.dtype' object has no attribute 'scalar'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/data/home/chenyizhou/kernel-agent-repair-source-v2/scripts/evaluate_candidate.py\", line 125, in main\n    actual = module.run(*args)\n             ^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kernel-agent-repair-experiment-v2/blocks/layer_norm-s20261101/candidates/2302d3d7a5ee677f0f5bbcdb7c05b5d407aad5de87456af406c68c82e8d41a56.py\", line 41, in run\n    _layer_norm_kernel[grid](\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/runtime/jit.py\", line 330, in <lambda>\n    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)\n                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/runtime/jit.py\", line 623, in run\n    kernel = self.compile(\n             ^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/compiler/compiler.py\", line 273, in compile\n    module = src.make_ir(options, codegen_fns, module_map, context)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/data/home/chenyizhou/kda-humanize-portfolio/.venv/lib/python3.12/site-packages/triton/compiler/compiler.py\", line 100, in make_ir\n    return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntriton.compiler.errors.CompilationError: at 26:27:\n    y_ptr = Y + row * stride_y\n    cols = tl.arange(0, BLOCK_SIZE)\n    mask = cols < N\n    x = tl.load(x_ptr + cols, mask=mask, other=0.0).to(tl.float32)\n    w = tl.load(W + cols, mask=mask, other=0.0).to(tl.float32)\n    b = tl.load(B + cols, mask=mask, other=0.0).to(tl.float32)\n    mean = tl.sum(x, axis=0) / N\n    centered = tl.where(mask, x - mean, 0.0)\n    var = tl.sum(centered * centered, axis=0) / N\n    rstd = 1.0 / tl.sqrt(var + eps)\n    y = centered * rstd * w + b\n    tl.store(y_ptr + cols, y.to(OUT_DTYPE), mask=mask)\n                           ^\n"
+        },
+        "parent_sha256": null,
+        "plan": "Padded cols masked (other=0) so sums use actual W. BLOCK=next_pow2(W). Load x, w, b with mask. Compute mean/var in fp32. Apply affine, cast to x.dtype on store. Allocate out=torch.empty_like(x). Grid=(R,). Pass W as constexpr. No input mutation.",
+        "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _layer_norm_kernel(\n    X,\n    Y,\n    W,\n    B,\n    stride_x,\n    stride_y,\n    N,\n    eps,\n    BLOCK_SIZE: tl.constexpr,\n    OUT_DTYPE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    x_ptr = X + row * stride_x\n    y_ptr = Y + row * stride_y\n    cols = tl.arange(0, BLOCK_SIZE)\n    mask = cols < N\n    x = tl.load(x_ptr + cols, mask=mask, other=0.0).to(tl.float32)\n    w = tl.load(W + cols, mask=mask, other=0.0).to(tl.float32)\n    b = tl.load(B + cols, mask=mask, other=0.0).to(tl.float32)\n    mean = tl.sum(x, axis=0) / N\n    centered = tl.where(mask, x - mean, 0.0)\n    var = tl.sum(centered * centered, axis=0) / N\n    rstd = 1.0 / tl.sqrt(var + eps)\n    y = centered * rstd * w + b\n    tl.store(y_ptr + cols, y.to(OUT_DTYPE), mask=mask)\n\n\ndef run(x, weight, bias):\n    assert x.is_cuda and x.dim() == 2\n    R, W = x.shape\n    out = torch.empty_like(x)\n    BLOCK_SIZE = triton.next_power_of_2(W)\n    grid = (R,)\n    _layer_norm_kernel[grid](\n        x, out, weight, bias,\n        x.stride(0), out.stride(0),\n        W, 1e-5,\n        BLOCK_SIZE=BLOCK_SIZE,\n        OUT_DTYPE=x.dtype,\n    )\n    return out\n",
+        "reply": "{\"draft\":\"Output shape (R,W) contiguous. Row r, col c: out[r,c]=x[r,c] at flat r*W+c. Check R=3,W=5: (0,4)->4; (2,0)->10. Kernel: one program per row. Load x row to fp32, mean=sum/W, var=sum((x-mean)^2)/W, rstd=rsqrt(var+1e-5). y=(x-mean)*rstd*w+b. Store cast to x.dtype. Mask cols<W with other=0.\",\"plan\":\"Padded cols masked (other=0) so sums use actual W. BLOCK=next_pow2(W). Load x, w, b with mask. Compute mean/var in fp32. Apply affine, cast to x.dtype on store. Allocate out=torch.empty_like(x). Grid=(R,). Pass W as constexpr. No input mutation.\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def _layer_norm_kernel(\",\"    X,\",\"    Y,\",\"    W,\",\"    B,\",\"    stride_x,\",\"    stride_y,\",\"    N,\",\"    eps,\",\"    BLOCK_SIZE: tl.constexpr,\",\"    OUT_DTYPE: tl.constexpr,\",\"):\",\"    row = tl.program_id(0)\",\"    x_ptr = X + row * stride_x\",\"    y_ptr = Y + row * stride_y\",\"    cols = tl.arange(0, BLOCK_SIZE)\",\"    mask = cols < N\",\"    x = tl.load(x_ptr + cols, mask=mask, other=0.0).to(tl.float32)\",\"    w = tl.load(W + cols, mask=mask, other=0.0).to(tl.float32)\",\"    b = tl.load(B + cols, mask=mask, other=0.0).to(tl.float32)\",\"    mean = tl.sum(x, axis=0) / N\",\"    centered = tl.where(mask, x - mean, 0.0)\",\"    var = tl.sum(centered * centered, axis=0) / N\",\"    rstd = 1.0 / tl.sqrt(var + eps)\",\"    y = centered * rstd * w + b\",\"    tl.store(y_ptr + cols, y.to(OUT_DTYPE), mask=mask)\",\"\",\"\",\"def run(x, weight, bias):\",\"    assert x.is_cuda and x.dim() == 2\",\"    R, W = x.shape\",\"    out = torch.empty_like(x)\",\"    BLOCK_SIZE = triton.next_power_of_2(W)\",\"    grid = (R,)\",\"    _layer_norm_kernel[grid](\",\"        x, out, weight, bias,\",\"        x.stride(0), out.stride(0),\",\"        W, 1e-5,\",\"        BLOCK_SIZE=BLOCK_SIZE,\",\"        OUT_DTYPE=x.dtype,\",\"    )\",\"    return out\"]}",
+        "request_id": "initial-contract",
+        "source_sha256": "2302d3d7a5ee677f0f5bbcdb7c05b5d407aad5de87456af406c68c82e8d41a56"
+      },
+      "parent_generation": "contract"
+    },
+    {
+      "id": "transpose-s20261101-contract",
+      "task_id": "transpose",
+      "source_path": "results/repair-study/blocks/transpose-s20261101/candidates/1bdd6c03d80a1c0b56d3612ee229440739cce5ed59aaf0017d147830e666252b.py",
+      "source_sha256": "1bdd6c03d80a1c0b56d3612ee229440739cce5ed59aaf0017d147830e666252b",
+      "initial": {
+        "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef transpose_kernel(x_ptr, y_ptr, M, N,\n                     BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask_2d = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * M + offs_n[None, :]\n    x = tl.load(x_ptrs, mask=mask_2d, other=0.0)\n    y_ptrs = y_ptr + offs_n[:, None] * N + offs_m[None, :]\n    tl.store(y_ptrs, x, mask=mask_2d)\n    \n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    y = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    transpose_kernel[grid](x, y, M, N, BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N)\n    return y\n",
+        "draft": "Output shape (N,M) with strides (1,M). Output (i,j) maps to input (j,i). Flat offsets: out=i*M+j, in=j*M+i. Check 3x5: out(2,4)=14 -> in(4,2)=22. Padded loads use other=0; stores masked. Allocate fresh contiguous output.",
+        "evaluation": {
+          "checks_passed": 2,
+          "cooperative_queue": {
+            "lock_file": "/data/home/chenyizhou/kernel-agent-repair-experiment-v2/gpu4.lock",
+            "pid": 2434737,
+            "scope": "serializes this project's workers only",
+            "wait_seconds": 4.918500781059265e-05
+          },
+          "counterexample": {
+            "actual": {
+              "dtype": "torch.float32",
+              "shape": [
+                3,
+                2
+              ],
+              "stride": [
+                2,
+                1
+              ],
+              "values": [
+                0.3333333432674408,
+                0.6666666865348816,
+                1.0,
+                1.0,
+                1.3333333730697632,
+                1.6666667461395264
+              ],
+              "values_truncated": false
+            },
+            "expected": {
+              "dtype": "torch.float32",
+              "shape": [
+                3,
+                2
+              ],
+              "stride": [
+                2,
+                1
+              ],
+              "values": [
+                0.3333333432674408,
+                1.3333333730697632,
+                0.6666666865348816,
+                1.6666667461395264,
+                1.0,
+                2.0
+              ],
+              "values_truncated": false
+            },
+            "inputs": [
+              {
+                "dtype": "torch.float32",
+                "shape": [
+                  2,
+                  3
+                ],
+                "stride": [
+                  3,
+                  1
+                ],
+                "values": [
+                  0.3333333432674408,
+                  0.6666666865348816,
+                  1.0,
+                  1.3333333730697632,
+                  1.6666667461395264,
+                  2.0
+                ],
+                "values_truncated": false
+              }
+            ],
+            "phase": "search_only"
+          },
+          "device_audit": {
+            "device_count": 1,
+            "device_index": 0,
+            "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+          },
+          "device_binding": {
+            "actual": {
+              "device_count": 1,
+              "device_index": 0,
+              "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+            },
+            "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "expected_gpu_index": 4,
+            "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "verified": true
+          },
+          "dtype": "torch.float32",
+          "measurement_condition": "shared_observed",
+          "message": "Tensor-likes are not close!\n\nMismatched elements: 96 / 99 (97.0%)\nGreatest absolute difference: 4.74174690246582 at index (2, 1) (up to 2e-05 allowed)\nGreatest relative difference: 36.84783172607422 at index (22, 1) (up to 0.0002 allowed)",
+          "resource_audit": {
+            "after": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:35:50.066718+00:00",
+              "pids": [],
+              "power_watts": 64.22,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "before": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:35:46.980763+00:00",
+              "pids": [],
+              "power_watts": 24.87,
+              "sm_clock_mhz": 210,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "gpu_index": 4,
+            "minimum_free_mib": 1024,
+            "policy": "shared_observed",
+            "sample_period_seconds": 0.5,
+            "samples": [
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:35:47.541109+00:00",
+                "pids": [],
+                "power_watts": 24.95,
+                "sm_clock_mhz": 210,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:35:48.108789+00:00",
+                "pids": [],
+                "power_watts": 24.95,
+                "sm_clock_mhz": 210,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:35:48.679037+00:00",
+                "pids": [
+                  2434741
+                ],
+                "power_watts": 26.69,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:35:49.244792+00:00",
+                "pids": [
+                  2434741
+                ],
+                "power_watts": 37.08,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:35:49.814906+00:00",
+                "pids": [
+                  2434741
+                ],
+                "power_watts": 64.21,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              }
+            ],
+            "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim"
+          },
+          "scale": 1.0,
+          "shape": [
+            3,
+            33
+          ],
+          "status": "numeric_error"
+        },
+        "parent_sha256": null,
+        "plan": "Use 2D grid over M,N. Load BLOCKxBLOCK tile from x with row/col masks, store transposed to y. Cast handled by pointer dtype. Allocate torch.empty((N,M), dtype=x.dtype, device=x.device). Launch with triton.cdiv grid. No torch compute.",
+        "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef transpose_kernel(x_ptr, y_ptr, M, N,\n                     BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\n    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask_2d = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * M + offs_n[None, :]\n    x = tl.load(x_ptrs, mask=mask_2d, other=0.0)\n    y_ptrs = y_ptr + offs_n[:, None] * N + offs_m[None, :]\n    tl.store(y_ptrs, x, mask=mask_2d)\n    \n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\n    M, N = x.shape\n    y = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK_M = 32\n    BLOCK_N = 32\n    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\n    transpose_kernel[grid](x, y, M, N, BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N)\n    return y\n",
+        "reply": "{\"draft\":\"Output shape (N,M) with strides (1,M). Output (i,j) maps to input (j,i). Flat offsets: out=i*M+j, in=j*M+i. Check 3x5: out(2,4)=14 -> in(4,2)=22. Padded loads use other=0; stores masked. Allocate fresh contiguous output.\",\"plan\":\"Use 2D grid over M,N. Load BLOCKxBLOCK tile from x with row/col masks, store transposed to y. Cast handled by pointer dtype. Allocate torch.empty((N,M), dtype=x.dtype, device=x.device). Launch with triton.cdiv grid. No torch compute.\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def transpose_kernel(x_ptr, y_ptr, M, N,\",\"                     BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr):\",\"    pid_m = tl.program_id(axis=0)\",\"    pid_n = tl.program_id(axis=1)\",\"    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)\",\"    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)\",\"    mask_m = offs_m < M\",\"    mask_n = offs_n < N\",\"    mask_2d = mask_m[:, None] & mask_n[None, :]\",\"    x_ptrs = x_ptr + offs_m[:, None] * M + offs_n[None, :]\",\"    x = tl.load(x_ptrs, mask=mask_2d, other=0.0)\",\"    y_ptrs = y_ptr + offs_n[:, None] * N + offs_m[None, :]\",\"    tl.store(y_ptrs, x, mask=mask_2d)\",\"    \",\"\",\"def run(x: torch.Tensor) -> torch.Tensor:\",\"    assert x.is_cuda and x.dim() == 2 and x.is_contiguous()\",\"    M, N = x.shape\",\"    y = torch.empty((N, M), dtype=x.dtype, device=x.device)\",\"    BLOCK_M = 32\",\"    BLOCK_N = 32\",\"    grid = (triton.cdiv(M, BLOCK_M), triton.cdiv(N, BLOCK_N))\",\"    transpose_kernel[grid](x, y, M, N, BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N)\",\"    return y\"]}",
+        "request_id": "initial-contract",
+        "source_sha256": "1bdd6c03d80a1c0b56d3612ee229440739cce5ed59aaf0017d147830e666252b"
+      },
+      "parent_generation": "contract"
+    },
+    {
+      "id": "transpose-s20261102-contract",
+      "task_id": "transpose",
+      "source_path": "results/repair-study/blocks/transpose-s20261102/candidates/3d9cd0695dd96f47e0cb2c40cf580016bc787246ce377fcdd264f99cd2c68fe6.py",
+      "source_sha256": "3d9cd0695dd96f47e0cb2c40cf580016bc787246ce377fcdd264f99cd2c68fe6",
+      "initial": {
+        "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef transpose_kernel(x_ptr, out_ptr, M, N, BLOCK: tl.constexpr):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK + tl.arange(0, BLOCK)\n    offs_n = pid_n * BLOCK + tl.arange(0, BLOCK)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * N + offs_n[None, :]\n    x = tl.load(x_ptrs, mask=mask)\n    out_ptrs = out_ptr + offs_n[:, None] * M + offs_m[None, :]\n    tl.store(out_ptrs, x, mask=mask)\n    \n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK = 32\n    grid = (triton.cdiv(M, BLOCK), triton.cdiv(N, BLOCK))\n    transpose_kernel[grid](x, out, M, N, BLOCK=BLOCK)\n    return out\n",
+        "draft": "Output shape (N,M) with strides (1,N). Output (i,j) maps to input (j,i). Flat offsets: out=i*N+j, in=j*M+i. Check 3x5: out(2,4)=14 -> in(4,2)=14. out(0,0)=0 -> in(0,0)=0. Edge out(2,0)=10 -> in(0,2)=2. Padded blocks use mask to avoid OOB. BLOCK=32. Dtype preserved via pointer types.",
+        "evaluation": {
+          "checks_passed": 2,
+          "cooperative_queue": {
+            "lock_file": "/data/home/chenyizhou/kernel-agent-repair-experiment-v2/gpu4.lock",
+            "pid": 2447749,
+            "scope": "serializes this project's workers only",
+            "wait_seconds": 7.466077707707882
+          },
+          "counterexample": {
+            "actual": {
+              "dtype": "torch.float32",
+              "shape": [
+                3,
+                2
+              ],
+              "stride": [
+                2,
+                1
+              ],
+              "values": [
+                0.3333333432674408,
+                0.6666666865348816,
+                1.3333333730697632,
+                1.6666667461395264,
+                2.0,
+                2.0
+              ],
+              "values_truncated": false
+            },
+            "expected": {
+              "dtype": "torch.float32",
+              "shape": [
+                3,
+                2
+              ],
+              "stride": [
+                2,
+                1
+              ],
+              "values": [
+                0.3333333432674408,
+                1.3333333730697632,
+                0.6666666865348816,
+                1.6666667461395264,
+                1.0,
+                2.0
+              ],
+              "values_truncated": false
+            },
+            "inputs": [
+              {
+                "dtype": "torch.float32",
+                "shape": [
+                  2,
+                  3
+                ],
+                "stride": [
+                  3,
+                  1
+                ],
+                "values": [
+                  0.3333333432674408,
+                  0.6666666865348816,
+                  1.0,
+                  1.3333333730697632,
+                  1.6666667461395264,
+                  2.0
+                ],
+                "values_truncated": false
+              }
+            ],
+            "phase": "search_only"
+          },
+          "device_audit": {
+            "device_count": 1,
+            "device_index": 0,
+            "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+          },
+          "device_binding": {
+            "actual": {
+              "device_count": 1,
+              "device_index": 0,
+              "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+            },
+            "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "expected_gpu_index": 4,
+            "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+            "verified": true
+          },
+          "dtype": "torch.float32",
+          "measurement_condition": "shared_observed",
+          "message": "Tensor-likes are not close!\n\nMismatched elements: 96 / 99 (97.0%)\nGreatest absolute difference: 4.893213748931885 at index (1, 2) (up to 2e-05 allowed)\nGreatest relative difference: 7.502099514007568 at index (8, 0) (up to 0.0002 allowed)",
+          "resource_audit": {
+            "after": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:47:03.712228+00:00",
+              "pids": [],
+              "power_watts": 64.54,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "before": {
+              "free_mib": 24199,
+              "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+              "observed_utc": "2026-10-15T13:47:00.626087+00:00",
+              "pids": [],
+              "power_watts": 64.75,
+              "sm_clock_mhz": 2520,
+              "used_mib": 12,
+              "utilization_percent": 0
+            },
+            "gpu_index": 4,
+            "minimum_free_mib": 1024,
+            "policy": "shared_observed",
+            "sample_period_seconds": 0.5,
+            "samples": [
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:47:01.199087+00:00",
+                "pids": [],
+                "power_watts": 64.58,
+                "sm_clock_mhz": 2520,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 24199,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:47:01.759394+00:00",
+                "pids": [],
+                "power_watts": 64.29,
+                "sm_clock_mhz": 2520,
+                "used_mib": 12,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23805,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:47:02.331676+00:00",
+                "pids": [
+                  2448003
+                ],
+                "power_watts": 57.17,
+                "sm_clock_mhz": 2520,
+                "used_mib": 407,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:47:02.901248+00:00",
+                "pids": [
+                  2448003
+                ],
+                "power_watts": 56.35,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              },
+              {
+                "free_mib": 23745,
+                "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+                "observed_utc": "2026-10-15T13:47:03.469461+00:00",
+                "pids": [
+                  2448003
+                ],
+                "power_watts": 64.43,
+                "sm_clock_mhz": 2520,
+                "used_mib": 467,
+                "utilization_percent": 0
+              }
+            ],
+            "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim"
+          },
+          "scale": 1.0,
+          "shape": [
+            3,
+            33
+          ],
+          "status": "numeric_error"
+        },
+        "parent_sha256": null,
+        "plan": "Allocate fresh contiguous output via torch.empty. Launch 2D grid over M and N with BLOCK=32. Mask both row and col offsets against actual sizes. Load input tile, store transposed to output. No dtype cast needed; pointers encode dtype. Neutral values masked out. Verify strides and coordinate mapping for odd sizes.",
+        "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef transpose_kernel(x_ptr, out_ptr, M, N, BLOCK: tl.constexpr):\n    pid_m = tl.program_id(axis=0)\n    pid_n = tl.program_id(axis=1)\n    offs_m = pid_m * BLOCK + tl.arange(0, BLOCK)\n    offs_n = pid_n * BLOCK + tl.arange(0, BLOCK)\n    mask_m = offs_m < M\n    mask_n = offs_n < N\n    mask = mask_m[:, None] & mask_n[None, :]\n    x_ptrs = x_ptr + offs_m[:, None] * N + offs_n[None, :]\n    x = tl.load(x_ptrs, mask=mask)\n    out_ptrs = out_ptr + offs_n[:, None] * M + offs_m[None, :]\n    tl.store(out_ptrs, x, mask=mask)\n    \n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda and x.dim() == 2\n    M, N = x.shape\n    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\n    BLOCK = 32\n    grid = (triton.cdiv(M, BLOCK), triton.cdiv(N, BLOCK))\n    transpose_kernel[grid](x, out, M, N, BLOCK=BLOCK)\n    return out\n",
+        "reply": "{\"draft\":\"Output shape (N,M) with strides (1,N). Output (i,j) maps to input (j,i). Flat offsets: out=i*N+j, in=j*M+i. Check 3x5: out(2,4)=14 -> in(4,2)=14. out(0,0)=0 -> in(0,0)=0. Edge out(2,0)=10 -> in(0,2)=2. Padded blocks use mask to avoid OOB. BLOCK=32. Dtype preserved via pointer types.\",\"plan\":\"Allocate fresh contiguous output via torch.empty. Launch 2D grid over M and N with BLOCK=32. Mask both row and col offsets against actual sizes. Load input tile, store transposed to output. No dtype cast needed; pointers encode dtype. Neutral values masked out. Verify strides and coordinate mapping for odd sizes.\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def transpose_kernel(x_ptr, out_ptr, M, N, BLOCK: tl.constexpr):\",\"    pid_m = tl.program_id(axis=0)\",\"    pid_n = tl.program_id(axis=1)\",\"    offs_m = pid_m * BLOCK + tl.arange(0, BLOCK)\",\"    offs_n = pid_n * BLOCK + tl.arange(0, BLOCK)\",\"    mask_m = offs_m < M\",\"    mask_n = offs_n < N\",\"    mask = mask_m[:, None] & mask_n[None, :]\",\"    x_ptrs = x_ptr + offs_m[:, None] * N + offs_n[None, :]\",\"    x = tl.load(x_ptrs, mask=mask)\",\"    out_ptrs = out_ptr + offs_n[:, None] * M + offs_m[None, :]\",\"    tl.store(out_ptrs, x, mask=mask)\",\"    \",\"\",\"def run(x: torch.Tensor) -> torch.Tensor:\",\"    assert x.is_cuda and x.dim() == 2\",\"    M, N = x.shape\",\"    out = torch.empty((N, M), dtype=x.dtype, device=x.device)\",\"    BLOCK = 32\",\"    grid = (triton.cdiv(M, BLOCK), triton.cdiv(N, BLOCK))\",\"    transpose_kernel[grid](x, out, M, N, BLOCK=BLOCK)\",\"    return out\"]}",
+        "request_id": "initial-contract",
+        "source_sha256": "3d9cd0695dd96f47e0cb2c40cf580016bc787246ce377fcdd264f99cd2c68fe6"
+      },
+      "parent_generation": "contract"
+    }
+  ]
+}

@@ -507,6 +507,19 @@ def check_repair(root):
             "independent_gpu_windows", "peak_gpu_windows", "shared_initial_binding_verified", "final_selection_binding_verified")}
 
 
+def check_semantic(root):
+    folder = root / "results/semantic-study"
+    if not (folder / "summary.json").exists():
+        return None
+    from scripts.summarize_semantic import analyze
+    actual = analyze(folder)
+    require(actual == json.loads((folder / "summary.json").read_text()), "semantic report differs from evidence")
+    return {k: actual[k] for k in ("status", "scheduled", "resolved", "strata", "dispatched_requests",
+            "request_statuses", "reported_output_tokens", "peak_model_ports", "independent_gpu_windows",
+            "peak_gpu_windows", "shared_initial_and_review_verified", "policy_request_binding_verified",
+            "final_selection_binding_verified")}
+
+
 def verify(root=ROOT):
     raw = root / "results/agent-selector-validation.json"
     study = json.loads(raw.read_text())
@@ -547,6 +560,7 @@ def verify(root=ROOT):
             "phased_recovery": check_phased(root),
             "service_pool": check_pool(root),
             "repair_framework_study": check_repair(root),
+            "semantic_repair_study": check_semantic(root),
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

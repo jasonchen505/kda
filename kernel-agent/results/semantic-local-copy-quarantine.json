@@ -1,0 +1,20 @@
+{
+  "created_utc": "2026-10-15T18:17:46.131149+00:00",
+  "scope": "Two unrecognized byte-identical local copies had no model request receipt identity. Moved reversibly outside the evidence corpus; authoritative receipts unchanged. No model action, retry or outcome replacement.",
+  "copies": [
+    {
+      "local_extra": "results/semantic-study/blocks/fresh-layer_norm-s20261113/requests/critic-r2.request 2.json",
+      "canonical": "results/semantic-study/blocks/fresh-layer_norm-s20261113/requests/critic-r2.request.json",
+      "sha256": "0afd6ee3d9e94006debd808dafdfdf22d5a1706a21bb648990bcdee5eda8d285",
+      "byte_identical": true,
+      "quarantined_relative_to_publication": "semantic-local-extra-copies/blocks/fresh-layer_norm-s20261113/requests/critic-r2.request 2.json"
+    },
+    {
+      "local_extra": "results/semantic-study/blocks/fresh-rmsnorm-s20261113/requests/initial.response 2.json",
+      "canonical": "results/semantic-study/blocks/fresh-rmsnorm-s20261113/requests/initial.response.json",
+      "sha256": "45743728d01f23ab73dae01714905ca30611c5b68ae0462e436e0734bc9b5710",
+      "byte_identical": true,
+      "quarantined_relative_to_publication": "semantic-local-extra-copies/blocks/fresh-rmsnorm-s20261113/requests/initial.response 2.json"
+    }
+  ]
+}

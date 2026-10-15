@@ -1,0 +1,11 @@
+{
+  "created_utc": "2026-10-15T18:19:17.713073+00:00",
+  "scope": "Analysis/presentation only: canonical ordering of identical timeline records across filesystems. No model calls, outcome replacement, numeric/interval change, generation/controller/evaluator policy edit.",
+  "changed_file": "scripts/summarize_semantic.py",
+  "executed_sha256": "a16d3ca8b32f67ac06852a1e1d0366f63b2033194f9bbee358cb6d35a701671b",
+  "corrected_sha256": "9993aa8ccf23b61de3767970ec9b9f3b5d83f481f108dafbb2f1cc990dfe4df7",
+  "original_summary_sha256": "4dba9c622ee91d7f0175e25eaf81c812d5fa23bfe4d0aa9801b748723d36b8f9",
+  "timeline_records": 236,
+  "all_other_summary_fields_identical": true,
+  "regression_test": "Complete22block fake pipeline re-audited with reversed Path.glob order; same summary required."
+}

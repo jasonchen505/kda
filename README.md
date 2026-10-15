@@ -23,7 +23,11 @@ handwritten kernels as agent successes. The original KDA documentation is preser
 - [GPU4 execution, interference qualification and guarded plan](kernel-agent/docs/multiseed-execution.md)
 - [Why GPU sharing and performance measurement differ](kernel-agent/docs/gpu-sharing-policy.md)
 - [Online feedback with durable finalization](kernel-agent/docs/phased-study-plan.md)
-- [Generation and counterexample repair design](kernel-agent/docs/repair-study-plan.md)
+- [Grounded semantic repair: design](kernel-agent/docs/semantic-study-plan.md)
+- [Latest three-arm results and limits](kernel-agent/docs/semantic-study-results.zh.md)
+- [Failure analysis](kernel-agent/docs/semantic-failure-analysis.zh.md)
+- [Semantic-study reproduction](kernel-agent/docs/semantic-reproduction.md)
+- [Preceding generation and counterexample repair design](kernel-agent/docs/repair-study-plan.md)
 - [Three-service execution results](kernel-agent/docs/service-pool-results.zh.md)
 - [Recorded endpoint restart and handoff](kernel-agent/docs/service-pool-handoff.md)
 
@@ -42,35 +46,39 @@ The review path above checks published evidence and controller mechanisms on a C
 
 ## Result and scope
 
-The latest agent-policy study completed **64/64 factorial arm outcomes** on eight task
-families and two seeds. First-proposal search correctness is **12/16** for ordinary
-KDA prompting and **11/16** for a contract checklist. Full contract+counterexample
-configuration is **13/16 final-correct**, versus **15/16** for ordinary generation
-and repair. Shared-failure fully observed pairs: 8, with 5 ordinary versus 5
-counterexample rescues. See [results and uncertainty](kernel-agent/docs/repair-study-results.zh.md).
+The latest iteration adds an independent semantic reviewer and a bounded AST interpreter
+that checks expressions against trusted asymmetric FP32 probes. The grounded writer sees
+verified expressions and factual traces, with unverified narratives filtered. Its three-arm,
+22-block study resolves all **66 outcomes**, with **115 actual model dispatches**:
 
-**Decision: keep ordinary generation and repair as the recommendation.** The new policies remain experimental: contract prompting observed lower correctness, and diagnostic repair did not improve paired rescues. This is a completed negative result, not a demonstrated accuracy improvement. One GPU-monitor failure affects the primary denominator; the 15 fully observed blocks give 15/15 baseline versus 12/15 combined. The zero-width observed repair interval is not an equivalence test.
+| Separate stratum | Two rewrites | Raw reviewer + writer | Grounded reviewer + writer |
+|---|---:|---:|---:|
+| Known-failure regression (7 parents, 2 seeds, 5 families) | 7/14 | 7/14 | 7/14 |
+| Fresh starts (8 existing families, 1 seed) | 7/8 | 7/8 | 7/8 |
 
-The controller adds contract/index/cast reasoning, tiny independent search witnesses,
-failed-source memory and a correct-source anchor. The two repair arms import exactly
-the same initial source and verdict, each with two further opportunities. Actual model
-calls: **152/160**, not 64×3. All final selections commit before final-data access.
-No generated kernel is manually patched.
+All entries are final-correct counts. Each arm has two extra model opportunities; the last
+two arms share the exact review, and get one new kernel rather than two. Strata and paired
+cluster intervals remain separate. Mathematical agreement does not prove API or layout
+correctness. Keep ordinary generation/repair as the default; semantic variants remain
+experimental. See [results and uncertainty](kernel-agent/docs/semantic-study-results.zh.md).
 
-The common native Chat backend removes auxiliary title calls. Dynamic Qwen discovery,
-idle admission and latency-EWMA work allocation cover 3 GPU groups. An active
-comparison block binds one model process; unknown calls are never replayed or migrated.
-This is not a causal comparison with old OpenCode latency. The CPU suite passes **159 cases**
-on both pinned SDKs and a fresh locked install, separate from model/GPU results.
+The preceding factorial remains unchanged: contract+diagnostic repair 13/16 final-correct,
+ordinary generation/repair 15/16, 152 calls. Its missing-factor and layout failures motivate
+the new mechanism. All 3700 previously published result/frozen-analysis files retain their
+hashes. No generated kernel is manually patched and negative outcomes are not replaced.
 
-Earlier 24-job pooling, recorded endpoint recovery, fixed-source selector contrast and
-real SIGKILL finalization remain independently auditable. The old guarded 36-job plan
-still has 23 terminal jobs and 13 pending. Eight current families include six developed
-ones and two additions seen in an invalid device pre-run, not a blind external benchmark. Task-cluster
-intervals are exploratory; cached roots' weight equality is unverified; shared kernel
-ratios against torch.compile are not end-to-end LLM acceleration or production safety.
+Three local Qwen services use dynamic discovery, idle admission and latency-EWMA allocation;
+active blocks bind one process, unknown calls are not replayed, and independent GPU4 work
+is cooperatively serialized with physical UUID proof. **176 CPU tests** pass independently
+on both pinned SDKs and a fresh locked install. Their fake-driver mechanism fixtures are
+separate from real model/GPU evidence. No paid model API is used.
 
-![Generation and repair factorial results](kernel-agent/reports/repair-preview.png)
+Earlier pooling, endpoint recovery, selector and SIGKILL experiments retain independent
+denominators. This small regression/fresh evaluation is not a blind external benchmark;
+weight equality across cached roots is unverified. Shared kernel ratios are not isolated
+or end-to-end LLM speedups. The original KDA workflows remain available unchanged.
+
+![Grounded semantic repair results](kernel-agent/reports/semantic-preview.png)
 
 ## License
 

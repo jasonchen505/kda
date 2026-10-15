@@ -1,0 +1,148 @@
+{
+  "created_utc": "2026-10-15T18:21:02.517411+00:00",
+  "recommendation": "ordinary generation + ordinary repair remains the default; semantic review variants remain experimental",
+  "reason": "One small known-failure regression set and one fresh seed do not establish broad generalization. Interpret both paired strata and intervals; no automatic promotion from implementation or a selected successful case.",
+  "outcomes": [
+    {
+      "stratum": "regression",
+      "cells": [
+        {
+          "arm": "rewrite",
+          "scheduled": 14,
+          "resolved": 14,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 12,
+          "rescued_observed": 6
+        },
+        {
+          "arm": "critic",
+          "scheduled": 14,
+          "resolved": 14,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 12,
+          "rescued_observed": 7
+        },
+        {
+          "arm": "grounded",
+          "scheduled": 14,
+          "resolved": 14,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 12,
+          "rescued_observed": 6
+        }
+      ],
+      "contrasts": {
+        "critic_vs_rewrite": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": -0.3,
+            "high": 0.3,
+            "clusters": 5,
+            "resamples": 3125,
+            "weighted_patterns": 126,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        },
+        "grounded_vs_rewrite": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": 0.0,
+            "high": 0.0,
+            "clusters": 5,
+            "resamples": 3125,
+            "weighted_patterns": 126,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        },
+        "grounded_vs_critic": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": -0.3,
+            "high": 0.3,
+            "clusters": 5,
+            "resamples": 3125,
+            "weighted_patterns": 126,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        }
+      }
+    },
+    {
+      "stratum": "fresh",
+      "cells": [
+        {
+          "arm": "rewrite",
+          "scheduled": 8,
+          "resolved": 8,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 2,
+          "rescued_observed": 1
+        },
+        {
+          "arm": "critic",
+          "scheduled": 8,
+          "resolved": 8,
+          "correct": 7,
+          "promoted": 3,
+          "initial_failed_observed": 2,
+          "rescued_observed": 1
+        },
+        {
+          "arm": "grounded",
+          "scheduled": 8,
+          "resolved": 8,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 2,
+          "rescued_observed": 1
+        }
+      ],
+      "contrasts": {
+        "critic_vs_rewrite": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": 0.0,
+            "high": 0.0,
+            "clusters": 8,
+            "resamples": 16777216,
+            "weighted_patterns": 6435,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        },
+        "grounded_vs_rewrite": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": 0.0,
+            "high": 0.0,
+            "clusters": 8,
+            "resamples": 16777216,
+            "weighted_patterns": 6435,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        },
+        "grounded_vs_critic": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": 0.0,
+            "high": 0.0,
+            "clusters": 8,
+            "resamples": 16777216,
+            "weighted_patterns": 6435,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        }
+      }
+    }
+  ],
+  "reference_validated_reviews": 8,
+  "candidate_validated_reviews": 4,
+  "basis": "Frozen prospective protocol; actual paired outcomes, infrastructure retention, machine traces and final vetoes",
+  "previous_negative_study_preserved": true,
+  "new_model_dispatches": 115,
+  "review_shared_between_two_arms": true,
+  "effective_extra_model_opportunities_per_arm": 2
+}

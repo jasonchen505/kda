@@ -1,0 +1,230 @@
+{
+  "created_utc": "2026-10-15T17:36:34.487755+00:00",
+  "scope": "CPU mechanisms, both pinned SDKs, fresh locked installation and offline evidence; no new model or GPU calls",
+  "commands": [
+    {
+      "label": "fresh_install_dependencies",
+      "command": [
+        "uv",
+        "sync",
+        "--extra",
+        "dev",
+        "--frozen"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14\nCreating virtual environment at: .venv\n   Building evidence-kernel-agent @ file:///data/home/chenyizhou/kernel-agent-semantic-review\n      Built evidence-kernel-agent @ file:///data/home/chenyizhou/kernel-agent-semantic-review\nPrepared 1 package in 1.31s\nInstalled 34 packages in 499ms\n + annotated-types==0.8.0\n + certifi==2026.7.22\n + dateparser==1.4.3\n + evidence-kernel-agent==0.1.0 (from file:///data/home/chenyizhou/kernel-agent-semantic-review)\n + hmz==0.0.0 (from git+https://github.com/jasonchen505/humanize.git@d7f732e935100047d0faa5fc7c4d6b03ce350fc7)\n + iniconfig==2.3.1\n + linkify-it-py==2.2.0\n + markdown-it-py==4.2.0\n + mdit-py-plugins==0.6.1\n + mdurl==0.1.2\n + packaging==26.3\n + platformdirs==4.13.0\n + pluggy==1.6.0\n + psutil==7.2.2\n + pydantic==2.14.1\n + pydantic-core==2.50.1\n + pyfiglet==1.0.4\n + pygments==2.21.0\n + pytest==8.4.2\n + python-dateutil==2.9.0.post0\n + pytz==2026.5\n + pyyaml==6.0.3\n + regex==2026.9.29\n + rich==15.0.0\n + ruff==0.16.10\n + semver==3.1.0\n + sentry-sdk==2.72.0\n + six==1.17.0\n + textual==8.2.8\n + tomlkit==0.15.1\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + tzlocal==5.4.4\n + urllib3==2.8.0\n"
+    },
+    {
+      "label": "fresh_install",
+      "command": [
+        "/data/home/chenyizhou/kernel-agent-semantic-review/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stdout": "........................................................................ [ 40%]\n........................................................................ [ 81%]\n................................                                         [100%]\n176 passed in 6.42s\n",
+      "stderr": ""
+    },
+    {
+      "label": "current_sdk",
+      "command": [
+        "/data/home/chenyizhou/kernel-agent/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stdout": "........................................................................ [ 40%]\n........................................................................ [ 81%]\n................................                                         [100%]\n176 passed in 6.19s\n",
+      "stderr": ""
+    },
+    {
+      "label": "archived_sdk",
+      "command": [
+        "/data/home/chenyizhou/humanize/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stdout": "........................................................................ [ 40%]\n........................................................................ [ 81%]\n................................                                         [100%]\n176 passed in 6.26s\n",
+      "stderr": ""
+    },
+    {
+      "label": "lint",
+      "command": [
+        "/data/home/chenyizhou/kernel-agent-semantic-review/.venv/bin/ruff",
+        "check",
+        "flows",
+        "scripts",
+        "src",
+        "tests"
+      ],
+      "exit_code": 0,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    {
+      "label": "shell_syntax:check.sh",
+      "command": [
+        "bash",
+        "-n",
+        "/data/home/chenyizhou/kernel-agent-semantic-review/scripts/check.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "shell_syntax:reproduce.sh",
+      "command": [
+        "bash",
+        "-n",
+        "/data/home/chenyizhou/kernel-agent-semantic-review/scripts/reproduce.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "shell_syntax:reproduce_existing_selector.sh",
+      "command": [
+        "bash",
+        "-n",
+        "/data/home/chenyizhou/kernel-agent-semantic-review/scripts/reproduce_existing_selector.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "shell_syntax:start_cached_qwen27.sh",
+      "command": [
+        "bash",
+        "-n",
+        "/data/home/chenyizhou/kernel-agent-semantic-review/scripts/start_cached_qwen27.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "shell_syntax:start_local_model.sh",
+      "command": [
+        "bash",
+        "-n",
+        "/data/home/chenyizhou/kernel-agent-semantic-review/scripts/start_local_model.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "offline_evidence",
+      "command": [
+        "/data/home/chenyizhou/kernel-agent-semantic-review/.venv/bin/python",
+        "scripts/verify_evidence.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"verified\",\n  \"study_sha256\": \"ead614f0f5fbf25e8a743790539b68e4749e037c689bfdb845f72616e029543f\",\n  \"recovery_validation\": {\n    \"status\": \"verified\",\n    \"signal\": \"SIGKILL\",\n    \"jobs\": 3,\n    \"unknown_outcomes\": 1,\n    \"scope\": \"CPU fault injection using fake model/GPU drivers; no new GPU success counts\"\n  },\n  \"multiseed_campaigns\": {\n    \"pilot_completed\": 1,\n    \"pilot_proposer_requests\": 3,\n    \"pilot_clean_performance_qualified\": false,\n    \"guarded_scheduled\": 36,\n    \"guarded_terminal\": 23,\n    \"guarded_candidate_files\": 57,\n    \"guarded_proposer_requests\": 57,\n    \"scope\": \"separate integration pilot and guarded campaign snapshot; no pooling with historical GPU scores\"\n  },\n  \"deferred_evaluation\": {\n    \"generation_status\": \"complete\",\n    \"scheduled\": 2,\n    \"proposer_requests\": 6,\n    \"eligible_sources\": 3,\n    \"numeric_passes_with_resident_cuda_pids\": 3,\n    \"scope\": \"phase-split pilot; numerical eligibility alone is not a performance verdict\"\n  },\n  \"shared_completion\": {\n    \"status\": \"complete\",\n    \"jobs\": 2,\n    \"evaluations\": 5,\n    \"correct\": 2,\n    \"promoted\": 2,\n    \"new_model_requests\": 0,\n    \"scope\": \"existing proposals completed under observed sharing; no isolated speedup or new-generation claim\"\n  },\n  \"shared_feedback_study\": {\n    \"scheduled\": 12,\n    \"terminal\": 12,\n    \"candidate_files\": 36,\n    \"proposer_requests\": 36,\n    \"uncommitted_candidate_files\": 3,\n    \"uncommitted_proposer_requests\": 3,\n    \"measurement_condition\": \"shared_observed\"\n  },\n  \"phased_recovery\": {\n    \"status\": \"verified\",\n    \"jobs\": 2,\n    \"proposer_requests\": 6,\n    \"candidate_files\": 6,\n    \"imported_searches\": 6,\n    \"final_evaluator_calls\": 2,\n    \"interrupted_final_evaluations\": 1,\n    \"new_model_calls_during_recovery\": 0,\n    \"correct\": 2,\n    \"promoted\": 1\n  },\n  \"service_pool\": {\n    \"status\": \"complete\",\n    \"scheduled\": 24,\n    \"resolved\": 24,\n    \"committed_proposals\": 69,\n    \"uncommitted_trace_proposals\": 0,\n    \"dispatched_proposer_requests\": 67,\n    \"dispatched_auxiliary_requests\": 68,\n    \"peak_overlapping_proposal_ports\": 3,\n    \"peak_overlapping_gpu_windows\": 1,\n    \"independent_gpu_windows\": 80,\n    \"admission_statuses\": {\n      \"completed\": 133,\n      \"not_dispatched\": 21,\n      \"response_unknown\": 2\n    },\n    \"outcome_types\": {\n      \"final_correct\": 20,\n      \"no_eligible_candidate\": 4\n    }\n  },\n  \"repair_framework_study\": {\n    \"status\": \"complete\",\n    \"scheduled\": 64,\n    \"resolved\": 64,\n    \"initial\": [\n      {\n        \"generation\": \"baseline\",\n        \"scheduled\": 16,\n        \"observed\": 16,\n        \"correct\": 12\n      },\n      {\n        \"generation\": \"contract\",\n        \"scheduled\": 16,\n        \"observed\": 16,\n        \"correct\": 11\n      }\n    ],\n    \"cells\": [\n      {\n        \"generation\": \"baseline\",\n        \"repair\": \"baseline\",\n        \"scheduled\": 16,\n        \"resolved\": 16,\n        \"correct\": 15,\n        \"promoted\": 4,\n        \"initial_failed\": 4,\n        \"rescued\": 3\n      },\n      {\n        \"generation\": \"baseline\",\n        \"repair\": \"counterexample\",\n        \"scheduled\": 16,\n        \"resolved\": 16,\n        \"correct\": 15,\n        \"promoted\": 3,\n        \"initial_failed\": 4,\n        \"rescued\": 3\n      },\n      {\n        \"generation\": \"contract\",\n        \"repair\": \"baseline\",\n        \"scheduled\": 16,\n        \"resolved\": 16,\n        \"correct\": 13,\n        \"promoted\": 5,\n        \"initial_failed\": 5,\n        \"rescued\": 2\n      },\n      {\n        \"generation\": \"contract\",\n        \"repair\": \"counterexample\",\n        \"scheduled\": 16,\n        \"resolved\": 16,\n        \"correct\": 13,\n        \"promoted\": 5,\n        \"initial_failed\": 5,\n        \"rescued\": 2\n      }\n    ],\n    \"contrasts\": {\n      \"generation\": {\n        \"mean_difference\": -0.125,\n        \"exploratory_interval\": {\n          \"low\": -0.4375,\n          \"high\": 0.125,\n          \"clusters\": 8,\n          \"resamples\": 16777216,\n          \"weighted_patterns\": 6435,\n          \"method\": \"exact weighted percentile task-cluster bootstrap; exploratory, development-task set\"\n        }\n      },\n      \"repair\": {\n        \"mean_difference\": 0.0,\n        \"exploratory_interval\": {\n          \"low\": 0.0,\n          \"high\": 0.0,\n          \"clusters\": 8,\n          \"resamples\": 16777216,\n          \"weighted_patterns\": 6435,\n          \"method\": \"exact weighted percentile task-cluster bootstrap; exploratory, development-task set\"\n        }\n      },\n      \"first_generation\": {\n        \"mean_difference\": -0.0625,\n        \"exploratory_interval\": {\n          \"low\": -0.5,\n          \"high\": 0.375,\n          \"clusters\": 8,\n          \"resamples\": 16777216,\n          \"weighted_patterns\": 6435,\n          \"method\": \"exact weighted percentile task-cluster bootstrap; exploratory, development-task set\"\n        }\n      }\n    },\n    \"dispatched_requests\": 152,\n    \"request_statuses\": {\n      \"completed\": 152\n    },\n    \"reported_output_tokens\": 89086,\n    \"peak_model_ports\": 3,\n    \"independent_gpu_windows\": 182,\n    \"peak_gpu_windows\": 1,\n    \"shared_initial_binding_verified\": true,\n    \"final_selection_binding_verified\": true\n  },\n  \"semantic_repair_study\": null,\n  \"measured_files\": 18,\n  \"candidate_files\": 9,\n  \"proposer_requests\": 9,\n  \"background_requests\": 9,\n  \"correct\": 3,\n  \"promoted\": 2,\n  \"scope\": \"artifact integrity and recorded decisions; no new GPU or model execution\"\n}\n",
+      "stderr": ""
+    }
+  ],
+  "status": "passed",
+  "passed_tests": 176,
+  "source_sha256": {
+    "flows/kernel_loop.py": "68448d2c63ae911e43a57bd71cf29972d7c7520d07b2daa83a35b43d7ce29ab5",
+    "flows/smoke.py": "730dfed1ae49324a6bcb270d4eb15cd5c259e6b93b8c0bcbae98e5fba64f2d4c",
+    "pyproject.toml": "150ff3e0a2a5243b0ba0259d02a428e9752a35b764fb789e920048a7dabc495c",
+    "reports/template.html": "38206f7d092f78b79cb765eca06903ad0051478dc8cfcf728ea67d4a8809b8bf",
+    "scripts/audit_requests.py": "b14e634ee8c275db0143b42a5f1f497f39e3a16ed36765681d36d5dc22dbbae3",
+    "scripts/audit_selector_validation.py": "f62150c1780679b5049f6eb7d3dde81bcd9a2ccf049da51d38215b413125757e",
+    "scripts/build_report.py": "01e38da1d6b7e48a2f8f4f892ed63fa0e4ee17d7c9b3bfcbb97446dfc7aa4225",
+    "scripts/capture_phased.py": "c6b89ecdaeed1829e2d0c45882bb5c594ae31ca0040419de422fa75d0829df37",
+    "scripts/capture_pool.py": "69162481e2c9009354fdf0df8eda27b0735f33cec5b7266505e619882f6bfdcd",
+    "scripts/capture_repair.py": "53473d2fe880814549a320a963fb107aa067bfcf73eac8309155d6ca18b2195e",
+    "scripts/capture_semantic.py": "5355f941baf719c0eb824d8f08aa42756ded4d826cc332eb8f47c180791aca0a",
+    "scripts/capture_shared.py": "d3587ed1e6f763caf30b81de52fc5624d45e4ecb7d667249976abb93631615e2",
+    "scripts/check.sh": "210341362cc88dbcfe6fba77d8273118c33d65f39eaa4e316995b5b79b8f01a2",
+    "scripts/check_updated_humanize.py": "942212765360f02abe5da4da38872635ff3b822be6001d6e776410c8ff9f0b7e",
+    "scripts/evaluate_candidate.py": "0f9cd88fdb83755d07fcdec88a66346de184990dfd06731e3135d4ca69ebe8e7",
+    "scripts/evaluate_checked.py": "c046b11a6c7f5e4b8c2e3e45526864ef9cef8e1e803301439ba85a3d6e666eb0",
+    "scripts/evaluate_coexecuted.py": "e14b6ae9a5c00e9f5a3fe58a762880673f2d495ec35513204f261b86b182f25d",
+    "scripts/evaluate_serial.py": "407d7504e9d88071283a5f75775f32e0ebaeb35dfa702866c40be707a2680af3",
+    "scripts/evaluate_shared.py": "4b1f7efee93308ae75a695affb8a52440c167da4fdb4797387668aa8df23c294",
+    "scripts/finish_deferred.py": "a5fcaaf9cb432df8afd789b485918481806dad88da738a6f21f8d13b9745465e",
+    "scripts/inventory_model.py": "4122b57434353b1cf633cc6017158faf77dedd3ae9476065942ab55f29aa4365",
+    "scripts/local_proxy.py": "a85a7dd24d710b3284f23c5ef3ad4fa71b635e9ba01d14cf5b69ef93581a9d28",
+    "scripts/pool_proxy.py": "d127d540caf28ef2303c386ab9351897efa7c1d9b2df898b4a11188c7e26fcf2",
+    "scripts/pool_worker.py": "d020c7036eb98b9bfbdfdc3dbc6819131ba85e8fb043fb56fd532e7066909317",
+    "scripts/recheck_candidates.py": "f407f43547856dc9f8c22ea10bc2d161824eac3599d2bdc5be688a8157a18697",
+    "scripts/reproduce.sh": "3fd76dd0e3d0c773da847f2fcea542a2a97780929f857e7a3bf10347e2257927",
+    "scripts/reproduce_existing_selector.sh": "d72cd9725b677a0cb39a8306db2abf587ec00ac2c36196cd4e9127925dc4833c",
+    "scripts/run_campaign.py": "25cd454c9b32124879a9cf3657edb100510283b9dbdbfd59a53950aa0a79bc3f",
+    "scripts/run_deferred.py": "1ca6c99c98369a388e9d35891522dc6ae8f1d246f015bf808e1f1ebfdb2ea3d2",
+    "scripts/run_phased.py": "459abf7437e57771299648be9fa117928bbf60c2a9abbe21f68d7f19d2ac5e93",
+    "scripts/run_pilot.py": "8e401f5ed783ab30a7b9bb9a95e054492687b033c288d710f43cc3ac19c37e37",
+    "scripts/run_pool.py": "106f62c0c54b0243df369d5df20096f24041268697cfe8d6d378ad2e60e26700",
+    "scripts/run_repair_study.py": "6bdcc739c253171bed35cf8f8b1f394126510906caf550557d1554d1525a0a40",
+    "scripts/run_selector_validation.py": "352e48000b5d868d7a06065299b2060a0c5ba5d78c1aaa995fefe13890465f9f",
+    "scripts/run_semantic_study.py": "845a311b52087070c739a5d4a41dd632bdf723820aba5a257be305ce1f4cdc7e",
+    "scripts/run_shared_campaign.py": "05a6445df266a123b42f5ccd77e794e9747e98143d52d35fda041829c907ba72",
+    "scripts/run_strategy_study.py": "048f568a98b0fe222e87e222cdfe0a6f821bc27f2f180f3a6cb068273ef2f04b",
+    "scripts/service_gateway.py": "3c1cec72b46f0dfdec49c0adae52e8fac85895e6bffd2f6ed51e687af9c17f56",
+    "scripts/smoke.py": "354c431680b20666246ce3f6fe90b78f0b9f7c4ba3c37a181689222938c51112",
+    "scripts/start_cached_qwen27.sh": "f7d740fe6bc0c58537e38132ae936d4800c28e306155f32d9c1a580877b00740",
+    "scripts/start_local_model.sh": "a7274665de21b356d69965bc4fac2560795d9d121960a131656eeb1e9aaa360c",
+    "scripts/summarize_campaign.py": "a76ccca60222abffc9feef39db785d4d106b6f59edcbd04a910af85891c35514",
+    "scripts/summarize_pool.py": "40318b50bc5845d660f15355c46643159f6ad312a33e75d2535aa545c7b5304c",
+    "scripts/summarize_repair.py": "8b4ba7ea19f9ca437b33e991496eb50ee3d05255f4f1047d36a69ffa137be1f6",
+    "scripts/summarize_semantic.py": "a16d3ca8b32f67ac06852a1e1d0366f63b2033194f9bbee358cb6d35a701671b",
+    "scripts/summarize_strategy.py": "563337f9778a9c8ce0d387d42826365a46c56cea9999a2905e78751bfa199b6e",
+    "scripts/validate_phased_recovery.py": "0136a351fc30bc8f226ec8ce5d110e67d4cfd08121b157517f2fb7f89725c96d",
+    "scripts/validate_recovery.py": "929fc66ea4ca16b8d9a357af2d38d7f2ffc9201d5b7799ce8e4c4e68af71754b",
+    "scripts/validate_semantic_oracle.py": "960052f93877483afca40b453b93f4ee9694f4616c2f06b5d15b2b645e8c3349",
+    "scripts/verify_evidence.py": "bfc425f10b8e99ad266d8b512e0ca06778ce6e7ba030086eaa792f9de820c00e",
+    "src/kernel_agent/__init__.py": "ca14fe9790d208cdd5bdb5921e8e8ee48b75d7b7508e6abec05573f375ca4e73",
+    "src/kernel_agent/campaign.py": "73a96809735c7fb574d8cbaa48315e83a942f418cb4ab5f6aa74da690029fd44",
+    "src/kernel_agent/deferred.py": "f699cf2ad39d37717f2bc6cf1f10e7d8984444d18c8ce3571744560a68e1f4bb",
+    "src/kernel_agent/humanize_api.py": "d1e93c1a205f5bc49e064ca21c6a763aee3263ad781aeb0268fabf713119bd61",
+    "src/kernel_agent/knowledge.py": "614f87a3e3b23e591cff50b3556c97c5b6a5d6c6b9fdda4cf2eeef584f876968",
+    "src/kernel_agent/line_protocol.py": "caebdd1a974290a5635de1751bad088d94499e50c714fe83c6678534e8d0ed74",
+    "src/kernel_agent/model_pool.py": "87beea68ebb55ca62de31dad82c86035f21caeb3282b9f9edc247765c06061bd",
+    "src/kernel_agent/protocol.py": "06e46378cea682506abb1a9c51fdc3344723b2bb0f47a60bb234ce60f3227699",
+    "src/kernel_agent/references.py": "6edc9728e615e3c2f487f9e7f01838aaed876c558e4b8e4ea114b286cd3661f5",
+    "src/kernel_agent/repair.py": "0cc84ed809d28258415ff2bb3a9b103dff09b830d001723de2bdcef7479cd9aa",
+    "src/kernel_agent/resource_lock.py": "a161558676b2261924701f5a66e5072a49a1ba8e5494ff8d523c649d05c2b02e",
+    "src/kernel_agent/semantic.py": "7d6bedc3d260dba2baa245a637d1be204288ab64b286617c67aa3ca9117538ee",
+    "src/kernel_agent/services.py": "fedff669534f07bcdd41f9609e963faf986790ff47e2dd6e604503a66f4259dd",
+    "src/kernel_agent/transport.py": "782538c0bb7e5b5976c6ac2fa1a7d99917cd455cce665ae0c30b1442e18414e8",
+    "tests/integration/test_api_context.py": "5b0ef5542d128e609f1aaa4d34dd8c98882b778059c0e6a227210de47e5e9d82",
+    "tests/integration/test_bounded_context.py": "38acf07cd993db92142aea15138f53bbb3aa34c74714d757cf4bf6a368ca1794",
+    "tests/integration/test_campaign_recovery.py": "3d3805d21c72470f1ba06b19fdecaac83934e09de1d4beca2907031ebb79f63a",
+    "tests/integration/test_campaign_runner.py": "d69d323b7e8dc0c22d4e1ebad4e2884906f9fc4f1bcd5166f057627d7f8badcf",
+    "tests/integration/test_coexecution.py": "dd955ef26e18e5aa6373791dab268e10f5a6d5eece768238518d0dad0fd80ba5",
+    "tests/integration/test_deferred.py": "7278142cc810f00ece664955d03947a24ec8ae98d3e65fffa487aeaeb8144689",
+    "tests/integration/test_evaluation_guard.py": "138bbd05d2ca72b446518dbcdbac503a42ec70b1917fae2102d7996d504a1a08",
+    "tests/integration/test_final_holdout.py": "cf0daa17faef5361d1ee0e6178f35698e76977d728b80d9a804c7c3257edefe4",
+    "tests/integration/test_line_source_loop.py": "df390698d169884e7b549eb476c3c89352f4ae0cc71d2eee6210529bbf493f3f",
+    "tests/integration/test_local_proxy.py": "e3f140bfe563d1017a622f828f5517337fb4c9b9a15456da70a16a1a040a6704",
+    "tests/integration/test_loop.py": "d85d4f12d1f6d62f2ee583350f33a4e3203c2ae36fa5e3d9decb9a7895f17982",
+    "tests/integration/test_phased.py": "c16416e59940fbcaa8f60aaded29b665a2a2e8463832b73f6eb9eeb50cb89758",
+    "tests/integration/test_published_evidence.py": "751ff01431ff4a1e82260b3f7dac9e765b18ef1b9640c2f9b41bfa0134074913",
+    "tests/integration/test_repair_analysis.py": "58c3e057afdafd146c5e06d5f8740182f7bd224a5a5ac113b62d0bb083e1236f",
+    "tests/integration/test_repair_framework.py": "181cc17972f07af1281daf19062223c0a2d28ed14adf84879faae7c10952713a",
+    "tests/integration/test_semantic_study.py": "1ed42b6525dc3930a55f7798465ec63ff5ecd18e7234a30d3c82108f70e47932",
+    "tests/integration/test_service_pool.py": "3e440280bd7723d9bd630a06ba0c4107b9b3ae4cf9dce8a4d2eaba2eef234818",
+    "tests/integration/test_strategy_study.py": "224f37c4653946ba91680fb8c7777a9b2c53abf8c814242eba08d196f66fbf50",
+    "tests/unit/test_campaign.py": "f997d9a169e67e66221e61ff591de95eaa1dfe82ae387859cf10c11fe8d10fcd",
+    "tests/unit/test_campaign_analysis.py": "5761d45a1e025be8e4bc41df0ce3e971c6f0258058bc99f9fd5e8c29a32a7ea5",
+    "tests/unit/test_campaign_plan.py": "6921508f9a737b1e68f625853cb7a037d0ee874f29de07a6fa441ca2544cb3b6",
+    "tests/unit/test_knowledge.py": "6afb99d1d09561efc00e2f70f316d3cdf91b5ed4997bd657cd209c2449f284de",
+    "tests/unit/test_line_protocol.py": "98fc73304f37413ac6a1c2aad8e4eb89697a5dab08700efcfbd4a7a128b25288",
+    "tests/unit/test_protocol.py": "3556749c3f3e9eefb1d3ace5c93cc8b543ccded9480280e78cbc176841604cfc",
+    "tests/unit/test_references.py": "85ad4231dc539b612e2546d0d005fc8aab6be900132ac2a4a31d827e9043d125",
+    "tests/unit/test_semantic.py": "1468c0a9431282e1475b78d697b7f711463ce009ab1b5143be30aa89e6725db1",
+    "tests/unit/test_transport.py": "b0b374926490fd470a0be3afee6be667de5be9709b7a7a8449402ed525ff3adf",
+    "uv.lock": "b6e4fbe9d5234c88c3846904daec9b53025db0e53888d6df2b424bdba14d7cf3"
+  }
+}

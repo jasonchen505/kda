@@ -5,7 +5,30 @@ It adapts KDA's contract → draft → plan → implementation workflow through 
 OpenCode, then adds a downstream controller whose verdict comes from a separate GPU
 evaluator. The work targets LLM research engineering and agent evaluation for systems.
 
-## Generation and repair: paired factorial results (2026-10-15)
+
+## Latest iteration: machine-grounded semantic repair
+
+The preceding factorial's negative result motivated a separate reviewer and bounded AST
+interpreter over complete asymmetric FP32 search probes. Verified expressions and factual
+validation traces replace unverified review narratives for the grounded writer. A failed
+check falls back without another request; kernels are never hand-edited.
+
+The new 22-block, three-arm study resolved all 66 outcomes with 115 physical dispatches.
+Known-failure regression: rewrite 7/14, critic 7/14, grounded 7/14.
+Fresh generation: rewrite 7/8, critic 7/8, grounded 7/8.
+Each arm has two extra model opportunities, with one review shared between the critic
+variants; this is not an equal-kernel-count experiment. Strata are reported separately,
+clustered by five/eight families, and are not a blind external benchmark. Keep ordinary
+generation/repair as the default; semantic variants remain experimental. Mathematical
+agreement does not prove layout or API correctness.
+
+Three-service idle admission/EWMA scheduling and physical GPU4 proof remain active.
+The CPU suite passes 176 tests on both pinned SDKs and a fresh locked installation.
+See [results](semantic-study-results.zh.md), [failure analysis](semantic-failure-analysis.zh.md),
+[reproduction](semantic-reproduction.md), and `results/semantic-study/`.
+
+
+## Preceding generation and repair: paired factorial results (2026-10-15)
 
 The new native local-chat backend compares two generation policies and two repair
 policies on eight families × two seeds: **64/64 terminal arm outcomes**, **152/160

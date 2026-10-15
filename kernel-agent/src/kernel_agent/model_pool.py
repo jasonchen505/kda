@@ -126,7 +126,7 @@ class Client:
         self.quarantined = False
         self.calls = 0
 
-    def propose(self, sections, seed, request_id):
+    def propose(self, sections, seed, request_id, *, schema=None, schema_name="kernel_proposal", role_prefix=None):
         receipt = {"request_id": request_id, "created_utc": utc(), "endpoint": self.endpoint,
                    "status": "not_dispatched", "omitted_sections": []}
         path = self.directory / f"{request_id}.json"
@@ -144,7 +144,7 @@ class Client:
             receipt["admission"] = load
             kept = list(sections)
             while True:
-                messages = [{"role": "system", "content": PROPOSER_PREFIX + " No tools. Follow the supplied contract."},
+                messages = [{"role": "system", "content": (role_prefix or PROPOSER_PREFIX) + " No tools. Follow the supplied contract."},
                             {"role": "user", "content": "\n\n".join(s[1] for s in kept)}]
                 count = http(self.endpoint["port"], "/tokenize", {"model": self.endpoint["model"],
                              "messages": messages, "add_generation_prompt": True,
@@ -158,7 +158,7 @@ class Client:
             body = {"model": self.endpoint["model"], "messages": messages, "temperature": .2, "seed": seed,
                     "max_tokens": 2048, "stream": False, "chat_template_kwargs": {"enable_thinking": False},
                     "response_format": {"type": "json_schema", "json_schema": {
-                        "name": "kernel_proposal", "strict": True, "schema": LINE_SCHEMA}}}
+                        "name": schema_name, "strict": True, "schema": schema if schema is not None else LINE_SCHEMA}}}
             # Persist the exact request before crossing the external-call boundary.
             wire = self.directory / f"{request_id}.request.json"
             atomic_json(wire, body)

@@ -1,0 +1,350 @@
+{
+  "created_utc": "2026-10-15T18:19:54.140018+00:00",
+  "status": "verified",
+  "scope": "Post-run integrity and descriptive failure accounting; no new generation or GPU work",
+  "plan_sha256": "545ed15b11dce3c745f53be2887b111d3d17df08ff80a03f447950954a9f920b",
+  "scheduled_blocks": 22,
+  "terminal_arm_outcomes": 66,
+  "allocated_calls": 118,
+  "dispatched_calls": 115,
+  "request_statuses": {
+    "completed": 115
+  },
+  "unique_code_opportunity_statuses": {
+    "numeric_error": 37,
+    "correct": 58,
+    "protocol_error": 2,
+    "compile_error": 7,
+    "not_run_infrastructure": 3,
+    "resource_monitor_error": 2,
+    "runtime_error": 1
+  },
+  "duplicate_search_sources": 19,
+  "independent_final_sources": 37,
+  "review_validation_statuses": {
+    "reference_validated": 8,
+    "reference_rejected": 12,
+    "invalid_review": 2
+  },
+  "reference_rejection_reasons_per_review": {
+    "unsupported semantic syntax": 9,
+    "mismatch": 3,
+    "invalid_review": 2
+  },
+  "protocol_errors": {
+    "reply must contain draft/plan strings and code_lines, one Python line per item": 2
+  },
+  "finish_reasons": {
+    "stop": 112,
+    "length": 3
+  },
+  "omitted_optional_sections": {},
+  "initials": [
+    {
+      "block": "reg-row_mean-s20261101-baseline-s20261111",
+      "stratum": "regression",
+      "task_id": "row_mean",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "fresh-transpose-s20261113",
+      "stratum": "fresh",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": false
+    },
+    {
+      "block": "reg-rmsnorm-s20261101-baseline-s20261112",
+      "stratum": "regression",
+      "task_id": "rmsnorm",
+      "initial_status": "compile_error",
+      "imported": true
+    },
+    {
+      "block": "fresh-rmsnorm-s20261113",
+      "stratum": "fresh",
+      "task_id": "rmsnorm",
+      "initial_status": "correct",
+      "imported": false
+    },
+    {
+      "block": "fresh-vector_add-s20261113",
+      "stratum": "fresh",
+      "task_id": "vector_add",
+      "initial_status": "correct",
+      "imported": false
+    },
+    {
+      "block": "reg-row_mean-s20261101-baseline-s20261112",
+      "stratum": "regression",
+      "task_id": "row_mean",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-silu_mul-s20261102-contract-s20261111",
+      "stratum": "regression",
+      "task_id": "silu_mul",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-rmsnorm-s20261101-baseline-s20261111",
+      "stratum": "regression",
+      "task_id": "rmsnorm",
+      "initial_status": "compile_error",
+      "imported": true
+    },
+    {
+      "block": "fresh-layer_norm-s20261113",
+      "stratum": "fresh",
+      "task_id": "layer_norm",
+      "initial_status": "compile_error",
+      "imported": false
+    },
+    {
+      "block": "reg-transpose-s20261102-contract-s20261112",
+      "stratum": "regression",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-transpose-s20261102-contract-s20261111",
+      "stratum": "regression",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-row_mean-s20261102-baseline-s20261112",
+      "stratum": "regression",
+      "task_id": "row_mean",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "fresh-silu_mul-s20261113",
+      "stratum": "fresh",
+      "task_id": "silu_mul",
+      "initial_status": "correct",
+      "imported": false
+    },
+    {
+      "block": "reg-layer_norm-s20261101-contract-s20261111",
+      "stratum": "regression",
+      "task_id": "layer_norm",
+      "initial_status": "compile_error",
+      "imported": true
+    },
+    {
+      "block": "reg-row_mean-s20261102-baseline-s20261111",
+      "stratum": "regression",
+      "task_id": "row_mean",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-transpose-s20261101-contract-s20261111",
+      "stratum": "regression",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-transpose-s20261101-contract-s20261112",
+      "stratum": "regression",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "fresh-softmax-s20261113",
+      "stratum": "fresh",
+      "task_id": "softmax",
+      "initial_status": "correct",
+      "imported": false
+    },
+    {
+      "block": "fresh-row_sum-s20261113",
+      "stratum": "fresh",
+      "task_id": "row_sum",
+      "initial_status": "correct",
+      "imported": false
+    },
+    {
+      "block": "reg-silu_mul-s20261102-contract-s20261112",
+      "stratum": "regression",
+      "task_id": "silu_mul",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "fresh-row_mean-s20261113",
+      "stratum": "fresh",
+      "task_id": "row_mean",
+      "initial_status": "correct",
+      "imported": false
+    },
+    {
+      "block": "reg-layer_norm-s20261101-contract-s20261112",
+      "stratum": "regression",
+      "task_id": "layer_norm",
+      "initial_status": "compile_error",
+      "imported": true
+    }
+  ],
+  "infrastructure_blocks": [
+    {
+      "block": "reg-rmsnorm-s20261101-baseline-s20261112",
+      "stop": "resource_monitor_error"
+    },
+    {
+      "block": "reg-layer_norm-s20261101-contract-s20261112",
+      "stop": "resource_monitor_error"
+    }
+  ],
+  "strata": [
+    {
+      "stratum": "regression",
+      "cells": [
+        {
+          "arm": "rewrite",
+          "scheduled": 14,
+          "resolved": 14,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 12,
+          "rescued_observed": 6
+        },
+        {
+          "arm": "critic",
+          "scheduled": 14,
+          "resolved": 14,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 12,
+          "rescued_observed": 7
+        },
+        {
+          "arm": "grounded",
+          "scheduled": 14,
+          "resolved": 14,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 12,
+          "rescued_observed": 6
+        }
+      ],
+      "contrasts": {
+        "critic_vs_rewrite": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": -0.3,
+            "high": 0.3,
+            "clusters": 5,
+            "resamples": 3125,
+            "weighted_patterns": 126,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        },
+        "grounded_vs_rewrite": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": 0.0,
+            "high": 0.0,
+            "clusters": 5,
+            "resamples": 3125,
+            "weighted_patterns": 126,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        },
+        "grounded_vs_critic": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": -0.3,
+            "high": 0.3,
+            "clusters": 5,
+            "resamples": 3125,
+            "weighted_patterns": 126,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        }
+      }
+    },
+    {
+      "stratum": "fresh",
+      "cells": [
+        {
+          "arm": "rewrite",
+          "scheduled": 8,
+          "resolved": 8,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 2,
+          "rescued_observed": 1
+        },
+        {
+          "arm": "critic",
+          "scheduled": 8,
+          "resolved": 8,
+          "correct": 7,
+          "promoted": 3,
+          "initial_failed_observed": 2,
+          "rescued_observed": 1
+        },
+        {
+          "arm": "grounded",
+          "scheduled": 8,
+          "resolved": 8,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 2,
+          "rescued_observed": 1
+        }
+      ],
+      "contrasts": {
+        "critic_vs_rewrite": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": 0.0,
+            "high": 0.0,
+            "clusters": 8,
+            "resamples": 16777216,
+            "weighted_patterns": 6435,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        },
+        "grounded_vs_rewrite": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": 0.0,
+            "high": 0.0,
+            "clusters": 8,
+            "resamples": 16777216,
+            "weighted_patterns": 6435,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        },
+        "grounded_vs_critic": {
+          "mean_difference": 0.0,
+          "interval": {
+            "low": 0.0,
+            "high": 0.0,
+            "clusters": 8,
+            "resamples": 16777216,
+            "weighted_patterns": 6435,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+          }
+        }
+      }
+    }
+  ],
+  "source_bank_selection_verified": true,
+  "generation_policy_sources_match_frozen": true,
+  "analysis_only_exceptions": [
+    "scripts/summarize_semantic.py"
+  ],
+  "mechanism_smoke_verified": true
+}

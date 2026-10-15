@@ -28,7 +28,7 @@ def source_files():
     paths = [ROOT / n for n in ["data/tasks.json", "pyproject.toml", "uv.lock", "docs/repair-study-plan.md"]]
     for name in ["src", "scripts", "references"]:
         paths.extend(p for p in (ROOT / name).rglob("*") if p.is_file()
-                     and "__pycache__" not in p.parts and p.suffix not in {".pyc", ".log"})
+                     and "__pycache__" not in p.parts and p.name != ".DS_Store" and p.suffix not in {".pyc", ".log"})
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
 
 
@@ -46,11 +46,11 @@ def make_plan():
 
 
 class Study:
-    def __init__(self, directory, gpu_python):
+    def __init__(self, directory, gpu_python, *, plan=None):
         self.directory, self.gpu_python = Path(directory).absolute(), gpu_python
         self.directory.mkdir(parents=True, exist_ok=True)
         self.mutex = threading.RLock()
-        self.plan = make_plan()
+        self.plan = make_plan() if plan is None else plan
         self.plan["runtime"] = {"evaluation_lock_file": str(self.directory / "gpu4.lock"),
                                 "evaluator": evaluator_identity(gpu_python)}
         path = self.directory / "plan.json"
@@ -229,8 +229,9 @@ class Study:
                     self.state["dispatches"].append({"block_id": row["block"]["id"], "endpoint": endpoint,
                         "utc": model_pool.utc(), "predicted_call_seconds": stats.get("ewma_seconds", 60),
                         "policy": "unused idle replica first, then latency EWMA; one active block per process"})
-                    self.state["allocations"]["model_calls"] += 10
-                    self.state["allocations"]["output_tokens"] += 20480
+                    calls = row["block"].get("model_call_cap", self.plan["calls_per_block"])
+                    self.state["allocations"]["model_calls"] += calls
+                    self.state["allocations"]["output_tokens"] += calls * self.plan["max_output_tokens"]
                     self.state["status"] = "running"
                     self.save()  # allocation and identity commit before any model request
                     active.add(key)

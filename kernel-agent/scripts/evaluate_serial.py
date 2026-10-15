@@ -19,6 +19,7 @@ def main():
     parser.add_argument("source")
     parser.add_argument("--final", action="store_true")
     parser.add_argument("--diagnostics", action="store_true")
+    parser.add_argument("--semantic-probes", action="store_true")
     parser.add_argument("--require-device-proof", action="store_true")
     args = parser.parse_args()
     command = [sys.executable, str(ROOT / "scripts/evaluate_candidate.py"), args.task, args.source]
@@ -26,6 +27,8 @@ def main():
         command.append("--final")
     if args.diagnostics:
         command.append("--diagnostics")
+    if args.semantic_probes:
+        command.append("--semantic-probes")
     try:
         with acquire(args.lock_file) as (lock, waited):
             result = evaluate(command, args.gpu_index, pass_fds=(lock.fileno(),),
