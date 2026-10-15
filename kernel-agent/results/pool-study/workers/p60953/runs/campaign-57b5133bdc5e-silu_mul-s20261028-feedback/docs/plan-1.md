@@ -1,0 +1,1 @@
+Allocate output like x. Kernel loads x,y as fp32, computes x*sigmoid(x)*y, stores cast to x dtype. Grid = cdiv(numel, BLOCK). Works for any positive numel up to 1048576, odd included.

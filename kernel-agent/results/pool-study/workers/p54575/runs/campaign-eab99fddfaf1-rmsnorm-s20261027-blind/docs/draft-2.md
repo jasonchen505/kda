@@ -1,0 +1,1 @@
+RMSNorm kernel: one row per program, fp32 sum-of-squares, rsqrt, cast normalized to input dtype before weight multiply. Single pass for small widths, loop for large. No bias/mean.

@@ -1,0 +1,1 @@
+Single Triton kernel, BLOCK_SIZE=1024, 1D grid. Cast inputs to fp32, compute sigmoid, multiply, store with mask. Preallocate output. No torch compute.

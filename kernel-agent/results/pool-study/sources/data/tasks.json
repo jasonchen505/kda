@@ -1,0 +1,160 @@
+{
+  "vector_add": {
+    "name": "Vector addition",
+    "contract": "run(x, y) returns x+y for contiguous CUDA tensors of equal shape, dtype float32 or bfloat16. Preserve shape and dtype. Inputs are immutable. Any positive element count up to 1048576 including odd sizes. Perform addition with FP32 intermediates then cast to input dtype.",
+    "examples": [
+      [
+        1024
+      ],
+      [
+        8192
+      ]
+    ],
+    "timing_shapes": [
+      [
+        4099
+      ],
+      [
+        65537
+      ],
+      [
+        1048576
+      ]
+    ]
+  },
+  "softmax": {
+    "name": "Row softmax",
+    "contract": "run(x) returns stable row softmax on the last dimension of a contiguous 2D CUDA tensor, dtype float32 or bfloat16. Reference: torch.softmax(x.float(), dim=-1).to(x.dtype). Preserve dtype, shape and input. Rows 1..256; columns 1..2048, including non-power-of-two columns. FP32 reductions.",
+    "examples": [
+      [
+        16,
+        128
+      ],
+      [
+        64,
+        512
+      ]
+    ],
+    "timing_shapes": [
+      [
+        7,
+        257
+      ],
+      [
+        128,
+        1536
+      ],
+      [
+        256,
+        2048
+      ]
+    ]
+  },
+  "rmsnorm": {
+    "name": "RMSNorm",
+    "contract": "run(x, weight) returns RMSNorm for contiguous CUDA x of shape (rows,width) and weight of shape (width,), same float32/bfloat16 dtype. eps=1e-6. Reference fp=x.float(); normalized=(fp*torch.rsqrt(fp.square().mean(-1,keepdim=True)+1e-6)).to(x.dtype); result=weight*normalized. Preserve this intermediate cast before weight multiplication. Inputs immutable; rows 1..256, width 1..4096 including odd sizes.",
+    "examples": [
+      [
+        16,
+        128
+      ],
+      [
+        64,
+        512
+      ]
+    ],
+    "timing_shapes": [
+      [
+        7,
+        257
+      ],
+      [
+        128,
+        1536
+      ],
+      [
+        256,
+        4096
+      ]
+    ]
+  },
+  "transpose": {
+    "name": "Matrix transpose",
+    "contract": "run(x) returns a newly allocated contiguous matrix equal to x.T for contiguous CUDA 2D float32/bfloat16 input. Input immutable. Each dimension 1..1024 including odd sizes. Must perform data movement using Triton, not just return a view.",
+    "examples": [
+      [
+        64,
+        64
+      ],
+      [
+        256,
+        128
+      ]
+    ],
+    "timing_shapes": [
+      [
+        33,
+        257
+      ],
+      [
+        512,
+        513
+      ],
+      [
+        1024,
+        1024
+      ]
+    ]
+  },
+  "row_sum": {
+    "name": "Row sum",
+    "contract": "run(x) returns the sum of each row of a contiguous 2D CUDA tensor, float32 or bfloat16. Reference: x.float().sum(dim=-1).to(x.dtype). Output is newly allocated contiguous shape (rows,), same device and dtype. Input immutable. Rows 1..256, columns 1..4096 including odd sizes. Accumulate in FP32 and cast once at output.",
+    "examples": [
+      [
+        16,
+        128
+      ],
+      [
+        64,
+        512
+      ]
+    ],
+    "timing_shapes": [
+      [
+        7,
+        257
+      ],
+      [
+        128,
+        1536
+      ],
+      [
+        256,
+        4096
+      ]
+    ]
+  },
+  "silu_mul": {
+    "name": "Fused SiLU multiply",
+    "contract": "run(x,y) returns elementwise SiLU(x)*y for equal-shape contiguous CUDA tensors, float32 or bfloat16. Reference: (torch.nn.functional.silu(x.float()) * y.float()).to(x.dtype). Compute sigmoid and multiply in FP32; cast once at output. Output newly allocated contiguous, same shape/device/dtype; inputs immutable. Any positive element count up to 1048576 including odd sizes.",
+    "examples": [
+      [
+        1024
+      ],
+      [
+        8192
+      ]
+    ],
+    "timing_shapes": [
+      [
+        4099
+      ],
+      [
+        65537
+      ],
+      [
+        1048576
+      ]
+    ]
+  }
+}

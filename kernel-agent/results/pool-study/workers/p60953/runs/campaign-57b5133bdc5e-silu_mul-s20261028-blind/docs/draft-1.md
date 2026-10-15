@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y in FP32, cast once. Single 1D grid, masked loads/stores for odd sizes. BLOCK_SIZE 1024, grid via triton.cdiv. Output preallocated contiguous same dtype/device.

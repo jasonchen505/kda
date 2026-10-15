@@ -1,0 +1,1 @@
+Row-parallel softmax kernel. Each program handles one row. Load row with mask, compute max in FP32, subtract, exp, sum, divide. Store with mask. Handles odd column sizes via power-of-two block padding.

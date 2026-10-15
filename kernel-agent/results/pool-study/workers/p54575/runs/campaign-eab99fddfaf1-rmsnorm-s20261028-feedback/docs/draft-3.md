@@ -1,0 +1,1 @@
+Optimize small-row cases by processing multiple rows per program to reduce launch overhead and improve occupancy. Use a 2D block layout with row and column offsets. Keep FP32 accumulation for sum-of-squares, then cast normalized values to input dtype before weight multiplication. Tune block sizes based on width to balance register pressure and parallelism.

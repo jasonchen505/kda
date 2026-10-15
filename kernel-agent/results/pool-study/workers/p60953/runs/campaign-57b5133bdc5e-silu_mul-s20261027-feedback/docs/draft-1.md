@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y in FP32. Load x,y as FP32, compute sigmoid via exp, multiply, store once in input dtype. 1D grid with masked blocks handles odd sizes up to 1M.

@@ -1,0 +1,1 @@
+Kernel: pid*BLOCK + arange offsets, mask < n. Load x,y as fp32, compute x*sigmoid(x)*y, store to out (auto-cast to out dtype). run(): validate shapes, allocate empty_like, launch, return out. No torch compute.

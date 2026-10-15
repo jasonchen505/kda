@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 accumulation. Uses masked loads/stores for odd sizes. Casts result to input dtype.

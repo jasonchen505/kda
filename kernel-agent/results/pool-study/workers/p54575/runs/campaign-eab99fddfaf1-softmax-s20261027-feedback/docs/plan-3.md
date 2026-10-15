@@ -1,0 +1,1 @@
+1. Compute ROWS_PER_BLOCK as next_power_of_2(min(8, n_rows)). 2. Use tl.arange for row/col offsets. 3. Load with mask, cast to float32. 4. Compute max, exp, sum, divide. 5. Store with mask. 6. Return output.

@@ -1,0 +1,1 @@
+One program per row. Loop over column chunks with a power-of-two block, mask odd tails, accumulate in FP32, store once cast to input dtype.

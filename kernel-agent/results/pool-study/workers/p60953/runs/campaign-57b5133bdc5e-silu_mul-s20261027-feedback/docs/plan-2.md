@@ -1,0 +1,1 @@
+1. Select BLOCK_SIZE=256 for n_elements < 16384, else 1024. 2. Use lambda grid to pass BLOCK_SIZE. 3. Keep masked loads/stores for odd sizes. 4. Preserve FP32 sigmoid and multiply.

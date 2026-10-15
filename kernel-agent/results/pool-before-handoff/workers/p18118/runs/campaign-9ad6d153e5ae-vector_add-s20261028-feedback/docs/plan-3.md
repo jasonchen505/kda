@@ -1,0 +1,1 @@
+Use BLOCK_SIZE=1024, num_warps=4 for balanced occupancy. Load x,y as native dtype, cast to FP32, add, cast back. Single 1D grid. Avoid unnecessary other=0.0 for masked lanes since store is masked.

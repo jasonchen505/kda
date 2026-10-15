@@ -1,0 +1,1 @@
+1. Change kernel to process ROWS_PER_BLOCK rows at a time. 2. Use 2D tl.arange for row and column offsets. 3. Compute sum of squares per row using tl.sum along column axis. 4. Normalize and store with proper masking. 5. Tune ROWS_PER_BLOCK based on width to balance occupancy and register usage.

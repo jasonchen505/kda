@@ -1,0 +1,1 @@
+Allocate contiguous output via torch.empty_like. Launch 1D Triton kernel with BLOCK_SIZE=1024. Each program loads masked x,y, casts to float, computes silu(x)=x*sigmoid(x) in FP32, multiplies by y, and stores with automatic dtype cast. Grid uses triton.cdiv.

@@ -1,0 +1,1 @@
+1. Keep single-kernel 1D grid design. 2. Increase BLOCK_SIZE to 2048 for improved memory throughput. 3. Set num_warps=8 to match larger block. 4. Load with mask, promote to fp32, add, cast back to element type, store with mask. 5. Grid computed via triton.cdiv on host.

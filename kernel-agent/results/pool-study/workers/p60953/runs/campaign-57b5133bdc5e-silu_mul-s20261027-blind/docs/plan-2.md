@@ -1,0 +1,1 @@
+Load x and y with mask, convert to float32, compute sigmoid via exp, multiply, store once. Allocate contiguous output with empty_like. Grid uses cdiv over numel. Keep inputs immutable and support all positive sizes up to 1048576.

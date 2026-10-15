@@ -1,0 +1,1 @@
+Transpose via 2D tile loads with transposed stores. Use 32x32 tiles for better occupancy on small/odd shapes. Mask both load and store for odd dimensions. Contiguous output allocated with torch.empty.

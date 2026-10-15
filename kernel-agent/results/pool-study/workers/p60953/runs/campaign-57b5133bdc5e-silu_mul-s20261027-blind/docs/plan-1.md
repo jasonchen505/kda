@@ -1,0 +1,1 @@
+Allocate output like x. Launch 1D grid over numel. Each program loads BLOCK_SIZE elements, computes silu in FP32, multiplies by y, casts to output dtype, stores with mask. BLOCK_SIZE=1024.

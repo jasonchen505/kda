@@ -1,0 +1,1 @@
+Kernel: 2D grid over M,N tiles. Load BLOCK_M x BLOCK_N tile from x, store transposed to y. Mask handles odd dims. Wrapper allocates output, launches kernel, returns it.

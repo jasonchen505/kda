@@ -1,0 +1,1 @@
+1. Compute BLOCK_SIZE as next power of 2 >= n_cols. 2. Grid = (n_rows,). 3. Kernel: load row masked with -inf, max, subtract, exp, sum, divide, store masked. 4. run() allocates output, launches kernel, returns output.

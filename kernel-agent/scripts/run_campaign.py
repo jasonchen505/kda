@@ -36,6 +36,8 @@ def source_hashes():
              "scripts/run_shared_campaign.py", "docs/shared-study-plan.md",
              "scripts/run_phased.py", "scripts/start_cached_qwen27.sh", "docs/phased-study-plan.md",
              "scripts/validate_phased_recovery.py",
+             "scripts/pool_proxy.py", "scripts/run_pool.py", "scripts/pool_worker.py",
+             "scripts/evaluate_serial.py", "docs/service-pool-study-plan.md",
              "data/tasks.json", "data/opencode-qwen27.json",
              "results/qwen27-asset-manifest.json", "docs/multiseed-study-plan.md", "pyproject.toml", "uv.lock"]
     paths += [str(p.relative_to(ROOT)) for folder in ("src/kernel_agent", "references")
@@ -192,6 +194,11 @@ def wait_until_ready(plan, job, path):
 
 @contextmanager
 def proxy(plan, job, trace_dir):
+    if plan["generation"].get("pool_protocol"):
+        from scripts.pool_proxy import serve
+        with serve(plan, job, trace_dir) as endpoint:
+            yield endpoint
+        return
     local_proxy.UPSTREAM = f"http://127.0.0.1:{plan['runtime']['service']['port']}"
     local_proxy.MODEL_ID, local_proxy.UPSTREAM_MODEL_ID = ALIAS, BASE
     local_proxy.SEED = job["seed"]
@@ -222,6 +229,8 @@ def execute(plan, job, trace_root):
     with proxy(plan, job, trace_root / job["id"]) as endpoint:
         config["provider"]["kernel-local"]["options"]["baseURL"] = endpoint
         config["agent"]["build"]["temperature"] = generation["temperature"]
+        if generation.get("pool_protocol"):
+            config["provider"]["kernel-local"]["models"][ALIAS]["limit"].update(context=8192, output=2048)
         os.environ["OPENCODE_CONFIG_CONTENT"] = json.dumps(config)
         print(json.dumps({"starting": job["id"]}), flush=True)
         budget = plan["per_job_budget"]
@@ -229,6 +238,10 @@ def execute(plan, job, trace_root):
         evaluator_script = "evaluate_shared.py" if deferred else "evaluate_checked.py"
         if generation.get("measurement_condition") == "shared_observed":
             evaluator_script = "evaluate_coexecuted.py"
+        evaluator_extra = []
+        if generation.get("pool_protocol"):
+            evaluator_script = "evaluate_serial.py"
+            evaluator_extra = ["--lock-file", plan["runtime"]["gpu_lock_path"]]
         result = Hmz(ROOT).run(str(ROOT / "flows/kernel_loop.py"),
                               fixture["contract"] + "\nVisible examples: " + json.dumps(fixture["examples"]),
                               agents={"builder": f"opencode/kernel-local/{ALIAS}"},
@@ -239,9 +252,10 @@ def execute(plan, job, trace_root):
                                       "proposal_format": generation["proposal_format"],
                                       "selection_policy": generation["selection_policy"],
                                       "evaluation_mode": generation.get("evaluation_mode", "integrated"),
+                                      "evaluator_timeout_seconds": generation.get("evaluator_timeout_seconds", 180),
                                       "evaluator": [plan["runtime"]["gpu_python"],
                                                     str(ROOT / "scripts" / evaluator_script), "--gpu-index",
-                                                    str(plan["runtime"]["gpu_index"])]}).run()
+                                                    str(plan["runtime"]["gpu_index"]), *evaluator_extra]}).run()
     if source_hashes() != plan["source_sha256"]:
         raise ValueError("measured sources changed during a job")
     result.update(seed=job["seed"], transport_policy="json-lines", job_id=job["id"])

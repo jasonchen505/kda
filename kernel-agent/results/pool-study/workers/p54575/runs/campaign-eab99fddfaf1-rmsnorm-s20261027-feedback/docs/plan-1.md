@@ -1,0 +1,1 @@
+1. Allocate output tensor same shape/dtype as input. 2. Launch grid (rows,). 3. Kernel: row = program_id(0). 4. Loop over width in BLOCK_SIZE chunks. 5. Accumulate sum of squares in FP32. 6. Compute rstd = rsqrt(sum_sq / width + eps). 7. Loop again: load x, compute x*rstd, cast to input dtype, multiply by weight, store. 8. Return output.

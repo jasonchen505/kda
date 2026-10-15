@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y kernel. Load x,y as fp32, compute sigmoid in fp32, multiply, store once. Use 1D grid with masked loads/stores for odd sizes. Preallocate contiguous output matching input dtype/device.

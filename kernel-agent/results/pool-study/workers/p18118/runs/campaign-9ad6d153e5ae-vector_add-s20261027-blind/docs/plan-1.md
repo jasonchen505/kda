@@ -1,0 +1,1 @@
+1. Define @triton.jit kernel taking x, y, out pointers, n_elements, BLOCK_SIZE constexpr. 2. Compute offsets and mask for bounds. 3. Load x, y as FP32, add, cast to output dtype. 4. Store with mask. 5. run() allocates output, launches kernel with grid based on cdiv(n, BLOCK_SIZE).

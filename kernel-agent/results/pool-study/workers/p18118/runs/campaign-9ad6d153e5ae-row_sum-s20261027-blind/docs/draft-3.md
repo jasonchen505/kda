@@ -1,0 +1,1 @@
+Row-sum kernel: one program per row, loop over columns in power-of-two blocks, accumulate in FP32, store once. Autotune block size/warps keyed on N. Handles odd sizes via mask. Output allocated in input dtype.

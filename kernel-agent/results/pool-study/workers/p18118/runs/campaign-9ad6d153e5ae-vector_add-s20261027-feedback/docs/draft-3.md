@@ -1,0 +1,1 @@
+Tune block size and vectorization for elementwise add. Use larger blocks for large tensors, smaller for small. Keep FP32 intermediate and dtype cast. Single 1D grid with mask for odd sizes.

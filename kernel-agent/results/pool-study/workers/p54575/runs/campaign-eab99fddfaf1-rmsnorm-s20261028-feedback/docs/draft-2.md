@@ -1,0 +1,1 @@
+Single-pass RMSNorm: load each row once, compute sum-of-squares in FP32, then normalize, cast to input dtype, multiply by weight, and store. One kernel launch per call, no extra allocations.

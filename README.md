@@ -23,6 +23,8 @@ handwritten kernels as agent successes. The original KDA documentation is preser
 - [GPU4 execution, interference qualification and guarded plan](kernel-agent/docs/multiseed-execution.md)
 - [Why GPU sharing and performance measurement differ](kernel-agent/docs/gpu-sharing-policy.md)
 - [Online feedback with durable finalization](kernel-agent/docs/phased-study-plan.md)
+- [Three-service execution results](kernel-agent/docs/service-pool-results.zh.md)
+- [Recorded endpoint restart and handoff](kernel-agent/docs/service-pool-handoff.md)
 
 ```bash
 git clone --branch codex/kernel-agent-harness https://github.com/jasonchen505/kda.git
@@ -39,31 +41,40 @@ The review path above checks published evidence and controller mechanisms on a C
 
 ## Result and scope
 
-The completed six-family, two-arm, one-seed feedback comparison has **12/12 terminal
-jobs**: blind refinement is **6/6 final-correct and 1/6 promoted**; measured feedback
-is **5/6 final-correct and 1/6 promoted**. One feedback task exhausted its 900-second
-budget without a final verdict. Its three search records, generated sources and failed
-outcome are preserved. This study does not establish a feedback advantage.
+The latest service-pool engineering validation completed **24/24 scheduled jobs**, across
+six development families, two seeds and two strategies: **20/24 final-correct**,
+**6/24 conditionally promoted**. Three local-model endpoints had overlapping proposer
+requests; this project's GPU4 evaluator windows were serialized by a cooperative OS lock.
+The reported peak is concurrency, not a measured end-to-end throughput speedup.
 
-The controller now supports online search timing feedback followed by a separately
-resumable final queue. It commits proposals, search measurements and search-only selection
-before final-data access. Recovery reuses committed work; the final check can veto the
-selected source without selecting an alternative. The latest engineering pilot and its
-real process-kill boundary are documented in the report and verification notes. It
-reused six search measurements and ran two independent final checks after SIGKILL,
-with zero new model or search calls: 2/2 final-correct, 1/2 conditionally promoted.
-The CPU suite passes 119 tests on both pinned SDKs and a fresh locked installation.
+Two borrowed endpoints disappeared mid-run. A recorded, declaration-matched gateway
+restored the logical entrances; **15 committed jobs were reused and nine untouched jobs
+continued**, with 178 existing request/admission hashes unchanged and budgets retained.
+Five strategy pairs cross the restart, so pooled feedback-effect intervals are suppressed.
+Four jobs had no eligible source and never ran final evaluation; failed and uncertain
+outcomes remain in the scheduled denominator.
 
-Earlier three-task integration produced 3/3 final-correct and 2/3 promoted; fixed-source
-rechecks support a selector defect fix. The old guarded 36-job plan remains at 23 terminal
-jobs and 13 pending. These experiments keep separate denominators and runtime identities.
-Generated candidates are not manually repaired, and speed ratios against `torch.compile`
-are conditional on the observed shared-device policy. Official Triton examples assist
-generation; the experiments do not establish held-out generalization or production safety.
+The harness also persists online search measurements and source selection before a
+separately resumable final veto. A previous real SIGKILL pilot reused six search records,
+then made two independent final checks with zero new model/search calls. A fixed-source
+selector contrast supports the gate-first defect fix. These distinct engineering and
+model experiments keep separate denominators and runtime identities.
+
+The CPU suite passes **134 cases** on both pinned Humanize SDKs and a fresh locked
+installation. [Latest results and limits](kernel-agent/docs/service-pool-results.zh.md)
+and [the endpoint handoff](kernel-agent/docs/service-pool-handoff.md) provide the details.
+The earlier one-seed feedback study completed 12/12 jobs, without evidence of a feedback
+advantage. The older guarded plan remains 23/36 terminal with 13 pending; it is not patched
+using this new runtime.
+
+Generated candidates are not manually repaired. Official Triton examples assist generation,
+all families participated in development, cross-root weight equality is unverified, and
+shared speed ratios against `torch.compile` do not establish isolated performance,
+held-out generalization or production safety.
+
+![Concurrent service pool and durable evidence](kernel-agent/reports/pool-preview.png)
 
 ![Online-feedback finalization and recovery](kernel-agent/reports/phased-preview.png)
-
-![Complete shared-condition feedback comparison](kernel-agent/reports/coexecution-preview.png)
 
 ## License
 

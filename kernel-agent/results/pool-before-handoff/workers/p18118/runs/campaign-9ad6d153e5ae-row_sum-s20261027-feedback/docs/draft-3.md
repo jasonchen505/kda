@@ -1,0 +1,1 @@
+One program per row; vectorized loads with power-of-two block; FP32 accumulation; single cast at store. Tune block size per column width to reduce launch overhead and improve memory coalescing on RTX 4090.

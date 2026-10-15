@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 intermediates. Use larger block size (2048) and num_warps tuning for better occupancy on shapes up to 1M elements. Masked loads/stores handle odd sizes. Cast result back to input dtype.

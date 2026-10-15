@@ -1,0 +1,1 @@
+1. Allocate output tensor with same shape/dtype as input. 2. Launch kernel with grid=(n_rows,). 3. Each program loads one row, computes max, subtracts, exps, sums, divides. 4. Store result. 5. Return output.

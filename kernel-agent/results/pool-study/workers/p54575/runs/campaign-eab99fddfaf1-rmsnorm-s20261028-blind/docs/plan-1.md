@@ -1,0 +1,1 @@
+Allocate output tensor. Launch grid (rows,). Kernel loads x row in chunks, computes sumsq/N, rstd=rsqrt(sumsq/N+eps). Second pass loads x, computes (x*rstd).to(dtype), multiplies by weight, stores. Handle odd widths with masks.

@@ -1,0 +1,1 @@
+Fix RMSNorm kernel by removing unused ROWS_PER_BLOCK argument and implementing a clean single-row-per-program kernel with proper masking for odd widths. Use FP32 accumulation for mean of squares, apply intermediate dtype cast before weight multiplication, and handle all contracted shapes from 1x1 to 256x4096.

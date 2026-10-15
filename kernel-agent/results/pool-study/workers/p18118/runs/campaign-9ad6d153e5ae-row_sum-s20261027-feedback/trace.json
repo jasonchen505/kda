@@ -1,0 +1,998 @@
+[
+  {
+    "iteration": 1,
+    "parent_sha256": null,
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns the sum of each row of a contiguous 2D CUDA tensor, float32 or bfloat16. Reference: x.float().sum(dim=-1).to(x.dtype). Output is newly allocated contiguous shape (rows,), same device and dtype. Input immutable. Rows 1..256, columns 1..4096 including odd sizes. Accumulate in FP32 and cast once at output.\nVisible examples: [[16, 128], [64, 512]]\nSearch correctness and timing feedback are available during revision. The controller commits all proposals and freezes search-only selection first. A separate resumable process performs the final check; final evidence never enters this conversation.\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef _layer_norm_fwd_fused(\n    X,  # pointer to the input\n    Y,  # pointer to the output\n    W,  # pointer to the weights\n    B,  # pointer to the biases\n    Mean,  # pointer to the mean\n    Rstd,  # pointer to the 1/std\n    stride,  # how much to increase the pointer when moving by 1 row\n    N,  # number of columns in X\n    eps,  # epsilon to avoid division by zero\n    BLOCK_SIZE: tl.constexpr,\n):\n    # Map the program id to the row of X and Y it should compute.\n    row = tl.program_id(0)\n    Y += row * stride\n    X += row * stride\n    # Compute mean\n    mean = 0\n    _mean = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        a = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        _mean += a\n    mean = tl.sum(_mean, axis=0) / N\n    # Compute variance\n    _var = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        x = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        x = tl.where(cols < N, x - mean, 0.)\n        _var += x * x\n    var = tl.sum(_var, axis=0) / N\n    rstd = 1 / tl.sqrt(var + eps)\n    # Write mean / rstd\n    tl.store(Mean + row, mean)\n    tl.store(Rstd + row, rstd)\n    # Normalize and apply linear transformation\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        w = tl.load(W + cols, mask=mask)\n        b = tl.load(B + cols, mask=mask)\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = (x - mean) * rstd\n        y = x_hat * w + b\n        # Write output\n        tl.store(Y + cols, y, mask=mask)\n\nProposal 1 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\n  \"draft\": \"Row-sum kernel: one program per row, loop over columns in power-of-two blocks, accumulate in FP32, store cast to input dtype.\",\n  \"plan\": \"Allocate output (rows,). Launch grid (rows,). Each program loads row in BLOCK chunks with mask, sums in FP32, stores single value cast to x.dtype.\",\n  \"code_lines\": [\n    \"import torch\",\n    \"import triton\",\n    \"import triton.language as tl\",\n    \"\",\n    \"@triton.jit\",\n    \"def _row_sum_kernel(\",\n    \"    X,  # pointer to input (rows, cols)\",\n    \"    Y,  # pointer to output (rows,)\",\n    \"    stride,  # row stride in elements\",\n    \"    N,  # number of columns\",\n    \"    BLOCK_SIZE: tl.constexpr,\",\n    \"):\",\n    \"    row = tl.program_id(0)\",\n    \"    X += row * stride\",\n    \"    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\",\n    \"    for off in range(0, N, BLOCK_SIZE):\",\n    \"        cols = off + tl.arange(0, BLOCK_SIZE)\",\n    \"        mask = cols < N\",\n    \"        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\n    \"        acc += a\",\n    \"    total = tl.sum(acc, axis=0)\",\n    \"    tl.store(Y + row, total)\",\n    \"\",\n    \"\",\n    \"def run(x: torch.Tensor) -> torch.Tensor:\",\n    \"    assert x.is_cuda\",\n    \"    assert x.dim() == 2\",\n    \"    assert x.is_contiguous()\",\n    \"    rows, cols = x.shape\",\n    \"    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\",\n    \"    BLOCK_SIZE = 1024\",\n    \"    grid = (rows,)\",\n    \"    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\",\n    \"    return y\",\n    \"\"\n  ]\n}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _row_sum_kernel(\n    X,  # pointer to input (rows, cols)\n    Y,  # pointer to output (rows,)\n    stride,  # row stride in elements\n    N,  # number of columns\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += a\n    total = tl.sum(acc, axis=0)\n    tl.store(Y + row, total)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, cols = x.shape\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n\n",
+    "source_sha256": "cb5491b10cf0a60918cc6d9d25f1ab941b2e09b1e25f809587f20f5d88a6b81e",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _row_sum_kernel(\n    X,  # pointer to input (rows, cols)\n    Y,  # pointer to output (rows,)\n    stride,  # row stride in elements\n    N,  # number of columns\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += a\n    total = tl.sum(acc, axis=0)\n    tl.store(Y + row, total)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, cols = x.shape\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "cb5491b10cf0a60918cc6d9d25f1ab941b2e09b1e25f809587f20f5d88a6b81e",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.062863739207387,
+          "candidate_us": 1.0845044162124395,
+          "samples_us": {
+            "compiled": [
+              1.0625115828588605,
+              1.062863739207387,
+              1.063911709934473
+            ],
+            "candidate": [
+              1.081880065612495,
+              1.0845044162124395,
+              1.0904326336458325
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.3422176707535982,
+          "candidate_us": 1.2922106543555856,
+          "samples_us": {
+            "compiled": [
+              1.3814239064231515,
+              1.3422176707535982,
+              1.3410381507128477
+            ],
+            "candidate": [
+              1.2925270712003112,
+              1.2922106543555856,
+              1.2861618306487799
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            4096
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.89174001570791,
+          "candidate_us": 1.6665037255734205,
+          "samples_us": {
+            "compiled": [
+              1.889368169941008,
+              1.8927681958302855,
+              1.89174001570791
+            ],
+            "candidate": [
+              1.6665037255734205,
+              1.6748264897614717,
+              1.6651926562190056
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "measurement_condition": "shared_observed",
+      "resource_audit": {
+        "gpu_index": 4,
+        "policy": "shared_observed",
+        "minimum_free_mib": 1024,
+        "sample_period_seconds": 0.5,
+        "samples": [
+          {
+            "observed_utc": "2026-10-15T09:43:47.191734+00:00",
+            "free_mib": 24199,
+            "used_mib": 12,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 210,
+            "power_watts": 25.06,
+            "pids": []
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:47.761946+00:00",
+            "free_mib": 24199,
+            "used_mib": 12,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 210,
+            "power_watts": 25.06,
+            "pids": []
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:48.323157+00:00",
+            "free_mib": 23745,
+            "used_mib": 467,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 27.18,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:48.890315+00:00",
+            "free_mib": 23745,
+            "used_mib": 467,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 40.29,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:49.449149+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.59,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:50.019311+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.64,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:50.578391+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.49,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:51.137324+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.56,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:51.696053+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 7,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.96,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:52.264515+00:00",
+            "free_mib": 23689,
+            "used_mib": 523,
+            "utilization_percent": 8,
+            "sm_clock_mhz": 2520,
+            "power_watts": 65.71,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:52.827593+00:00",
+            "free_mib": 23689,
+            "used_mib": 523,
+            "utilization_percent": 9,
+            "sm_clock_mhz": 2520,
+            "power_watts": 66.51,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:53.398071+00:00",
+            "free_mib": 23685,
+            "used_mib": 527,
+            "utilization_percent": 11,
+            "sm_clock_mhz": 2520,
+            "power_watts": 67.82,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:53.968420+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 9,
+            "sm_clock_mhz": 2520,
+            "power_watts": 73.87,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:54.538211+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 21,
+            "sm_clock_mhz": 2520,
+            "power_watts": 78.78,
+            "pids": [
+              2228495
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:43:55.130873+00:00",
+            "free_mib": 24196,
+            "used_mib": 15,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 71.64,
+            "pids": []
+          }
+        ],
+        "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+        "before": {
+          "observed_utc": "2026-10-15T09:43:46.631276+00:00",
+          "free_mib": 24199,
+          "used_mib": 12,
+          "utilization_percent": 0,
+          "sm_clock_mhz": 210,
+          "power_watts": 24.94,
+          "pids": []
+        },
+        "after": {
+          "observed_utc": "2026-10-15T09:43:55.687354+00:00",
+          "free_mib": 24199,
+          "used_mib": 12,
+          "utilization_percent": 0,
+          "sm_clock_mhz": 2520,
+          "power_watts": 64.53,
+          "pids": []
+        }
+      },
+      "cooperative_queue": {
+        "lock_file": "/data/home/chenyizhou/kernel-agent-pool-experiment-v1/gpu4.lock",
+        "wait_seconds": 5.040690302848816e-05,
+        "pid": 2228491,
+        "scope": "serializes this project's workers only"
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 1.049374131622763,
+      "worst_speedup": 0.9800455611968542,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 124.41120141744614,
+    "usage": {
+      "duration": "PT1M55.224531S",
+      "cost": 0.0,
+      "output_tokens": 494
+    }
+  },
+  {
+    "iteration": 2,
+    "parent_sha256": "cb5491b10cf0a60918cc6d9d25f1ab941b2e09b1e25f809587f20f5d88a6b81e",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns the sum of each row of a contiguous 2D CUDA tensor, float32 or bfloat16. Reference: x.float().sum(dim=-1).to(x.dtype). Output is newly allocated contiguous shape (rows,), same device and dtype. Input immutable. Rows 1..256, columns 1..4096 including odd sizes. Accumulate in FP32 and cast once at output.\nVisible examples: [[16, 128], [64, 512]]\nSearch correctness and timing feedback are available during revision. The controller commits all proposals and freezes search-only selection first. A separate resumable process performs the final check; final evidence never enters this conversation.\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef _layer_norm_fwd_fused(\n    X,  # pointer to the input\n    Y,  # pointer to the output\n    W,  # pointer to the weights\n    B,  # pointer to the biases\n    Mean,  # pointer to the mean\n    Rstd,  # pointer to the 1/std\n    stride,  # how much to increase the pointer when moving by 1 row\n    N,  # number of columns in X\n    eps,  # epsilon to avoid division by zero\n    BLOCK_SIZE: tl.constexpr,\n):\n    # Map the program id to the row of X and Y it should compute.\n    row = tl.program_id(0)\n    Y += row * stride\n    X += row * stride\n    # Compute mean\n    mean = 0\n    _mean = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        a = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        _mean += a\n    mean = tl.sum(_mean, axis=0) / N\n    # Compute variance\n    _var = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        x = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        x = tl.where(cols < N, x - mean, 0.)\n        _var += x * x\n    var = tl.sum(_var, axis=0) / N\n    rstd = 1 / tl.sqrt(var + eps)\n    # Write mean / rstd\n    tl.store(Mean + row, mean)\n    tl.store(Rstd + row, rstd)\n    # Normalize and apply linear transformation\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        w = tl.load(W + cols, mask=mask)\n        b = tl.load(B + cols, mask=mask)\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = (x - mean) * rstd\n        y = x_hat * w + b\n        # Write output\n        tl.store(Y + cols, y, mask=mask)\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n@triton.jit\ndef _row_sum_kernel(\n    X,  # pointer to input (rows, cols)\n    Y,  # pointer to output (rows,)\n    stride,  # row stride in elements\n    N,  # number of columns\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    acc = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += a\n    total = tl.sum(acc, axis=0)\n    tl.store(Y + row, total)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, cols = x.shape\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nIndependent evaluator status: correct. Correctness passed. Optimize the worst workload without breaking other cases.\n{\"status\": \"correct\", \"source_sha256\": \"cb5491b10cf0a60918cc6d9d25f1ab941b2e09b1e25f809587f20f5d88a6b81e\", \"checks_passed\": 28, \"timings\": [{\"shape\": [7, 257], \"dtype\": \"bfloat16\", \"compiled_us\": 1.062863739207387, \"candidate_us\": 1.0845044162124395, \"samples_us\": {\"compiled\": [1.0625115828588605, 1.062863739207387, 1.063911709934473], \"candidate\": [1.081880065612495, 1.0845044162124395, 1.0904326336458325]}, \"orders\": [[\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"]]}, {\"shape\": [128, 1536], \"dtype\": \"bfloat16\", \"compiled_us\": 1.3422176707535982, \"candidate_us\": 1.2922106543555856, \"samples_us\": {\"compiled\": [1.3814239064231515, 1.3422176707535982, 1.3410381507128477], \"candidate\": [1.2925270712003112, 1.2922106543555856, 1.2861618306487799]}, \"orders\": [[\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"], [\"candidate\", \"compiled\"]]}, {\"shape\": [256, 4096], \"dtype\": \"bfloat16\", \"compiled_us\": 1.89174001570791, \"candidate_us\": 1.6665037255734205, \"samples_us\": {\"compiled\": [1.889368169941008, 1.8927681958302855, 1.89174001570791], \"candidate\": [1.6665037255734205, 1.6748264897614717, 1.6651926562190056]}, \"orders\": [[\"candidate\", \"compiled\"], [\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"]]}], \"gpu\": \"NVIDIA GeForce RTX 4090\", \"torch\": \"2.6.0+cu124\", \"measurement_condition\": \"shared_observed\", \"resource_audit\": {\"gpu_index\": 4, \"policy\": \"shared_observed\", \"minimum_free_mib\": 1024, \"sample_period_seconds\": 0.5, \"samples\": [{\"observed_utc\": \"2026-10-15T09:43:47.191734+00:00\", \"free_mib\": 24199, \"used_mib\": 12, \"utilization_percent\": 0, \"sm_clock_mhz\": 210, \"power_watts\": 25.06, \"pids\": []}, {\"observed_utc\": \"2026-10-15T09:43:47.761946+00:00\", \"free_mib\": 24199, \"used_mib\": 12, \"utilization_percent\": 0, \"sm_clock_mhz\": 210, \"power_watts\": 25.06, \"pids\": []}, {\"observed_utc\": \"2026-10-15T09:43:48.323157+00:00\", \"free_mib\": 23745, \"used_mib\": 467, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 27.18, \"pids\": [2228495]}, {\"observed_utc\": \"2026-10-15T09:43:48.890315+00:00\", \"free_mib\": 23745, \"used_mib\": 467, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 40.29, \"pids\": [2228495]}, {\"observed_utc\": \"2026-10-15T09:43:49.449149+00:00\", \"free_mib\": 23723, \"used_mib\": 489, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 64.59, \"pids\": [2228495]}, {\"observed_utc\": \"2026-10-15T09:43:50.019311+00:00\", \"free_mib\": 23723, \"used_mib\": 489, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 64.64, \"pids\": [2228495]}, {\"observed_utc\": \"2026-10-15T09:43:50.578391+00:00\", \"free_mib\": 23723, \"used_mib\": 489, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 64.49, \"pids\": [2228495]}, {\"observed_utc\": \"2026-10-15T09:43:51.137324+00:00\", \"free_mib\": 23723, \"used_mib\": 489, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 64.56, \"pids\": [2228495]}, {\"observed_utc\": \"2026-10-15T09:43:51.696053+00:00\", \"free_mib\": 23687, \"used_mib\": 525, \"utilization_percent\": 7, \"sm_clock_mhz\": 2520, \"power_watts\": 64.96, \"pids\": [2228495]}, {\"observed_utc\": \"2026-10-15T09:43:52.264515+00:00\", \"free_mib\": 23689, \"used_mib\": 523, \"utilization_percent\": 8, \"sm_clock_mhz\": 2520, \"power_watts\": 65.71, \"pids\": [2228495]}, {\"observed_utc\": \"2026-10-15T09:43:52.827593+00:00\", \"free_mib\": 23689, \"used_mib\": 523, \"utilization_percent\": 9, \"sm_clock_m\n\nProposal 2 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\"draft\":\"One program per row; vectorized FP32 accumulation; adaptive block size to reduce launch overhead on small shapes.\",\"plan\":\"Keep per-row kernel. Choose BLOCK_SIZE from column count to minimize loop iterations and improve occupancy. Use tl.sum directly on loaded vector per iteration to avoid large accumulator register pressure. Store scalar result.\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def _row_sum_kernel(\",\"    X,\",\"    Y,\",\"    stride,\",\"    N,\",\"    BLOCK_SIZE: tl.constexpr,\",\"):\",\"    row = tl.program_id(0)\",\"    X += row * stride\",\"    acc = 0.0\",\"    for off in range(0, N, BLOCK_SIZE):\",\"        cols = off + tl.arange(0, BLOCK_SIZE)\",\"        mask = cols < N\",\"        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\"        acc += tl.sum(a, axis=0)\",\"    tl.store(Y + row, acc)\",\"\",\"\",\"def run(x: torch.Tensor) -> torch.Tensor:\",\"    assert x.is_cuda\",\"    assert x.dim() == 2\",\"    assert x.is_contiguous()\",\"    rows, cols = x.shape\",\"    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\",\"    if cols <= 128:\",\"        BLOCK_SIZE = 128\",\"    elif cols <= 256:\",\"        BLOCK_SIZE = 256\",\"    elif cols <= 512:\",\"        BLOCK_SIZE = 512\",\"    elif cols <= 1024:\",\"        BLOCK_SIZE = 1024\",\"    else:\",\"        BLOCK_SIZE = 1024\",\"    grid = (rows,)\",\"    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\",\"    return y\"]}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _row_sum_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    acc = 0.0\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += tl.sum(a, axis=0)\n    tl.store(Y + row, acc)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, cols = x.shape\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    if cols <= 128:\n        BLOCK_SIZE = 128\n    elif cols <= 256:\n        BLOCK_SIZE = 256\n    elif cols <= 512:\n        BLOCK_SIZE = 512\n    elif cols <= 1024:\n        BLOCK_SIZE = 1024\n    else:\n        BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n",
+    "source_sha256": "191760e52e7c86ac219677d55b5b54df43f080c99cf44951fee14e13c2dbc192",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _row_sum_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    acc = 0.0\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += tl.sum(a, axis=0)\n    tl.store(Y + row, acc)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, cols = x.shape\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    if cols <= 128:\n        BLOCK_SIZE = 128\n    elif cols <= 256:\n        BLOCK_SIZE = 256\n    elif cols <= 512:\n        BLOCK_SIZE = 512\n    elif cols <= 1024:\n        BLOCK_SIZE = 1024\n    else:\n        BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "191760e52e7c86ac219677d55b5b54df43f080c99cf44951fee14e13c2dbc192",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.066520344465971,
+          "candidate_us": 1.0683032451197505,
+          "samples_us": {
+            "compiled": [
+              1.066520344465971,
+              1.0684195440262556,
+              1.0652700439095497
+            ],
+            "candidate": [
+              1.0683032451197505,
+              1.0667287278920412,
+              1.0701188584789634
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.3536126352846622,
+          "candidate_us": 1.5191914280876517,
+          "samples_us": {
+            "compiled": [
+              1.3536126352846622,
+              1.3487254036590457,
+              1.3716357061639428
+            ],
+            "candidate": [
+              1.5191914280876517,
+              1.5196647727862,
+              1.5158714959397912
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            4096
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.8952798563987017,
+          "candidate_us": 2.2823286708444357,
+          "samples_us": {
+            "compiled": [
+              1.8947109347209334,
+              1.8965804483741522,
+              1.8952798563987017
+            ],
+            "candidate": [
+              2.2850758396089077,
+              2.2823286708444357,
+              2.2772266529500484
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "measurement_condition": "shared_observed",
+      "resource_audit": {
+        "gpu_index": 4,
+        "policy": "shared_observed",
+        "minimum_free_mib": 1024,
+        "sample_period_seconds": 0.5,
+        "samples": [
+          {
+            "observed_utc": "2026-10-15T09:45:51.937396+00:00",
+            "free_mib": 24199,
+            "used_mib": 12,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 210,
+            "power_watts": 23.97,
+            "pids": []
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:52.498217+00:00",
+            "free_mib": 24199,
+            "used_mib": 12,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 210,
+            "power_watts": 24.03,
+            "pids": []
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:53.061969+00:00",
+            "free_mib": 23745,
+            "used_mib": 467,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 25.69,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:53.621960+00:00",
+            "free_mib": 23745,
+            "used_mib": 467,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 41.03,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:54.191421+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.07,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:54.761805+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.13,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:55.330354+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.19,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:55.890550+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.25,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:56.479969+00:00",
+            "free_mib": 23689,
+            "used_mib": 523,
+            "utilization_percent": 7,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.41,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:57.089402+00:00",
+            "free_mib": 23689,
+            "used_mib": 523,
+            "utilization_percent": 9,
+            "sm_clock_mhz": 2520,
+            "power_watts": 65.09,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:57.658719+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 5,
+            "sm_clock_mhz": 2520,
+            "power_watts": 66.03,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:58.220653+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 13,
+            "sm_clock_mhz": 2520,
+            "power_watts": 67.6,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:58.789148+00:00",
+            "free_mib": 23685,
+            "used_mib": 527,
+            "utilization_percent": 9,
+            "sm_clock_mhz": 2520,
+            "power_watts": 71.44,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:59.348104+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 19,
+            "sm_clock_mhz": 2520,
+            "power_watts": 78.8,
+            "pids": [
+              2229704
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:45:59.951713+00:00",
+            "free_mib": 24196,
+            "used_mib": 15,
+            "utilization_percent": 5,
+            "sm_clock_mhz": 2520,
+            "power_watts": 71.53,
+            "pids": []
+          },
+          {
+            "observed_utc": "2026-10-15T09:46:00.516468+00:00",
+            "free_mib": 24196,
+            "used_mib": 15,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.42,
+            "pids": []
+          }
+        ],
+        "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+        "before": {
+          "observed_utc": "2026-10-15T09:45:51.378180+00:00",
+          "free_mib": 24199,
+          "used_mib": 12,
+          "utilization_percent": 0,
+          "sm_clock_mhz": 210,
+          "power_watts": 23.97,
+          "pids": []
+        },
+        "after": {
+          "observed_utc": "2026-10-15T09:46:00.635763+00:00",
+          "free_mib": 24199,
+          "used_mib": 12,
+          "utilization_percent": 0,
+          "sm_clock_mhz": 2520,
+          "power_watts": 64.47,
+          "pids": []
+        }
+      },
+      "cooperative_queue": {
+        "lock_file": "/data/home/chenyizhou/kernel-agent-pool-experiment-v1/gpu4.lock",
+        "wait_seconds": 5.294010043144226e-05,
+        "pid": 2229699,
+        "scope": "serializes this project's workers only"
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 0.903962785981926,
+      "worst_speedup": 0.8304149532054337,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 124.95034135505557,
+    "usage": {
+      "duration": "PT1M55.562774S",
+      "cost": 0.0,
+      "output_tokens": 416
+    }
+  },
+  {
+    "iteration": 3,
+    "parent_sha256": "191760e52e7c86ac219677d55b5b54df43f080c99cf44951fee14e13c2dbc192",
+    "prompt": "You are a kernel design agent in a separate implementation workspace.\nFollow the KDA basic workflow: inspect the supplied task contract, draft a plan, make it executable, implement one candidate, and preserve evidence.\nThe controller will write your draft to docs/draft.md and plan to docs/plan.md before writing code. It independently validates every proposal using a trusted GPU evaluator.\nDo not call tools, execute commands, or edit files yourself. Propose a complete Triton implementation. No PyTorch compute fallback. Torch may allocate tensors and read metadata. Support all contracted shapes, including odd sizes. Use Triton 3.2.0 and Torch 2.6.0.\nCorrectness tolerance: FP32 atol=2e-5 rtol=2e-4; BF16 atol=0.015 rtol=0.015. Independent promotion requires geomean speedup >=1.05 and worst >=0.90 versus torch.compile on three undisclosed evaluation shapes.\nReturn a JSON object with draft and plan strings, plus code_lines: an array of strings. Each array item is exactly one Python source line. Preserve leading indentation spaces; use an empty string for a blank line. Never concatenate source lines. Do not use a code field. Do not embed newline characters inside an array item. Example of formatting only: {\"draft\":\"short draft\",\"plan\":\"short plan\",\"code_lines\":[\"import math\",\"\",\"def example(x):\",\"    return x\"]}. The resulting source must import torch, triton and triton.language, contain @triton.jit kernel(s), and expose the contracted run function. Keep draft and plan under 80 words each. No source files or tests are supplied.\n\nrun(x) returns the sum of each row of a contiguous 2D CUDA tensor, float32 or bfloat16. Reference: x.float().sum(dim=-1).to(x.dtype). Output is newly allocated contiguous shape (rows,), same device and dtype. Input immutable. Rows 1..256, columns 1..4096 including odd sizes. Accumulate in FP32 and cast once at output.\nVisible examples: [[16, 128], [64, 512]]\nSearch correctness and timing feedback are available during revision. The controller commits all proposals and freezes search-only selection first. A separate resumable process performs the final check; final evidence never enters this conversation.\n\nTriton 3.2 API reference notes selected for this failure:\n[launch] Host launch rules: pass torch tensors directly as pointer arguments, not their data_ptr integers. Use triton.cdiv in Python; tl.cdiv is kernel-only. The launch grid is a tuple or a callable accepting META. Allocate output before launch, launch the kernel, then return the output tensor; the launch itself is not a tensor. Do not pass torch.dtype as a runtime kernel argument. Pointer types already encode dtype; tl.store casts automatically.\n[memory] Memory rules: tl.load accepts pointer expressions, mask and other; it has no stride keyword. Calculate stride in the pointer offsets. Pass widths and block sizes as tl.constexpr. A tl.arange block has a power-of-two length; mask offsets >= the actual size on both load and store. Use tl.program_id for program indices and tl.arange for vector offsets.\n[reduce] Reduction rules: tl.shape is not an API. Width comes from the host tensor metadata. For padded row blocks, sum masked elements and divide by the actual width. Use FP32 reduction inputs. Softmax masking requires negative infinity before the maximum; RMSNorm masked values contribute zero. Preserve the task's intermediate dtype cast.\n\nRetrieved MIT-licensed Triton 3.2 reference excerpt. It is an example, not necessarily the solution for this task. Adapt its API and indexing patterns to the actual contract. For RMSNorm remove centering/bias and preserve the required cast order. For transpose adapt the vector memory pattern to transposed indices. You must still produce the complete run wrapper and pass independent tests.\n@triton.jit\ndef _layer_norm_fwd_fused(\n    X,  # pointer to the input\n    Y,  # pointer to the output\n    W,  # pointer to the weights\n    B,  # pointer to the biases\n    Mean,  # pointer to the mean\n    Rstd,  # pointer to the 1/std\n    stride,  # how much to increase the pointer when moving by 1 row\n    N,  # number of columns in X\n    eps,  # epsilon to avoid division by zero\n    BLOCK_SIZE: tl.constexpr,\n):\n    # Map the program id to the row of X and Y it should compute.\n    row = tl.program_id(0)\n    Y += row * stride\n    X += row * stride\n    # Compute mean\n    mean = 0\n    _mean = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        a = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        _mean += a\n    mean = tl.sum(_mean, axis=0) / N\n    # Compute variance\n    _var = tl.zeros([BLOCK_SIZE], dtype=tl.float32)\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        x = tl.load(X + cols, mask=cols < N, other=0.).to(tl.float32)\n        x = tl.where(cols < N, x - mean, 0.)\n        _var += x * x\n    var = tl.sum(_var, axis=0) / N\n    rstd = 1 / tl.sqrt(var + eps)\n    # Write mean / rstd\n    tl.store(Mean + row, mean)\n    tl.store(Rstd + row, rstd)\n    # Normalize and apply linear transformation\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        w = tl.load(W + cols, mask=mask)\n        b = tl.load(B + cols, mask=mask)\n        x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        x_hat = (x - mean) * rstd\n        y = x_hat * w + b\n        # Write output\n        tl.store(Y + cols, y, mask=mask)\n\nPrevious candidate source (if available):\nimport torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _row_sum_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    acc = 0.0\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += tl.sum(a, axis=0)\n    tl.store(Y + row, acc)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, cols = x.shape\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    if cols <= 128:\n        BLOCK_SIZE = 128\n    elif cols <= 256:\n        BLOCK_SIZE = 256\n    elif cols <= 512:\n        BLOCK_SIZE = 512\n    elif cols <= 1024:\n        BLOCK_SIZE = 1024\n    else:\n        BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n\nRevise this candidate to improve correctness and speed across contracted shapes.\n\nIndependent evaluator status: correct. Correctness passed. Optimize the worst workload without breaking other cases.\n{\"status\": \"correct\", \"source_sha256\": \"191760e52e7c86ac219677d55b5b54df43f080c99cf44951fee14e13c2dbc192\", \"checks_passed\": 28, \"timings\": [{\"shape\": [7, 257], \"dtype\": \"bfloat16\", \"compiled_us\": 1.066520344465971, \"candidate_us\": 1.0683032451197505, \"samples_us\": {\"compiled\": [1.066520344465971, 1.0684195440262556, 1.0652700439095497], \"candidate\": [1.0683032451197505, 1.0667287278920412, 1.0701188584789634]}, \"orders\": [[\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"]]}, {\"shape\": [128, 1536], \"dtype\": \"bfloat16\", \"compiled_us\": 1.3536126352846622, \"candidate_us\": 1.5191914280876517, \"samples_us\": {\"compiled\": [1.3536126352846622, 1.3487254036590457, 1.3716357061639428], \"candidate\": [1.5191914280876517, 1.5196647727862, 1.5158714959397912]}, \"orders\": [[\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"], [\"candidate\", \"compiled\"]]}, {\"shape\": [256, 4096], \"dtype\": \"bfloat16\", \"compiled_us\": 1.8952798563987017, \"candidate_us\": 2.2823286708444357, \"samples_us\": {\"compiled\": [1.8947109347209334, 1.8965804483741522, 1.8952798563987017], \"candidate\": [2.2850758396089077, 2.2823286708444357, 2.2772266529500484]}, \"orders\": [[\"candidate\", \"compiled\"], [\"compiled\", \"candidate\"], [\"compiled\", \"candidate\"]]}], \"gpu\": \"NVIDIA GeForce RTX 4090\", \"torch\": \"2.6.0+cu124\", \"measurement_condition\": \"shared_observed\", \"resource_audit\": {\"gpu_index\": 4, \"policy\": \"shared_observed\", \"minimum_free_mib\": 1024, \"sample_period_seconds\": 0.5, \"samples\": [{\"observed_utc\": \"2026-10-15T09:45:51.937396+00:00\", \"free_mib\": 24199, \"used_mib\": 12, \"utilization_percent\": 0, \"sm_clock_mhz\": 210, \"power_watts\": 23.97, \"pids\": []}, {\"observed_utc\": \"2026-10-15T09:45:52.498217+00:00\", \"free_mib\": 24199, \"used_mib\": 12, \"utilization_percent\": 0, \"sm_clock_mhz\": 210, \"power_watts\": 24.03, \"pids\": []}, {\"observed_utc\": \"2026-10-15T09:45:53.061969+00:00\", \"free_mib\": 23745, \"used_mib\": 467, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 25.69, \"pids\": [2229704]}, {\"observed_utc\": \"2026-10-15T09:45:53.621960+00:00\", \"free_mib\": 23745, \"used_mib\": 467, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 41.03, \"pids\": [2229704]}, {\"observed_utc\": \"2026-10-15T09:45:54.191421+00:00\", \"free_mib\": 23723, \"used_mib\": 489, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 64.07, \"pids\": [2229704]}, {\"observed_utc\": \"2026-10-15T09:45:54.761805+00:00\", \"free_mib\": 23723, \"used_mib\": 489, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 64.13, \"pids\": [2229704]}, {\"observed_utc\": \"2026-10-15T09:45:55.330354+00:00\", \"free_mib\": 23723, \"used_mib\": 489, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 64.19, \"pids\": [2229704]}, {\"observed_utc\": \"2026-10-15T09:45:55.890550+00:00\", \"free_mib\": 23723, \"used_mib\": 489, \"utilization_percent\": 0, \"sm_clock_mhz\": 2520, \"power_watts\": 64.25, \"pids\": [2229704]}, {\"observed_utc\": \"2026-10-15T09:45:56.479969+00:00\", \"free_mib\": 23689, \"used_mib\": 523, \"utilization_percent\": 7, \"sm_clock_mhz\": 2520, \"power_watts\": 64.41, \"pids\": [2229704]}, {\"observed_utc\": \"2026-10-15T09:45:57.089402+00:00\", \"free_mib\": 23689, \"used_mib\": 523, \"utilization_percent\": 9, \"sm_clock_mhz\": 2520, \"power_watts\": 65.09, \"pids\": [2229704]}, {\"observed_utc\": \"2026-10-15T09:45:57.658719+00:00\", \"free_mib\": 23687, \"used_mib\": 525, \"utilization_percent\": 5, \"sm_clo\n\nProposal 3 of 3. Submit one complete candidate within the same task contract.",
+    "reply": "{\"draft\":\"One program per row; vectorized loads with power-of-two block; FP32 accumulation; single cast at store. Tune block size per column width to reduce launch overhead and improve memory coalescing on RTX 4090.\",\"plan\":\"Use BLOCK_SIZE=1024 for cols>512, 512 for cols>256, 256 for cols>128, else 128. Single loop per row. Avoid Python-side branching beyond block selection. Keep grid=(rows,).\",\"code_lines\":[\"import torch\",\"import triton\",\"import triton.language as tl\",\"\",\"\",\"@triton.jit\",\"def _row_sum_kernel(\",\"    X,\",\"    Y,\",\"    stride,\",\"    N,\",\"    BLOCK_SIZE: tl.constexpr,\",\"):\",\"    row = tl.program_id(0)\",\"    X += row * stride\",\"    acc = 0.0\",\"    for off in range(0, N, BLOCK_SIZE):\",\"        cols = off + tl.arange(0, BLOCK_SIZE)\",\"        mask = cols < N\",\"        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\",\"        acc += tl.sum(a, axis=0)\",\"    tl.store(Y + row, acc)\",\"\",\"\",\"def run(x: torch.Tensor) -> torch.Tensor:\",\"    assert x.is_cuda\",\"    assert x.dim() == 2\",\"    assert x.is_contiguous()\",\"    rows, cols = x.shape\",\"    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\",\"    if cols <= 128:\",\"        BLOCK_SIZE = 128\",\"    elif cols <= 256:\",\"        BLOCK_SIZE = 256\",\"    elif cols <= 512:\",\"        BLOCK_SIZE = 512\",\"    else:\",\"        BLOCK_SIZE = 1024\",\"    grid = (rows,)\",\"    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\",\"    return y\"]}",
+    "proposed_code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _row_sum_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    acc = 0.0\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += tl.sum(a, axis=0)\n    tl.store(Y + row, acc)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, cols = x.shape\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    if cols <= 128:\n        BLOCK_SIZE = 128\n    elif cols <= 256:\n        BLOCK_SIZE = 256\n    elif cols <= 512:\n        BLOCK_SIZE = 512\n    else:\n        BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n",
+    "source_sha256": "be3e3536ced180496be76c13b8767c3a31af1029c4991ed66d4dbb2c9224965a",
+    "code": "import torch\nimport triton\nimport triton.language as tl\n\n\n@triton.jit\ndef _row_sum_kernel(\n    X,\n    Y,\n    stride,\n    N,\n    BLOCK_SIZE: tl.constexpr,\n):\n    row = tl.program_id(0)\n    X += row * stride\n    acc = 0.0\n    for off in range(0, N, BLOCK_SIZE):\n        cols = off + tl.arange(0, BLOCK_SIZE)\n        mask = cols < N\n        a = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)\n        acc += tl.sum(a, axis=0)\n    tl.store(Y + row, acc)\n\n\ndef run(x: torch.Tensor) -> torch.Tensor:\n    assert x.is_cuda\n    assert x.dim() == 2\n    assert x.is_contiguous()\n    rows, cols = x.shape\n    y = torch.empty((rows,), dtype=x.dtype, device=x.device)\n    if cols <= 128:\n        BLOCK_SIZE = 128\n    elif cols <= 256:\n        BLOCK_SIZE = 256\n    elif cols <= 512:\n        BLOCK_SIZE = 512\n    else:\n        BLOCK_SIZE = 1024\n    grid = (rows,)\n    _row_sum_kernel[grid](x, y, x.stride(0), cols, BLOCK_SIZE=BLOCK_SIZE)\n    return y\n",
+    "evaluation": {
+      "status": "correct",
+      "source_sha256": "be3e3536ced180496be76c13b8767c3a31af1029c4991ed66d4dbb2c9224965a",
+      "checks_passed": 28,
+      "timings": [
+        {
+          "shape": [
+            7,
+            257
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.0663361754268408,
+          "candidate_us": 1.0661298874765635,
+          "samples_us": {
+            "compiled": [
+              1.0663361754268408,
+              1.0660348925739527,
+              1.0673677315935493
+            ],
+            "candidate": [
+              1.062998315319419,
+              1.0661298874765635,
+              1.0762501042336226
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            128,
+            1536
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.3464465737342834,
+          "candidate_us": 1.5155829023569822,
+          "samples_us": {
+            "compiled": [
+              1.3522442895919085,
+              1.3464465737342834,
+              1.3461883645504713
+            ],
+            "candidate": [
+              1.5407813480123878,
+              1.5135658904910088,
+              1.5155829023569822
+            ]
+          },
+          "orders": [
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "compiled"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            256,
+            4096
+          ],
+          "dtype": "bfloat16",
+          "compiled_us": 1.888009486719966,
+          "candidate_us": 2.2739083506166935,
+          "samples_us": {
+            "compiled": [
+              1.8874019151553512,
+              1.888009486719966,
+              1.8913740059360862
+            ],
+            "candidate": [
+              2.2739083506166935,
+              2.274381695315242,
+              2.271362580358982
+            ]
+          },
+          "orders": [
+            [
+              "candidate",
+              "compiled"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ],
+            [
+              "compiled",
+              "candidate"
+            ]
+          ]
+        }
+      ],
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "torch": "2.6.0+cu124",
+      "measurement_condition": "shared_observed",
+      "resource_audit": {
+        "gpu_index": 4,
+        "policy": "shared_observed",
+        "minimum_free_mib": 1024,
+        "sample_period_seconds": 0.5,
+        "samples": [
+          {
+            "observed_utc": "2026-10-15T09:47:54.120564+00:00",
+            "free_mib": 24199,
+            "used_mib": 12,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 210,
+            "power_watts": 23.35,
+            "pids": []
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:54.686315+00:00",
+            "free_mib": 24199,
+            "used_mib": 12,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 210,
+            "power_watts": 23.35,
+            "pids": []
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:55.272321+00:00",
+            "free_mib": 24179,
+            "used_mib": 33,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 23.24,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:55.855956+00:00",
+            "free_mib": 23745,
+            "used_mib": 467,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 34.61,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:56.423419+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.98,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:56.988080+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.9,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:57.550418+00:00",
+            "free_mib": 23723,
+            "used_mib": 489,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.7,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:58.110238+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 7,
+            "sm_clock_mhz": 2520,
+            "power_watts": 64.96,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:58.685151+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 12,
+            "sm_clock_mhz": 2520,
+            "power_watts": 65.59,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:59.257094+00:00",
+            "free_mib": 23689,
+            "used_mib": 523,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 66.24,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:47:59.816486+00:00",
+            "free_mib": 23689,
+            "used_mib": 523,
+            "utilization_percent": 13,
+            "sm_clock_mhz": 2520,
+            "power_watts": 67.53,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:48:00.386824+00:00",
+            "free_mib": 23687,
+            "used_mib": 525,
+            "utilization_percent": 17,
+            "sm_clock_mhz": 2520,
+            "power_watts": 72.46,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:48:00.954990+00:00",
+            "free_mib": 23689,
+            "used_mib": 523,
+            "utilization_percent": 8,
+            "sm_clock_mhz": 2520,
+            "power_watts": 76.93,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:48:01.523083+00:00",
+            "free_mib": 23689,
+            "used_mib": 523,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 73.59,
+            "pids": [
+              2230891
+            ]
+          },
+          {
+            "observed_utc": "2026-10-15T09:48:02.090254+00:00",
+            "free_mib": 24196,
+            "used_mib": 15,
+            "utilization_percent": 0,
+            "sm_clock_mhz": 2520,
+            "power_watts": 67.41,
+            "pids": []
+          }
+        ],
+        "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+        "before": {
+          "observed_utc": "2026-10-15T09:47:53.554467+00:00",
+          "free_mib": 24199,
+          "used_mib": 12,
+          "utilization_percent": 0,
+          "sm_clock_mhz": 210,
+          "power_watts": 23.23,
+          "pids": []
+        },
+        "after": {
+          "observed_utc": "2026-10-15T09:48:02.359229+00:00",
+          "free_mib": 24199,
+          "used_mib": 12,
+          "utilization_percent": 0,
+          "sm_clock_mhz": 2520,
+          "power_watts": 65.04,
+          "pids": []
+        }
+      },
+      "cooperative_queue": {
+        "lock_file": "/data/home/chenyizhou/kernel-agent-pool-experiment-v1/gpu4.lock",
+        "wait_seconds": 6.183609366416931e-05,
+        "pid": 2230886,
+        "scope": "serializes this project's workers only"
+      }
+    },
+    "decision": {
+      "correct": true,
+      "promoted": false,
+      "geomean_speedup": 0.9035972270004446,
+      "worst_speedup": 0.8302926924068553,
+      "reason": "independent GPU evaluator"
+    },
+    "elapsed_seconds": 121.720742251724,
+    "usage": {
+      "duration": "PT1M52.787248S",
+      "cost": 0.0,
+      "output_tokens": 444
+    }
+  }
+]

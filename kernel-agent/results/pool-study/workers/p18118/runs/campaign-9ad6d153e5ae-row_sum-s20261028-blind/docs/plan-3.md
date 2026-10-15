@@ -1,0 +1,1 @@
+Allocate contiguous (rows,) output in input dtype. Launch grid (rows,). Kernel: row=program_id(0); base=X+row*stride; for off in range(0,N,BLOCK): load masked slice, convert to fp32, add to vector acc; total=tl.sum(acc); store total to Y+row. Host chooses BLOCK in {128,256,512,1024} by cols. No torch compute.

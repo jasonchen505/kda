@@ -1,0 +1,1 @@
+1) Compute M,N from input. 2) Allocate out (N,M). 3) Launch 2D grid of tiles. 4) Each program loads BLOCK_M x BLOCK_N tile from x using row/col offsets and strides. 5) Store transposed tile to out using swapped offsets. 6) Mask all loads/stores for boundary safety. 7) Return out.

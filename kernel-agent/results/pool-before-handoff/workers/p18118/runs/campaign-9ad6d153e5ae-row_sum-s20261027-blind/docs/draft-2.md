@@ -1,0 +1,1 @@
+Row-sum kernel: one program per row, loop over columns in BLOCK_SIZE chunks, accumulate in FP32, store once. Auto-tune BLOCK_SIZE over powers of two up to 4096 to cover odd column counts efficiently.

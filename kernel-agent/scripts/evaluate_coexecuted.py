@@ -26,7 +26,7 @@ def observe(gpu):
             "power_watts": power, "pids": sorted(set(map(int, pids)))}
 
 
-def evaluate(command, gpu):
+def evaluate(command, gpu, *, pass_fds=()):
     audit = {"gpu_index": gpu, "policy": "shared_observed", "minimum_free_mib": 1024,
              "sample_period_seconds": .5, "samples": [],
              "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim"}
@@ -47,7 +47,7 @@ def evaluate(command, gpu):
 
         thread = threading.Thread(target=sample, daemon=True)
         thread.start()
-        child = subprocess.run(command, capture_output=True, text=True, timeout=165)
+        child = subprocess.run(command, capture_output=True, text=True, timeout=165, pass_fds=pass_fds)
         stop.set()
         thread.join(timeout=12)
         audit["after"] = observe(gpu)

@@ -13,7 +13,7 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#phased">最新恢复验证</a><a href="#shared-study">共卡对照</a><a href="#results">既有结果</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
 <main>
 <header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.15</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
@@ -29,9 +29,20 @@
 
 <section id="portfolio"><h2>五分钟看懂这个求职项目</h2>
 <p>研究工程问题：如何让一个本地 coding agent 在数值、性能和资源约束下写出可验收的 kernel，并在失败或中断后保留可信实验记录。</p>
-<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流；Humanize → OpenCode → 本地 Qwen 的真实生成链路。六类 Triton 任务用于评估这个 agent。</p></div><div class="card"><h3>自己改进了什么</h3><p>结构化源码协议与分类反馈、正确候选保留、门槛优先选择、独立最终否决；再补任务恢复、预算持久化和生成／测速阶段分离。</p></div></div>
-<p>证据链：同预算反馈对照没有证明收益 → 轨迹揭示选择器缺陷 → 固定源码重测与新生成验证 → SIGKILL 恢复验证 → 多种子运行暴露设备调度瓶颈 → 共卡生成与独立测速队列。</p>
+<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流；Humanize → OpenCode → 本地 Qwen 的真实生成链路。六类 Triton 任务用于评估这个 agent。</p></div><div class="card"><h3>自己改进了什么</h3><p>结构化源码协议与分类反馈、正确候选保留、门槛优先选择、独立最终否决；再补任务恢复、预算持久化、生成／测速阶段分离与多服务并发调度。</p></div></div>
+<p>证据链：同预算反馈对照没有证明收益 → 轨迹揭示选择器缺陷 → 固定源码重测与新生成验证 → SIGKILL 恢复验证 → 多种子运行暴露设备调度瓶颈 → 共卡生成与独立测速队列 → 三路服务并发与入口失效后的恢复。</p>
 <p class="small" id="portfolio-evidence">定位：可以写入简历的 agent harness 研究工程原型。三任务集成验证为 3/3 最终正确、2/3 晋升；最新六任务反馈对照见下方。真实生成、工程测试和历史未完成实验分别计数。</p></section>
+
+<section id="pool-study" hidden><div class="section-top"><h2>三路模型生成，一路独立评测</h2><span class="tag" id="pool-status"></span></div>
+<p>将用户授权的两个空闲服务与自建服务接入同一 harness。模型请求可并行；GPU4 上的本项目评测加锁串行。六类开发任务 × 两个新种子 × 两组策略，共 24 项，按同一逻辑服务分组；重启与端口变更另存记录。</p>
+<div class="cards" id="pool-metrics"></div><div id="pool-services" class="cards" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
+<div class="card"><h3>真实请求与评测时间线</h3><div class="controls"><label for="pool-window">时间范围</label><select id="pool-window"><option value="recent">最近 15 分钟</option><option value="all">本轮全程</option></select></div><svg id="pool-timeline" viewBox="0 0 640 235" role="img" aria-label="三路模型请求可重叠，GPU4上的本项目评测串行" style="display:block;width:100%;height:auto"></svg><p class="small" id="pool-timeline-note"></p></div>
+<div class="notice">三路的 vLLM 版本与原生上下文长度不同。统一使用 8192 上下文、每请求至多 2048 输出 tokens；跨目录权重是否相同尚未核实。服务接入与并行的证据、反馈对照的结果分别展示，不与旧实验合并。</div>
+<div class="two" id="pool-arms"></div><div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>任务</th><th>服务</th><th>无反馈：正确 / 晋升</th><th>有反馈：正确 / 晋升</th></tr></thead><tbody id="pool-tasks"></tbody></table></div>
+<p id="pool-flow-counts" class="notice"></p><p id="pool-conclusion"></p><p class="small" id="pool-snapshot"></p>
+<div class="controls"><label for="pool-run">查看已提交或失败的运行</label><select id="pool-run"></select></div><div id="pool-trajectory"></div>
+<details><summary>请求准入、资源调度、用量与分析范围</summary><pre id="pool-provenance"></pre></details>
+<p class="small">每次请求前观察服务空闲；该观察不能预留其他用户的服务，也不能排除随后到达的请求。并发数统计已完成提案的代理请求区间，不代表实测端到端加速倍数。未确认响应可能已经消耗服务端 tokens，SDK 已报告量不是完整服务端用量。GPU 锁只约束本项目，不提供设备独占。两次种子、六个开发任务、固定参考与首轮源码差异仍限制因果解释和泛化。</p></section>
 
 <section id="phased" hidden><div class="section-top"><h2>在线反馈保留，最终评测独立恢复</h2><span class="tag">2026.10.15 · Harness 改进</span></div>
 <p>上一轮转置任务在 900 秒预算耗尽后没有提交最终结果。这次把搜索与最终评测拆成两个持久化阶段：搜索仍接收真实数值与速度反馈，先提交候选和选择，再由独立队列完成最终否决。</p>
@@ -77,7 +88,7 @@
 <div class="flow" aria-label="任务通过KDA提示、Humanize和OpenCode到达本地Qwen"><div class="node"><b>任务合约</b><span>输入 / 数值语义 / 约束</span></div><div class="node"><b>KDA 提示</b><span>草案 → 计划 → 候选</span></div><div class="node"><b>Humanize + OpenCode</b><span>真实 coding-agent 会话</span></div><div class="node"><b>本地 Qwen</b><span>输出计划与完整代码</span></div></div>
 <div class="flow" aria-label="控制器保存候选，独立测试，再测性能和决定是否晋升"><div class="node"><b>控制器准入</b><span>解析 / 基本源码检查 / SHA</span></div><div class="node"><b>正确性评测</b><span>奇数尺寸 / BF16 / 输入不变</span></div><div class="node"><b>性能评测</b><span>torch.compile / 3 次重复</span></div><div class="node"><b>候选决策</b><span>保留 / 修订 / 停止</span></div></div>
 <div class="feedback-line">改进模式：失败类型 + 实际测试信息 + 上一候选 → 新的短会话 → 新候选。最多 3 轮。普通模式重复即停；固定预算对照中，重复提案占一次机会并复用原测量。</div>
-<p class="small">最终选定源码还要接受一次新的形状与随机输入检查。最终检查结果不反馈给模型。上游 KDA 和 Humanize 的 tracked 文件未被修改。</p>
+<p class="small">最终选定源码还要接受一次新的形状与随机输入检查。最终检查结果不反馈给模型。服务器原 KDA/Humanize 克隆的实现未被修改；下游 harness 独立维护。</p>
 </section>
 
 <section><h2>02 · agent 本身改了什么</h2>
@@ -325,6 +336,37 @@ if(shared){
  showSharedRun();$('shared-run').addEventListener('change',showSharedRun);
  $('download-shared-study').addEventListener('click',()=>downloadRaw(DATA.raw_shared_checkpoint,'shared-feedback-checkpoint.json'));
 }
+const poolStudy=DATA.pool;
+if(poolStudy){
+ const p=poolStudy.summary;$('pool-study').hidden=false;$('pool-status').textContent=p.status==='complete'?'24 项均已结束':'真实运行中 · 离线快照';
+ function showPoolTimeline(){
+  const target=$('pool-timeline');target.replaceChildren();const items=p.timeline||[];if(!items.length){$('pool-timeline-note').textContent='等待首批完整的请求区间。';return}
+  const ns='http://www.w3.org/2000/svg',sv=(name,attrs,text)=>{const e=document.createElementNS(ns,name);for(const [k,v]of Object.entries(attrs||{}))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;return e};
+  const base=Math.min(...items.map(i=>Date.parse(i.start_utc))),end=Math.max(...items.map(i=>Date.parse(i.end_utc))),start=$('pool-window').value==='recent'?Math.max(base,end-900000):base,span=Math.max(1,end-start),lanes=[':18118',':54575',':60953','GPU4'],colors=['#416fac','#17685d','#a74922','#172b35'];
+  for(let i=0;i<4;i++){const y=25+i*45;target.append(sv('text',{x:0,y:y+19,fill:'#172b35','font-size':19},lanes[i]),sv('line',{x1:100,y1:y+32,x2:625,y2:y+32,stroke:'#d9dedb'}))}
+  for(const item of items){const a=Math.max(start,Date.parse(item.start_utc)),b=Math.min(end,Date.parse(item.end_utc)),lane=lanes.indexOf(item.lane);if(b<a||lane<0)continue;const rect=sv('rect',{x:100+525*(a-start)/span,y:25+lane*45,width:Math.max(1,525*(b-a)/span),height:27,rx:2,fill:colors[lane]});rect.append(sv('title',{},`${item.job_id}\n${item.phase}\n${item.start_utc} → ${item.end_utc}`));target.append(rect)}
+  const restored=p.handoff?Date.parse(p.handoff.created_utc):null;if(restored!==null&&restored>=start&&restored<=end){const x=100+525*(restored-start)/span;target.append(sv('line',{x1:x,x2:x,y1:20,y2:205,stroke:'#a74922','stroke-dasharray':'5 4'}),sv('text',{x:Math.min(x+5,545),y:15,fill:'#a74922','font-size':16},'入口恢复'))}
+  for(let i=0;i<=3;i++){const x=100+i*175,t=(start-base+i*span/3)/60000;target.append(sv('text',{x,y:225,fill:'#586870','font-size':17,'text-anchor':i===3?'end':'start'},`${t.toFixed(1)} 分钟`))}
+  $('pool-timeline-note').textContent=`横轴从本轮首个已完成事件开始计时；只画已完成提案与已知评测窗口，标题请求不入图。当前 GPU 评测窗口峰值重叠 ${p.peak_overlapping_gpu_windows??'待统计'}；共 ${p.independent_gpu_windows??'待统计'} 个独立窗口。代理区间不是纯模型推理时间。`;
+ }
+ $('pool-window').addEventListener('change',showPoolTimeline);showPoolTimeline();
+ for(const [value,label] of [[`${p.resolved}/24`,'已获端到端结果'],[String(p.dispatched_proposer_requests),'已发出的模型提案请求'],[String(p.peak_overlapping_proposal_ports),'提案请求峰值并发端口'],[String(p.admission_statuses.response_unknown||0),'未确认完整响应的请求']]){const card=node('div',undefined,'card');card.append(node('div',value,'metric'),node('p',label));$('pool-metrics').append(card)}
+ for(const w of p.workers){const card=node('div',undefined,'card'),route=p.handoff?.routes.find(r=>r.logical_port===w.port);card.append(node('h3',`:${w.port}${route?` → ${route.target_port}`:''} · GPU ${w.service.generation_gpus}`),node('p',`vLLM ${w.service.vllm_version}，原生上下文 ${w.service.max_model_len}。`,'small'),node('p',`生成状态：${Object.entries(w.generation_statuses).map(([k,v])=>`${k} ${v}`).join(' · ')}`,'small'));$('pool-services').append(card)}
+ for(const arm of p.arms){const card=node('div',undefined,'card');card.append(node('h3',arm.policy==='blind'?'无评测反馈':'实际搜索评测反馈'),node('p',`已结束 ${arm.resolved}/${arm.scheduled}；最终正确 ${arm.correct}，性能门槛通过 ${arm.promoted}。`),node('p',`已报告 SDK 输出 ${arm.reported_output_tokens} tokens；SDK 用量字段缺失 ${arm.usage_missing_jobs} 项。`,'small'));$('pool-arms').append(card)}
+ for(const t of p.tasks){const tr=node('tr');for(const text of [taskNames[t.task_id],String(t.service_port),`${t.arms.blind.correct} / ${t.arms.blind.promoted}`,`${t.arms.feedback.correct} / ${t.arms.feedback.promoted}`])tr.append(node('td',text));$('pool-tasks').append(tr)}
+ if(p.handoff){$('pool-conclusion').textContent=`服务重启后以声明一致的新端口恢复：保留 ${p.handoff.preserved_jobs} 项已提交结果，仅继续 ${p.handoff.pending_jobs_at_handoff} 项未启动任务。${p.cross_restart_pairs} 对跨越进程重启，因此关闭整轮反馈收益区间；上表只描述实际工程结果，不当作同一连续进程条件的策略收益。当前已结束 ${p.resolved}/24。`}else if(p.status==='complete'){const desc=k=>{const c=p.contrasts[k],i=c.exploratory_interval;return `${(100*c.macro_task_difference).toFixed(1)} 个百分点，探索区间 [${(100*i.low).toFixed(1)}, ${(100*i.high).toFixed(1)}]`};$('pool-conclusion').textContent=`同服务内配对、先平均种子再按六类任务汇总：反馈－无反馈，最终正确 ${desc('correct')}；性能门槛 ${desc('promoted')}。这是开发任务的描述性复现，不能由此证明稳定因果收益。`}else $('pool-conclusion').textContent='运行尚未结束。当前计数只展示已获裁决的结果，不计算完整成功率或反馈收益区间；失败与未知结果保留在预定 24 项分母中。';
+ $('pool-flow-counts').textContent=`预定 72 次机会；已提交 ${p.committed_proposals} 条机会记录、${p.committed_model_replies} 份模型回复、${p.admitted_candidate_files} 份准入源码。${p.rows.filter(r=>r.final?.status==='measured').length} 项执行了独立最终检查，${p.outcome_types.no_eligible_candidate||0} 项没有合格候选。重复源码与接口异常均保留，机会数不等于有效提案数。`;
+ $('pool-snapshot').textContent=`快照 ${p.captured_utc}；页面不会自动轮询服务器。模型服务进程不由本项目停止或修改。`;
+ const available=[...poolStudy.workers.flatMap(w=>w.checkpoint.jobs.filter(j=>j.status==='completed')),...poolStudy.failed_traces.map(j=>({...j,status:'failed'}))];
+ for(const [i,row] of available.entries()){const o=node('option',`${taskNames[row.job.task_id]} / ${row.job.seed} / ${row.job.study_policy==='feedback'?'有反馈':'无反馈'} / :${row.job.service_port}${row.status==='failed'?' / 失败':''}`);o.value=String(i);$('pool-run').append(o)}
+ function showPoolRun(){const target=$('pool-trajectory');target.replaceChildren();const item=available[Number($('pool-run').value)];if(!item){target.append(node('p','尚未有已提交的运行结果。请求已真实发出，进度见上方。'));return}const row=p.rows.find(r=>r.job.id===item.job.id),r=item.result||item;
+  target.append(node('p',item.status==='failed'?`未提交生成结果：${item.error}。保留现有轨迹，不自动重跑。`:row.outcome_type==='no_eligible_candidate'?'搜索阶段没有合格候选，未启动最终检查；端到端结果保留为未成功。':row.resolved?`最终正确：${row.correct?'通过':'未通过'}；性能门槛：${row.promoted?'通过':'未通过'}。`:'搜索结果已提交，最终队列尚待完成。'));
+  for(const a of r.attempts||[]){const card=node('div',undefined,'turn');card.append(node('strong',`提案 ${a.iteration} · ${a.evaluation.status}${a.duplicate_of?' · 重复源码':''}`));for(const [label,value] of [['原始模型提案',a.reply],['搜索裁决',a.evaluation],['源码与父 SHA',{source_sha256:a.source_sha256,parent_sha256:a.parent_sha256,code:a.code}]]){const d=node('details');d.append(node('summary',label),node('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));card.append(d)}target.append(card)}
+  if(row.final){const d=node('details');d.append(node('summary','固定选择之后的独立最终检查'),node('pre',JSON.stringify(row.final,null,2)));target.append(d)}
+ }
+ showPoolRun();$('pool-run').addEventListener('change',showPoolRun);
+ $('pool-provenance').textContent=JSON.stringify({plan_sha256:p.plan_sha256,seeds:poolStudy.plan.seeds,allocation:poolStudy.plan.budget_allocation,admissions:p.admission_statuses,concurrency_scope:p.concurrency_scope,handoff:p.handoff,cross_restart_pairs:p.cross_restart_pairs,pooled_contrasts_suppressed:p.pooled_contrasts_suppressed,scope:p.scope,checks:DATA.pool_checks},null,2);
+}
 const phased=DATA.phased;
 if(phased){
  $('phased').hidden=false;
@@ -362,7 +404,7 @@ if(recovery){
   }
   $('recovery-note').textContent=phase==='before'?'A 的结果已提交，B 的预算预留和调用状态已落盘，C 尚未调用。此时对测试子进程发送 SIGKILL。':'A 的结果 SHA 完全复用；B 保留为未知并占据原分母；C 完成。再次启动不新增调用。以上使用测试驱动，不计入 GPU 成绩。';
  }
- const check=DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+ const check=DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
  $('upgrade-checks').textContent=check?`${check.passed_tests} 项机制与证据检查通过；lint、脚本语法和离线审计通过。`:'SIGKILL 场景与恢复断言通过；机制检查详见项目测试记录。';
  $('multiseed-note').textContent=multiseed?`旧 GPU6 计划保留为零启动的预检记录；修正评测解释器后，新计划在 GPU${multiseed.runtime.gpu_index} 上运行。已终止 ${multiseed.terminal}/${multiseed.scheduled}，结果与进度见上方多种子章节。`:nextPlan?`冻结 ${nextPlan.summary.scheduled} 次运行、108 次提案机会；已启动 ${nextPlan.summary.terminal} 次。状态：等待资源。预检记录：${nextPlan.last_event.error}。预算预留仍为 0。`:'扩展实验尚未启动。';
  $('recovery-detail').textContent=JSON.stringify({assertions:recovery.assertions,summary:recovery.summary,next_plan:nextPlan},null,2);
@@ -370,7 +412,7 @@ if(recovery){
  $('download-recovery').addEventListener('click',()=>download(recovery,'campaign-recovery-validation.json'));
  showRecovery();
 }
-const currentChecks=DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+const currentChecks=DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
 $('tests-note').textContent=(DATA.validation||'流程单元与集成检查见项目 tests/。')+(currentChecks?` 当前工程 ${currentChecks.passed_tests} 项检查通过，CPU 恢复测试另见调度章节。`:'');$('provenance').textContent=JSON.stringify({metadata:study.metadata,upstreams:DATA.upstreams,study_status:study.status},null,2);$('startup').append(node('p','启动诊断文件：'+(DATA.startup_files||[]).join('、'),'small'));$('generated').textContent=DATA.generated_utc;showSpeed();showRun();
 if(isSelectorValidation&&DATA.selector_validation_audit){$('selector-delivery').hidden=false;$('selector-delivery-data').textContent=JSON.stringify(DATA.selector_validation_audit,null,2)}
 if(shared?.status==='complete'){
@@ -384,5 +426,13 @@ if(shared?.status==='complete'){
  $('provenance').textContent=JSON.stringify({latest_shared_plan:DATA.shared_feedback_checkpoint.plan,historical_three_task_metadata:study.metadata,upstreams:DATA.upstreams},null,2);
 }
 if(phased){$('main-finding').append(' 最新工程改进：在线反馈搜索先提交，最终评测通过真实 SIGKILL 与恢复验证；模型调用与已提交搜索均未重放。');$('portfolio-evidence').textContent='定位：可写入简历的 agent harness 研究工程原型。主贡献是独立评测与候选选择、预算与未知调用管理、保留在线反馈的阶段恢复；实验负结果与故障证据均可审阅。'}
+if(poolStudy?.summary.status==='complete'){
+ const p=poolStudy.summary,correct=p.arms.reduce((n,a)=>n+a.correct,0),promoted=p.arms.reduce((n,a)=>n+a.promoted,0),blind=p.arms.find(a=>a.policy==='blind'),fb=p.arms.find(a=>a.policy==='feedback');
+ $('summary').textContent=`最新服务池工程验证：六类任务、两个新种子、两组策略，24 项均已结束；最终正确 ${correct}/24，条件性能门槛通过 ${promoted}/24。`;
+ $('metrics').replaceChildren();for(const [label,value,caption] of [['任务族','6','均为既有开发任务'],['每任务种子','2','同服务内配对'],['最终正确',`${correct}/24`,'保留失败与未知分母'],['条件性能门槛',`${promoted}/24`,'单卡独立评测 · 可共卡']]){const c=node('div',undefined,'card');c.append(node('div',label,'small'),node('div',value,'metric'),node('p',caption,'small'));$('metrics').append(c)}
+ $('main-finding').textContent=`有反馈 ${fb.correct}/12 最终正确、${fb.promoted}/12 晋升；无反馈 ${blind.correct}/12 最终正确、${blind.promoted}/12 晋升。实测提案代理区间峰值覆盖 ${p.peak_overlapping_proposal_ports} 个端口。主要新增贡献是空闲准入、多服务并发与 GPU 评测串行；没有把并发端口数当作端到端加速倍数。`;
+ $('model-info').textContent='三路缓存 Qwen 27B FP8 接口 · vLLM 0.25.1 / 0.27.1 · 共同 8192 上下文 / 2048 输出上限 · 生成 GPU0/1、2/3、5/6，评测 GPU4。跨目录权重等价性未核实。';
+ $('runtime-note').textContent=p.handoff?'本轮含记录的服务重启与端口恢复，5 对跨越重启，整轮策略收益区间已关闭。工程结果与旧 12 项、旧 36 项计划及两任务恢复验证分别保存。':'只在同一服务内比较两组，每个任务先平均两个种子，再按六类任务计算探索性区间。与旧 12 项、旧 36 项计划及两任务恢复验证分别保存。';
+}
 </script>
 </body></html>

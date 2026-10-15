@@ -1,0 +1,1 @@
+Use BLOCK_SIZE=1024 for cols>512, 512 for cols>256, 256 for cols>128, else 128. Single loop per row. Avoid Python-side branching beyond block selection. Keep grid=(rows,).

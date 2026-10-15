@@ -1,0 +1,1 @@
+RMSNorm kernel: one program per row, loop over width in power-of-two blocks. Compute sum-of-squares in FP32, rsqrt, normalize, cast to input dtype, multiply by weight, store. Handles odd widths via masking.

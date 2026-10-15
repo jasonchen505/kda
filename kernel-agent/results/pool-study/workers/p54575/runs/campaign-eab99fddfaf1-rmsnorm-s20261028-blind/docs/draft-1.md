@@ -1,0 +1,1 @@
+RMSNorm kernel: one program per row, loop over width in power-of-two blocks, accumulate sum of squares in FP32, compute rsqrt(mean+eps), cast normalized values to input dtype before multiplying by weight.

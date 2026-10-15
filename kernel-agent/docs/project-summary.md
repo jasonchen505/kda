@@ -5,6 +5,41 @@ It adapts KDA's contract → draft → plan → implementation workflow through 
 OpenCode, then adds a downstream controller whose verdict comes from a separate GPU
 evaluator. The work targets LLM research engineering and agent evaluation for systems.
 
+## Latest engineering evidence: a three-service pool (2026-10-15)
+
+The harness completed all **24 scheduled jobs**: six development families × two seeds ×
+two strategies. Final correctness is **20/24**, with **6/24** passing the observed-sharing
+performance gate. Blind refinement is 10/12 correct and 3/12 promoted; feedback is
+10/12 and 3/12. These are observed outcomes, not evidence of a feedback advantage.
+
+The pool gives each explicitly authorized service an isolated process, workspace, proxy
+and ledger. Every dispatch checks its HTTP declaration, idle metrics and exact tokenized
+context (8192 common cap, 2048 output cap). Completed proposer intervals overlap across
+three ports; 80 known independent GPU4 windows have peak overlap one under the shared
+project lock. No end-to-end throughput speedup was measured. The dataset preserves
+67 dispatched proposer requests, 66 committed replies and 66 admitted source files;
+proposal opportunities, duplicate sources and auxiliary calls are counted separately.
+
+Two borrowed endpoints disappeared mid-run. A separately frozen gateway restored their
+logical entrances after declaration/GPU-mapping checks. All **15 committed jobs** were
+reused; only **nine untouched jobs** proceeded. The 178 old request/admission files retain
+their hashes and budget reservations never reset. Four transpose jobs had no eligible
+source (three numerical failures and one interface failure), so no final evaluation ran
+for those jobs. Three jobs stopped on interface failures; two still finalized a previously retained correct
+source, while the transpose job had none. Two uncertain response receipts remain visible
+and were not retried by
+the quarantined job proxies. This does not promise exactly-once external calls.
+
+Five strategy pairs cross a service restart. Pooled feedback contrasts and intervals are
+therefore suppressed. Service versions differ; cross-root weight equality and process/cache
+continuity are unverified. This release validates concurrent scheduling, durable evidence
+and recovery coverage, not a continuous-condition causal study. Raw snapshots and the
+handoff are retained separately. The CPU suite passes **134 cases** on both pinned SDKs
+and a fresh locked installation; no model/GPU calls are part of those CPU counts.
+
+See [the handoff](service-pool-handoff.md), [results](service-pool-results.zh.md),
+`results/pool-study/` and the report's service-pool panel.
+
 ## Contribution
 
 - **Execution contract:** a structured line-array proposal protocol; basic AST admission;
@@ -108,7 +143,7 @@ Promotion difference is zero; end-to-end correctness difference is −1/6 due to
 stop. Exploratory task-bootstrap intervals are [0, 0] and [−0.5, 0], respectively, not proof
 of equivalence or stable causal effects. The five pairs with complete results had different
 first sources. The old 23/36 study remains incomplete and is not patched with this condition.
-CPU checks pass 119 cases on both SDKs; model/GPU counts are separate.
+That release passed 119 CPU cases; its model/GPU counts remain separate.
 
 ## Online feedback with durable finalization (2026-10-15)
 

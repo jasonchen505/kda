@@ -1,0 +1,1 @@
+1. Reduce BLOCK_SIZE to 256 for better parallelism on small shapes. 2. Remove unnecessary assertions to reduce host overhead. 3. Keep the same kernel structure with masked loads/stores. 4. Ensure FP32 intermediate computation before casting to output dtype.

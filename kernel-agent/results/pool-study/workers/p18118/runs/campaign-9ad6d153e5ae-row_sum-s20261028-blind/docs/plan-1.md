@@ -1,0 +1,1 @@
+Allocate output (rows,). Launch grid (rows,). Each program loads row in BLOCK chunks with mask, sums in FP32, casts to input dtype, stores scalar.

@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 intermediates. Use a larger block size (4096) and multiple elements per thread via vectorized loads to improve memory throughput for the max size (1M elements). Mask handles odd sizes. Output dtype preserved via constexpr cast.

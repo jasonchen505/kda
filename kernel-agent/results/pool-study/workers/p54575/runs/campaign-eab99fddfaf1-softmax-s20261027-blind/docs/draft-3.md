@@ -1,0 +1,1 @@
+Single-pass row softmax kernel. One program per row, vectorized load with mask, FP32 max/exp/sum, store cast to input dtype. Uses next_power_of_2 block size for all column widths up to 2048. Preserves dtype, shape, and input tensor.

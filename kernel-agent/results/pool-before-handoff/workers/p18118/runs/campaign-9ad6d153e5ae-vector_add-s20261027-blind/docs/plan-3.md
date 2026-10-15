@@ -1,0 +1,1 @@
+1) Allocate output with empty_like. 2) Launch 1D grid with BLOCK_SIZE=1024, num_warps=4 for better occupancy on small shapes. 3) Load x,y as fp32, add, cast back to input dtype. 4) Store with mask. 5) Return output.

@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y kernel. Load x,y as fp32, compute x*sigmoid(x)*y in fp32, store once. Masked 1D grid handles odd sizes up to 1M.

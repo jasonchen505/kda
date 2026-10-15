@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Launch 1D grid kernel. 3. Load x,y as FP32, add, cast to dtype. 4. Store with mask. BLOCK_SIZE=1024.

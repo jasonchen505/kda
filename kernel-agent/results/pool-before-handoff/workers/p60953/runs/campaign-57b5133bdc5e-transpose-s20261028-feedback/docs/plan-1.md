@@ -1,0 +1,1 @@
+1. Allocate output tensor with shape (N, M) where input is (M, N). 2. Define Triton kernel with 2D program grid. 3. Each program loads BLOCK_R x BLOCK_C tile from input using row and column offsets with masks. 4. Transpose the tile in registers. 5. Store to output at transposed coordinates with masks. 6. Launch with grid covering all tiles. 7. Return output tensor.

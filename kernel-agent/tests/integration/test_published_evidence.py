@@ -22,6 +22,9 @@ def test_published_evidence_is_self_contained():
     assert result["phased_recovery"]["jobs"] == 2
     assert result["phased_recovery"]["proposer_requests"] == 6
     assert result["phased_recovery"]["new_model_calls_during_recovery"] == 0
+    assert result["service_pool"]["scheduled"] == 24
+    assert result["service_pool"]["peak_overlapping_proposal_ports"] == 3
+    assert result["service_pool"]["peak_overlapping_gpu_windows"] == 1
 
 
 def test_budget_stopped_task_preserves_sources_without_inventing_a_final_result(tmp_path):
@@ -76,3 +79,30 @@ def test_phased_imported_search_cannot_be_changed_even_with_a_new_state_hash(tmp
     summary_path.write_text(json.dumps(summary))
     with pytest.raises(ValueError, match="imported online-search evidence changed"):
         audit.check_phased(tmp_path)
+
+
+def test_pool_cannot_swap_model_aliases_even_with_a_matching_new_wire_hash(tmp_path):
+    folder = tmp_path / "results/pool-study"
+    shutil.copytree(ROOT / "results/pool-study", folder)
+    wire = next((folder / "workers/p18118/wire").glob("*/*.json"))
+    body = json.loads(wire.read_text())
+    body["model"] = "another-service-model"
+    wire.write_text(json.dumps(body))
+    receipt_path = wire.parent / "admission" / wire.name
+    receipt = json.loads(receipt_path.read_text())
+    receipt["wire_sha256"] = audit.digest(wire)
+    receipt_path.write_text(json.dumps(receipt))
+    with pytest.raises(ValueError, match="bypassed service"):
+        audit.check_pool(tmp_path)
+
+
+def test_no_eligible_pool_candidate_is_not_an_executed_final_failure():
+    summary = json.loads((ROOT / "results/pool-study/summary.json").read_text())
+    row = next(r for r in summary["rows"] if r.get("outcome_type") == "no_eligible_candidate")
+    assert row["resolved"] and not row["correct"] and row["selected_sha256"] is None
+    assert row["final"]["status"] == "queued" and row["final"]["observations"] == []
+    if summary["status"] == "complete" and not summary.get("handoff"):
+        assert summary["contrasts"]["correct"]["exploratory_interval"]["clusters"] == 6
+    if summary.get("handoff"):
+        assert summary["pooled_contrasts_suppressed"] and summary["contrasts"] == {}
+        assert summary["handoff"]["preserved_jobs"] == 15 and summary["cross_restart_pairs"] == 5

@@ -1,0 +1,1 @@
+Transpose via 2D tile loads with transposed stores. Use 64x64 tiles, mask both dims for odd sizes. Output allocated as empty (N,M).

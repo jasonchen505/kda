@@ -1,0 +1,1 @@
+Transpose via 2D tile loads/stores with transposed index mapping. Use 64x64 tiles for better DRAM coalescing on larger shapes, 32x32 for small. Mask both load and store for odd sizes. Output preallocated contiguous (N,M).

@@ -4,57 +4,40 @@ A job-portfolio prototype that reproduces the KDA task workflow through a real H
 coding-agent session and improves the downstream controller. The research object is the
 agent that generates kernels, not manually authored operator optimization.
 
-**Portfolio scope:** a working research-engineering harness, with local inference,
-independent GPU verdicts, bounded repair, search-only selection, frozen evidence and an
-interactive report. The three-task integration campaign is **3/3 final-correct,
-2/3 promoted**; this is a small reference-assisted replication, not a general success rate.
+**Portfolio scope:** local-model agent orchestration and evaluation for LLM research
+engineering. Generated kernels are assessment tasks; candidates are never hand-repaired.
+The contribution is the downstream controller, candidate lifecycle, resource scheduling
+and auditable evidence. KDA, Humanize/OpenCode, Qwen and Triton are reused components.
 
 Start with [the project summary](docs/project-summary.md),
 [Chinese resume and interview notes](docs/project-summary.zh.md), and
-[the offline HTML report](reports/kernel-agent-report.html). Generated candidates are
-never hand-corrected. Negative experiments and the original selector defect remain visible.
+[the offline HTML report](reports/kernel-agent-report.html#pool-study).
 
-[Durable task-boundary scheduling](docs/campaign-recovery.md) adds
-immutable plans, atomic checkpoints, single-owner locks and budgets that survive restarts.
-A real SIGKILL recovery test passed using the actual Humanize flow with fake model/GPU
-drivers. A GPU4 pilot then executed three real Qwen proposals and passed Softmax numerical
-checks, but another user's GPU process appeared during the job; its raw performance verdict
-is retained without a clean-performance claim. The [guarded 36-job multi-seed study](docs/multiseed-execution.md)
-now has evaluator boundary checks and finite readiness waiting on user-selected GPU4.
-Its latest snapshot records **23/36 terminal jobs, 12 final-correct and 6 promoted**,
-with 13 pending. Eight jobs stopped early for resource availability; another final check
-was resource-vetoed. These are end-to-end outcomes with infrastructure failures retained,
-not a completed feedback comparison. The three-task headline above is a separate study.
+**Latest engineering validation: 24/24 jobs resolved**, six families × two seeds × two
+strategies; **20/24 final-correct, 6/24 conditionally promoted**. Three model-service request
+intervals overlapped while this project's GPU4 evaluations remained serialized. An endpoint
+restart reused **15 committed jobs** and resumed **nine untouched jobs**, preserving 178 old
+request/admission hashes and existing budget reservations. Four jobs had no eligible source
+and never ran final evaluation. Five pairs cross the restart, so pooled feedback effects
+and intervals are suppressed. This validates harness concurrency/recovery; no feedback
+advantage or end-to-end throughput gain is claimed.
 
-The new [phase-split harness](docs/deferred-evaluation.md) lets model generation and search
-numerical checks share GPU4, then persists unedited eligible sources in a separate timing
-queue. Measurement resumes without requesting the model again; search-only selection is
-committed before the final veto. This is a different feedback contract (numerical results
-only), with a separate engineering pilot. [GPU sharing policy](docs/gpu-sharing-policy.md)
-explains why shared execution and qualified speedup evidence need different controls.
+- [Latest results](docs/service-pool-results.zh.md), [frozen plan](docs/service-pool-study-plan.md),
+  [recorded endpoint handoff](docs/service-pool-handoff.md), and `results/pool-study/`.
+- [Online-feedback durable finalization](docs/phased-study-plan.md): real SIGKILL recovery
+  reused six search measurements, with zero new model/search calls and two final checks.
+- [Historical feedback study](docs/shared-study-plan.md): 12/12 terminal, blind 6/6 correct
+  versus feedback 5/6, both 1/6 promoted; one budget stop preserved without a rerun.
+- [Selector repair](docs/selector-recheck.md): frozen-source contrast, old selection 0/3
+  promotions versus eligible alternative 3/3. Later 3/3 correct, 2/3 promoted integration
+  uses a changed service configuration and is not attributed to that fix alone.
+- [Older guarded study](docs/multiseed-execution.md) remains 23/36 terminal, 13 pending;
+  [sharing policy](docs/gpu-sharing-policy.md) keeps its condition distinct.
 
-**Observed GPU sharing is now an executable measurement condition.** The two committed
-Softmax generation jobs completed five independent evaluations, with **2/2 final-correct,
-2/2 passing the shared performance gate**, and zero new model calls. Their final geometric
-means are 1.240× / 1.232× against `torch.compile`. These are conditional shared-environment
-ratios for the same old proposals, not two new generation trials or isolated speedups.
-The [prospective sharing study](docs/shared-study-plan.md) has six task families, two arms,
-one fresh seed and all 12 jobs terminal. Blind refinement is **6/6 final-correct, 1/6 promoted**;
-measured feedback is **5/6 final-correct, 1/6 promoted**, with one 900-second budget stop
-without a final verdict. All 36 proposals / 72 request bodies are preserved, including that
-failed task’s three correct search records. It was not retried; the study does not establish
-a feedback benefit. Its evidence is separate from the incomplete old 36-job plan.
-
-**Online feedback can now commit before finalization.** `search_only` retains actual
-search correctness and timing feedback, but returns before any final-data access. The
-durable final queue imports those exact search measurements and freezes the same source
-selection. Only the selected source is finalized outside the Humanize generation budget;
-no alternative final audits, feedback or reselection occur. See the separate
-[engineering pilot](docs/phased-study-plan.md), prompted by the previous budget failure.
-Its six real proposals and six search measurements survived a final-stage process kill;
-recovery made zero model/search calls and completed two final checks: 2/2 correct,
-1/2 passing the conditional gate. CPU checks pass 119 cases on both SDKs and a fresh install.
-The initial preparation CLI exit-code failure is preserved alongside its corrected plan.
+All task families have participated in development; references assist generation. Shared
+ratios against `torch.compile` are conditional measurements, not isolated-device speedups.
+Cached roots' weight equality is unverified. **134 CPU mechanism/evidence tests** pass on
+both pinned SDKs and a fresh locked install; these are separate from model/GPU experiments.
 
 ```text
 Task contract → local Qwen proposal → protocol / AST admission → independent GPU process
@@ -142,6 +125,22 @@ snapshot without GPU or model execution. It copies one atomic checkpoint read, c
 sources, request bodies and the measured implementation before computing the report metrics.
 
 ## Usage
+
+The service-pool entry prepares the fixed two-seed schedule before any model calls:
+
+```bash
+uv run python scripts/run_pool.py --pid OWNED_SERVICE_PID \
+  --directory runs/my-service-pool --prepare
+# Remove --prepare to run three isolated workers; GPU4 work is cooperatively serialized.
+# Capture evidence without requesting the model or running GPU evaluation:
+uv run python scripts/capture_pool.py --directory runs/my-service-pool --output runs/my-pool-export
+```
+
+The two borrowed services are HTTP-only. They are never started or stopped by this runner.
+Endpoint changes require an explicit, recorded declaration check and handoff; frozen plans
+are never rewritten. `service_gateway.py` records the observed replacement routes for this
+case and must not be reused blindly for unrelated ports or declarations.
+
 
 Reviewers can run `bash scripts/check.sh` without starting a model or a GPU experiment.
 For a new observed-sharing experiment, provide the owned base-service PID, an evaluation

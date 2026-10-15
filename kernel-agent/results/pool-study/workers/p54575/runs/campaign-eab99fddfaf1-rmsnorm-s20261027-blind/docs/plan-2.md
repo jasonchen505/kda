@@ -1,0 +1,1 @@
+Grid=(rows,). Load row in fp32, compute mean_sq=sum(x^2)/N, rstd=rsqrt(mean_sq+eps). For each block: normed=(x*rstd).to(dtype), y=w*normed, store. BLOCK_SIZE=next_pow2(width) capped at 4096. Loop if width>1024.

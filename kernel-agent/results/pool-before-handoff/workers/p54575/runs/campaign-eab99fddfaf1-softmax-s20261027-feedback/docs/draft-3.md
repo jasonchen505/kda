@@ -1,0 +1,1 @@
+Fix ROWS_PER_BLOCK to power-of-two. Use 2D tile kernel with FP32 reduction, masked load/store, and stable softmax. Allocate output, launch grid over rows, return tensor.

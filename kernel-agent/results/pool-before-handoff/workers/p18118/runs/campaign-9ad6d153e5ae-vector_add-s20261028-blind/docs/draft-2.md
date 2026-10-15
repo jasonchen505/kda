@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 accumulation. Uses 2048-wide blocks for better DRAM throughput on larger shapes while masking odd sizes. Preserves dtype and shape.

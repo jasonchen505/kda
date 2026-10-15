@@ -74,6 +74,25 @@ payload["phased"] = ({key: json.loads((phased / path).read_text()) for key, path
 payload["phased_checks"] = (json.loads((ROOT / "results/phased-checks.json").read_text())
                             if (ROOT / "results/phased-checks.json").exists() else None)
 payload["raw_phased_generation"] = (phased / "generation.json").read_text() if phased.exists() else None
+pool = ROOT / "results/pool-study"
+payload["pool"] = None
+if (pool / "summary.json").exists():
+    payload["pool"] = {"summary": json.loads((pool / "summary.json").read_text()),
+                       "plan": json.loads((pool / "plan.json").read_text()), "workers": [], "failed_traces": []}
+    for worker in payload["pool"]["plan"]["workers"]:
+        folder = pool / "workers" / f"p{worker['port']}"
+        raw = (folder / "generation.json").read_text()
+        state = json.loads(raw)
+        payload["pool"]["workers"].append({"port": worker["port"], "checkpoint": state, "raw_checkpoint": raw})
+        for row in state["jobs"]:
+            if row["status"] not in {"failed", "interrupted_unknown"}:
+                continue
+            run_id = f"campaign-{state['plan_sha256'][:12]}-{row['job']['id']}"
+            trace = folder / "runs" / run_id / "trace.json"
+            payload["pool"]["failed_traces"].append({"job": row["job"], "error": row.get("error"),
+                                                     "attempts": json.loads(trace.read_text()) if trace.exists() else []})
+payload["pool_checks"] = (json.loads((ROOT / "results/pool-checks.json").read_text())
+                          if (ROOT / "results/pool-checks.json").exists() else None)
 if shared_checkpoint.exists():
     checkpoint = json.loads(shared_checkpoint.read_text())
     for row in checkpoint["jobs"]:

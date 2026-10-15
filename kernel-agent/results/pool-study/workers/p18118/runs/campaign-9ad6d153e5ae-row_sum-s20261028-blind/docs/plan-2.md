@@ -1,0 +1,1 @@
+Keep grid=(rows,). Choose BLOCK_SIZE from cols (<=1024) to fit one row per program. Load masked chunks, sum in fp32, store scalar. No torch compute.

@@ -1,0 +1,1 @@
+Keep per-row kernel. Choose BLOCK_SIZE from column count to minimize loop iterations and improve occupancy. Use tl.sum directly on loaded vector per iteration to avoid large accumulator register pressure. Store scalar result.

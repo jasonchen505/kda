@@ -1,0 +1,1 @@
+Single Triton kernel: pid*BLOCK + arange offsets, mask < n. Load x,y with other=0, cast to fp32, out = x*sigmoid(x)*y, store to out_ptr. Host run allocates empty_like, launches grid cdiv(n, BLOCK). BLOCK=1024. No torch compute.

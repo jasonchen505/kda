@@ -1,0 +1,1 @@
+Select BLOCK_SIZE based on n_elements: 1024 for >=65536, 512 for >=8192, 256 otherwise. Use num_warps=4 for larger blocks. Load, cast to fp32, add, cast back, store with mask.

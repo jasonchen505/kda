@@ -1,0 +1,1 @@
+Use tl.sigmoid for accuracy. Select BLOCK_SIZE and num_warps by element count: small shapes use 128/4, mid 256/4, large 1024/8. Masked loads/stores for odd sizes. Allocate contiguous output with empty_like.

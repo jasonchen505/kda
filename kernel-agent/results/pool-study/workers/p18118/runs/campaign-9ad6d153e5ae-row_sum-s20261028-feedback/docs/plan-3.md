@@ -1,0 +1,1 @@
+Grid (rows,). BLOCK = next_pow2(cols). SINGLE = cols <= BLOCK. Kernel: row=pid(0); X+=row*stride; if SINGLE load once else loop; sum in fp32; store to Y+row. Host: allocate out, compute BLOCK/SINGLE, launch, return out.

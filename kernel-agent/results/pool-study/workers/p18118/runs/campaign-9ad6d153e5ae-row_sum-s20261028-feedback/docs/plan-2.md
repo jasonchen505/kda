@@ -1,0 +1,1 @@
+Tune block size per column count to reduce loop overhead on small rows and maximize vector width on large rows. Keep one program per row. Use tl.constexpr BLOCK_SIZE. Allocate output, launch, return.

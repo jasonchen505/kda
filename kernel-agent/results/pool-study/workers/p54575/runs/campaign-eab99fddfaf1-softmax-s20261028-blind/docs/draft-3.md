@@ -1,0 +1,1 @@
+Single-pass row softmax kernel. Load row, compute max, exp, sum, normalize. Use FP32 arithmetic internally. Handle non-power-of-two columns with masking. One program per row.

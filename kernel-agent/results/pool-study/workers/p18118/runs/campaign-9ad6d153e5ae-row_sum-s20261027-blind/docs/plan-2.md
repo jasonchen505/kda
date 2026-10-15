@@ -1,0 +1,1 @@
+Use triton.autotune with configs for BLOCK_SIZE in {256,512,1024,2048,4096}. Kernel loads masked chunks, casts to fp32, accumulates, reduces, stores. run() allocates output, launches with grid=(rows,).

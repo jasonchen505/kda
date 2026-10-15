@@ -1,0 +1,1 @@
+Increase BLOCK_SIZE to 2048 and set num_warps=8 to better utilize SMs. This reduces the number of blocks for large tensors and improves per-block efficiency. For small tensors, the larger block still fits in one program, minimizing grid overhead.

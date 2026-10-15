@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Launch grid of n_rows programs. 3. Each program loads one row with mask, computes max in FP32, subtracts, exps, sums, divides. 4. Store result masked. 5. Return output. No PyTorch compute fallback.

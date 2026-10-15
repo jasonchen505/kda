@@ -1,0 +1,1 @@
+Optimize small-shape latency by reducing launch overhead and using a smaller block size for sub-16K elements. Keep FP32 compute and single output cast.

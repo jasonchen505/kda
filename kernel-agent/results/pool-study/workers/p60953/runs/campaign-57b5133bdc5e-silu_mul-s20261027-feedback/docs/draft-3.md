@@ -1,0 +1,1 @@
+SiLU(x)*y elementwise in FP32, single cast at store. Tune block size and num_warps per size to beat torch.compile on small and large shapes.

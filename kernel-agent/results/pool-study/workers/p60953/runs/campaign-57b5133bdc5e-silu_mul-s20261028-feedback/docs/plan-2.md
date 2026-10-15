@@ -1,0 +1,1 @@
+Compute sigmoid via exp2(-x*log2e) in FP32. Select BLOCK_SIZE based on n_elements: 256 for small, 1024 for medium, 2048 for large. Single masked load/store pass.

@@ -1,0 +1,1 @@
+Allocate output with empty_like. Launch 1D grid of blocks. Kernel uses program_id, arange offsets, mask for odd sizes. Cast result to x.dtype before store. BLOCK_SIZE=1024.

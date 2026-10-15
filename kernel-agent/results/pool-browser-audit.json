@@ -1,0 +1,48 @@
+{
+  "verified_utc": "2026-10-15T11:41:13.769Z",
+  "url": "http://127.0.0.1:8765/reports/kernel-agent-report.html#pool-study",
+  "status": "verified",
+  "dom": {
+    "body_width": 426,
+    "conclusion": "服务重启后以声明一致的新端口恢复：保留 15 项已提交结果，仅继续 9 项未启动任务。5 对跨越进程重启，因此关闭整轮反馈收益区间；上表只描述实际工程结果，不当作同一连续进程条件的策略收益。当前已结束 24/24。",
+    "flow": "预定 72 次机会；已提交 69 条机会记录、66 份模型回复、66 份准入源码。20 项执行了独立最终检查，4 项没有合格候选。重复源码与接口异常均保留，机会数不等于有效提案数。",
+    "metrics": "24/24\n\n已获端到端结果\n\n67\n\n已发出的模型提案请求\n\n3\n\n提案请求峰值并发端口\n\n2\n\n未确认完整响应的请求",
+    "status": "24 项均已结束",
+    "summary": "最新服务池工程验证：六类任务、两个新种子、两组策略，24 项均已结束；最终正确 20/24，条件性能门槛通过 6/24。",
+    "viewport_width": 426
+  },
+  "embedded_worker_checkpoints": [
+    {
+      "port": 18118,
+      "bytes": 485934,
+      "sha256": "873e902e43d4a4406f0fe84766ea704aa96a314d9e20f0b9ac5022c0a46980e4"
+    },
+    {
+      "port": 54575,
+      "bytes": 480706,
+      "sha256": "5a1a30872cf670f4428cc2ed861dc9d4a04255a79f64511be7b543b452c192e6"
+    },
+    {
+      "port": 60953,
+      "bytes": 425799,
+      "sha256": "b18d8688817879e7b47eafef3e7882f7bb6404374cb40dc2c94f919b46320ef4"
+    }
+  ],
+  "no_eligible_case": {
+    "range": "all",
+    "restartMarker": true,
+    "selected": "19",
+    "timelineRectangles": 146,
+    "trajectory": "搜索阶段没有合格候选，未启动最终检查；端到端结果保留为未成功。\n\n提案 1 · harness_error\n原始模型提案\n搜索裁决\n源码与父 SHA\n固定选择之后的独立最终检查"
+  },
+  "checks": [
+    "full-period timeline with restart marker",
+    "no-eligible candidate explanation",
+    "retained source finalized after interface failure",
+    "raw worker checkpoint byte hashes",
+    "no horizontal body overflow"
+  ],
+  "javascript_errors": [],
+  "visible_pool_heading_top": 18.140625,
+  "screenshot_sha256": "d53576bb407541fafb42864468e524c38334372f2d14766e01c6785efa1d8b6e"
+}

@@ -1,0 +1,1 @@
+1) Load x,y as fp32. 2) Add in fp32. 3) Cast to OUT_DTYPE. 4) Store. Use BLOCK_SIZE=4096 for better occupancy on 1M elements. Grid computed with triton.cdiv. Single kernel, no autotune to keep launch overhead low.

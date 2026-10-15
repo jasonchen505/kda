@@ -1,0 +1,1 @@
+Single-pass row softmax with one program per row. Load row with mask, compute max, exp, sum, divide, store. Use FP32 arithmetic internally for both FP32 and BF16 inputs. BLOCK_SIZE is next power of two of n_cols. Grid is (n_rows,).

@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y in FP32, single cast at store. Use 1D grid, masked loads/stores, power-of-two block, and a larger block with more warps for throughput on up to 1M elements.

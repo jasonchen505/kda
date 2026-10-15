@@ -1,0 +1,1 @@
+1) Compute sum of squares in FP32. 2) rstd = rsqrt(mean_sq + eps). 3) Normalize, cast to input dtype, multiply by weight. 4) Single-pass when width fits in one block, else loop. 5) Grid over rows.

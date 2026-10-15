@@ -1,0 +1,1 @@
+1) Allocate y (rows,) in x.dtype. 2) Launch grid=(rows,). 3) Kernel: row=pid(0); base=X+row*stride; for off in range(0,N,BLOCK): load masked, cast fp32, accumulate; sum; store to Y+row. 4) Autotune over BLOCK_SIZE and num_warps. 5) Return y.

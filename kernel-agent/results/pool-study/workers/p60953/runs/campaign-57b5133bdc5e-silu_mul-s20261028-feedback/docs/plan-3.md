@@ -1,0 +1,1 @@
+Use one kernel with BLOCK_SIZE=1024 for all sizes. Compute offsets, mask, load x/y as fp32, compute silu in fp32, multiply by y, store with automatic dtype cast. Allocate output with empty_like. Launch 1D grid via triton.cdiv. No extra host logic to reduce Python overhead.

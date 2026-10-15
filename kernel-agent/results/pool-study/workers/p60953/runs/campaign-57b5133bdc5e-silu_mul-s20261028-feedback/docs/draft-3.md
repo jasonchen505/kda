@@ -1,0 +1,1 @@
+Tighten small-shape launch overhead by using a single fixed BLOCK_SIZE=1024 and removing host-side branching. Keep FP32 sigmoid via exp2 and single output cast. This targets the worst small/medium workloads while preserving large-shape throughput.

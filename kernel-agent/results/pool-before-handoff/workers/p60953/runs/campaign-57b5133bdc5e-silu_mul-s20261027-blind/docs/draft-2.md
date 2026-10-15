@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y in FP32, single cast at store. Use 2048-wide blocks, 8 warps, and a small num_stages hint for better throughput on large shapes while masking odd sizes.

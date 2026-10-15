@@ -1,0 +1,1 @@
+Use one program per row. Load x in chunks of BLOCK_SIZE (power-of-two >= width, capped at 4096), accumulate sumsq in FP32 with masked loads. Compute rstd = rsqrt(sumsq/N + eps). Second pass over the same chunks: load x, multiply by rstd, cast to Y dtype, multiply by weight, store. Grid = (rows,).

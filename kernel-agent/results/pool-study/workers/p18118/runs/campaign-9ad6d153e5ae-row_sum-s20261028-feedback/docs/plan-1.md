@@ -1,0 +1,1 @@
+Allocate output (rows,). Launch grid (rows,). Each program loads row in BLOCK_SIZE chunks with mask, sums in FP32, stores once.

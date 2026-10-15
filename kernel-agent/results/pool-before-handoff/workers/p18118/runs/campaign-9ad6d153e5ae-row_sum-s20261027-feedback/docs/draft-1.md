@@ -1,0 +1,1 @@
+Row-sum kernel: one program per row, loop over columns in power-of-two blocks, accumulate in FP32, store cast to input dtype.

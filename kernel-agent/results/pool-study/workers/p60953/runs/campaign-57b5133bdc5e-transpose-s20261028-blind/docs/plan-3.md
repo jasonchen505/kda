@@ -1,0 +1,1 @@
+1) Allocate y as (N,M) contiguous. 2) Launch 2D grid over M and N tiles. 3) Each program loads BLOCK_M x BLOCK_N tile from x using row-major strides, masks OOB. 4) Store transposed tile to y using y's strides, masking OOB. 5) Use 32x32 blocks for balance across shapes up to 1024.

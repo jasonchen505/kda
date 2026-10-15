@@ -1,4 +1,35 @@
-# Latest delivery: online feedback and durable finalization
+# Latest delivery: concurrent service pool and recorded recovery
+
+All 24 scheduled engineering jobs resolved; 20/24 final-correct, 6/24 conditionally
+promoted. All three workers exited zero. The published evidence keeps the pre-handoff
+snapshot and recorded gateway separate: 15 committed results and 178 request/admission
+files unchanged, nine previously untouched jobs continued, budgets retained. Five pairs
+cross the restart, so no pooled feedback-effect interval is reported.
+
+The current CPU suite passes **134 tests** independently on both pinned Humanize SDKs
+and a fresh locked installation. Ruff, each shell script's syntax and the standard-library
+evidence verifier pass. Raw commands/outputs and checked source hashes are in
+`results/pool-checks.json`; executed generation sources remain in `results/pool-study/sources/`,
+with delivery analysis in `results/pool-analysis/`. The report is self-contained and its
+embedded raw worker checkpoints match the exported files. Browser and delivery receipts
+are `results/pool-browser-audit.json` and `results/pool-delivery-audit.json`.
+
+The service catalogue and replacement routes are explicitly configured. Discovery of the
+replacement ports was an operator action recorded in the handoff, not an autonomous agent
+capability. No foreign model process was modified or restarted. Weight equality across
+cache roots and process/cache continuity are unverified. The owned model was confirmed available
+on loopback 18118 after completion. The borrowed logical entrances used routes
+54575→56825 and 60953→43619 during recovery; 56825 later disappeared again, stopping the
+last RMSNorm repair before dispatch. Its two retained candidates still allowed finalization.
+All workers had exited zero before the task-owned gateway was stopped and its logical
+ports released. The owned model stays running; foreign model processes were untouched.
+Post-study metadata and gateway cleanup: `results/pool-runtime-status.json`.
+
+Earlier release notes below retain their original test and experiment counts.
+
+---
+
+# Earlier delivery: online feedback and durable finalization
 
 The 2026-10-15 engineering pilot has two committed local-Qwen search jobs, six unedited
 proposals, six imported search measurements, two independent final evaluations, and a

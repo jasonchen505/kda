@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-10-15T10:54:39.124415+00:00",
+  "method": "public NVML compute-process GPU UUIDs and /proc parent chains, no environment or private model-file reads",
+  "mappings": [
+    {
+      "logical_port": 54575,
+      "target_port": 56825,
+      "api_pid": 2223005,
+      "gpu_indices": [
+        0,
+        1
+      ],
+      "worker_pids": [
+        2223281,
+        2223282
+      ]
+    },
+    {
+      "logical_port": 60953,
+      "target_port": 43619,
+      "api_pid": 2223019,
+      "gpu_indices": [
+        2,
+        3
+      ],
+      "worker_pids": [
+        2223265,
+        2223266
+      ]
+    }
+  ]
+}

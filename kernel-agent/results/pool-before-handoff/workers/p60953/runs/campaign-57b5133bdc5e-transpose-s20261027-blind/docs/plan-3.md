@@ -1,0 +1,1 @@
+1. Allocate output (N, M). 2. Launch 2D grid of 32x32 blocks. 3. Each block loads x tile, transposes via pointer arithmetic, stores to out. 4. Mask handles odd dimensions. 5. Return output tensor.

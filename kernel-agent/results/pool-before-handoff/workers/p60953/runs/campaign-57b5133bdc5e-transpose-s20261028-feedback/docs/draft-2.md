@@ -1,0 +1,1 @@
+Transpose kernel with 2D tiling. Load tile from input using row/col offsets, store transposed to output. Masks handle odd dimensions. 32x32 blocks for coalescing.

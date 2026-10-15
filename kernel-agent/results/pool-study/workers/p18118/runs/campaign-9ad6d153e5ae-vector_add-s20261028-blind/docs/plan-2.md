@@ -1,0 +1,1 @@
+1. Load x,y as fp32. 2. Add in fp32. 3. Cast to output dtype. 4. Store with mask. Grid sized by cdiv(n, 2048).

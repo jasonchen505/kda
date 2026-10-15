@@ -1,0 +1,1 @@
+One row per program. Loop over columns in power-of-two blocks, mask odd tails, accumulate in FP32, store once cast to input dtype. Pick block size from column count to balance occupancy and tail waste.

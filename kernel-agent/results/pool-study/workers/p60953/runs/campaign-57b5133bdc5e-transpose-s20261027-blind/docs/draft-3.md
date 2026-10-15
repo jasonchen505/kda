@@ -1,0 +1,1 @@
+Transpose via 2D tiled Triton kernel. Use 32x32 blocks for all shapes to balance occupancy and coalescing. Mask both load and store for odd sizes. Return newly allocated contiguous output.

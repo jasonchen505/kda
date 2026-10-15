@@ -1,0 +1,1 @@
+One program per row. Pick BLOCK_SIZE from cols: 1024 for cols<=1024, 2048 for cols<=2048, 4096 otherwise. Single masked load when cols<=BLOCK_SIZE, else loop. FP32 accumulate, cast once at store.

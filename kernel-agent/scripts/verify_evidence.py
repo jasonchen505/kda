@@ -480,6 +480,21 @@ def check_phased(root):
             "correct": receipt["final_correct"], "promoted": receipt["final_promoted"]}
 
 
+def check_pool(root):
+    folder = root / "results/pool-study"
+    if not (folder / "summary.json").exists():
+        return None
+    from scripts.summarize_pool import analyze
+    recorded = json.loads((folder / "summary.json").read_text())
+    actual = analyze(folder)
+    require({k: v for k, v in recorded.items() if k != "captured_utc"} ==
+            {k: v for k, v in actual.items() if k != "captured_utc"}, "pool report differs from frozen evidence")
+    return {k: actual[k] for k in ("status", "scheduled", "resolved", "committed_proposals",
+            "uncommitted_trace_proposals", "dispatched_proposer_requests", "dispatched_auxiliary_requests",
+            "peak_overlapping_proposal_ports", "peak_overlapping_gpu_windows", "independent_gpu_windows",
+            "admission_statuses", "outcome_types")}
+
+
 def verify(root=ROOT):
     raw = root / "results/agent-selector-validation.json"
     study = json.loads(raw.read_text())
@@ -518,6 +533,7 @@ def verify(root=ROOT):
             "deferred_evaluation": check_deferred(root),
             "shared_completion": check_shared_completion(root), "shared_feedback_study": check_shared_study(root),
             "phased_recovery": check_phased(root),
+            "service_pool": check_pool(root),
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

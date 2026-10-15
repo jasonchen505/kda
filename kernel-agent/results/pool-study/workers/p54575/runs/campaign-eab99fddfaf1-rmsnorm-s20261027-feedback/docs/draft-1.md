@@ -1,0 +1,1 @@
+Implement RMSNorm in Triton. One program per row. Load row in FP32, compute mean of squares, rsqrt, cast normalized to input dtype, multiply by weight, store. Handle odd widths with masked loads and division by actual width.

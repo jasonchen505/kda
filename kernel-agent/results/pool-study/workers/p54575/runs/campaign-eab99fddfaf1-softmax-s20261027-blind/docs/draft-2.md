@@ -1,0 +1,1 @@
+Single-pass row softmax with one row per program. Load row, subtract max, exp, sum, divide, store. Use FP32 arithmetic for stability. Mask non-power-of-two columns. Preserve input dtype and shape.

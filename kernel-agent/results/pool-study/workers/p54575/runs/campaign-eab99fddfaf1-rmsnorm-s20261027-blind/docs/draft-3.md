@@ -1,0 +1,1 @@
+RMSNorm kernel with single-pass for width<=1024, multi-pass otherwise. Uses tl.rsqrt, FP32 accumulation, masked loads/stores, and preserves intermediate dtype cast before weight multiply.

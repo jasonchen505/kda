@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Compute BLOCK_SIZE as next power of 2 of n_cols. 3. Launch grid with one program per row. 4. Kernel loads row with mask, computes softmax in FP32, stores with mask. 5. Return output tensor.

@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 promotion. Tuned block size and warps for small-to-large shapes on RTX 4090. Handles odd sizes via masking. Preserves dtype and shape.

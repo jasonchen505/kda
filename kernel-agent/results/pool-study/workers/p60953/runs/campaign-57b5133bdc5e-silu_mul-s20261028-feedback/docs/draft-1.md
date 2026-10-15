@@ -1,0 +1,1 @@
+Elementwise SiLU(x)*y in FP32, cast once. 1D grid over numel, masked loads/stores for odd sizes. BLOCK_SIZE 1024, sigmoid via exp.

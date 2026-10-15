@@ -1,0 +1,1 @@
+Vectorized elementwise add for contiguous CUDA tensors. Load x and y with masks, add in FP32, cast to input dtype, store. Grid sized by cdiv(n, BLOCK).

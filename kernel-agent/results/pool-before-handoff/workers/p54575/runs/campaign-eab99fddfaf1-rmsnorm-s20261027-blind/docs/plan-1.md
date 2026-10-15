@@ -1,0 +1,1 @@
+Grid over rows. Each program loads row in BLOCK chunks, masks odd widths, sums squares in fp32, divides by width, rsqrt with eps. Cast normalized to x dtype before weight multiply. Allocate output, launch, return.

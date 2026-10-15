@@ -52,6 +52,7 @@ class Params(FlowParams):
     study_policy: Literal["legacy", "blind", "feedback"] = "legacy"
     selection_policy: Literal["gate_first", "geomean"] = "gate_first"
     evaluation_mode: Literal["integrated", "deferred", "search_only"] = "integrated"
+    evaluator_timeout_seconds: int = Field(default=180, ge=180, le=600)
 
 
 def first_prompt(task):
@@ -157,7 +158,7 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
                 result = dict(records[row["duplicate_of"] - 1]["evaluation"])
             else:
                 code, out, err = await workspace.exec(
-                    [*params.evaluator, params.task_id, str(working.workdir / filename)], timeout=180)
+                    [*params.evaluator, params.task_id, str(working.workdir / filename)], timeout=params.evaluator_timeout_seconds)
                 if code:
                     result = {"status": "evaluator_error", "exit_code": code, "message": (out + err)[-4000:]}
                 else:
@@ -212,7 +213,7 @@ async def kernel_loop(task, *, agents, envs, params, ctx):
     async def final_check(candidate):
         try:
             code, out, err = await workspace.exec(
-                [*params.evaluator, params.task_id, str(working.workdir / f"candidate-{candidate['iteration']}.py"), "--final"], timeout=180)
+                [*params.evaluator, params.task_id, str(working.workdir / f"candidate-{candidate['iteration']}.py"), "--final"], timeout=params.evaluator_timeout_seconds)
             measured = json.loads(out) if code == 0 else {"status": "evaluator_error", "message": err[-2000:]}
             if measured.get("status") == "correct" and measured.get("source_sha256") != candidate["source_sha256"]:
                 measured = {"status": "stale_evidence"}

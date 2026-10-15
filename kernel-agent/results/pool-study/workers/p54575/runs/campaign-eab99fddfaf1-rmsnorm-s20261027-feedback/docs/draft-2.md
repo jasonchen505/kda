@@ -1,0 +1,1 @@
+Optimize small-row shapes by processing multiple rows per program to reduce launch overhead and improve occupancy. Use a 2D block layout with row and column offsets. Keep FP32 accumulation for sum of squares and preserve the intermediate dtype cast before weight multiplication.

@@ -1,0 +1,1 @@
+1. Load tile from input using row/col offsets and masks. 2. Apply tl.trans to swap dimensions. 3. Store transposed tile to output with appropriate pointer offsets and masks. 4. Keep block sizes 32x32 for good occupancy.

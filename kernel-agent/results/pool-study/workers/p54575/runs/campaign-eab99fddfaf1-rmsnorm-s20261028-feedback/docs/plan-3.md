@@ -1,0 +1,1 @@
+1. Modify kernel to process ROWS_PER_BLOCK rows per program using 2D indexing. 2. Compute sum-of-squares per row in FP32. 3. Compute rstd per row. 4. Normalize, cast to input dtype, multiply by weight, and store. 5. Choose ROWS_PER_BLOCK and BLOCK_SIZE heuristically based on width and total rows. 6. Ensure masking for odd widths and row boundaries.

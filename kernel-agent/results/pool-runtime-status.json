@@ -1,0 +1,29 @@
+{
+  "observed_utc": "2026-10-15T11:39:38.296977+00:00",
+  "endpoints_before_gateway_cleanup": [
+    {
+      "port": 18118,
+      "http_status": 200,
+      "model_ids": [
+        "qwen38-27b-fp8"
+      ]
+    },
+    {
+      "port": 56825,
+      "http_status": null,
+      "error_type": "URLError"
+    },
+    {
+      "port": 43619,
+      "http_status": 200,
+      "model_ids": [
+        "steamserve-qwen38"
+      ]
+    }
+  ],
+  "owned_temporary_gateway_pid": 2259772,
+  "owned_temporary_gateway_stopped": true,
+  "all_study_workers_exited_zero": true,
+  "owned_qwen_kept_running_port": 18118,
+  "scope": "Post-study metadata check and cleanup of this task-owned HTTP gateway only; foreign model processes untouched; endpoint availability is transient, not a model-quality outcome."
+}

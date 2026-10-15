@@ -1,0 +1,1 @@
+Allocate contiguous output. Launch one Triton kernel per block of 4096 elements. Load x/y, convert to FP32, compute sigmoid via exp, multiply, store with automatic dtype cast. Handle odd sizes with masks.

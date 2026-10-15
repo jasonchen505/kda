@@ -1,0 +1,31 @@
+{
+  "created_utc": "2026-10-15T10:52:49.421658+00:00",
+  "routes": [
+    {
+      "logical_port": 54575,
+      "target_port": 56825,
+      "generation_gpus": "0,1",
+      "declaration": {
+        "base_model": "steamserve-qwen38",
+        "model_root": "/data/home/yikaifu/steamspec/models/Qwen_Qwen3.8-27B-FP8",
+        "vllm_version": "0.25.1",
+        "max_model_len": 8192,
+        "parent": null
+      }
+    },
+    {
+      "logical_port": 60953,
+      "target_port": 43619,
+      "generation_gpus": "2,3",
+      "declaration": {
+        "base_model": "steamserve-qwen38",
+        "model_root": "/data/home/yikaifu/steamspec/models/Qwen_Qwen3.8-27B-FP8",
+        "vllm_version": "0.25.1",
+        "max_model_len": 8192,
+        "parent": null
+      }
+    }
+  ],
+  "source_sha256": "3c1cec72b46f0dfdec49c0adae52e8fac85895e6bffd2f6ed51e687af9c17f56",
+  "scope": "HTTP declarations and physical GPU mapping matched after process restart; weight equality and cache continuity unverified; no request retry, model restart or foreign filesystem access"
+}

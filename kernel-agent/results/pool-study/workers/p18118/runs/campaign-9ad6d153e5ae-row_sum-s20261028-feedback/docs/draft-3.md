@@ -1,0 +1,1 @@
+One program per row. Pick block size as next power of two >= cols. Single masked load when cols fits in one block, else loop. Accumulate in FP32, cast once on store. Keep launch overhead minimal.

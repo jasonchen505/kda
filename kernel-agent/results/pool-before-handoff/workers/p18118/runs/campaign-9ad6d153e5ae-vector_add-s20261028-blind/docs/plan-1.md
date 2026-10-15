@@ -1,0 +1,1 @@
+1. Allocate output with torch.empty_like. 2. Launch Triton kernel with 1D grid over ceil(n/BLOCK). 3. Kernel: compute offsets, mask, load x/y to fp32, add, cast to output dtype, store. 4. Return output tensor.

@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 intermediates. Use larger block size and num_warps tuned for RTX 4090 to reduce launch overhead on small shapes and improve throughput on large shapes.

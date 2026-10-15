@@ -1,0 +1,1 @@
+1. Allocate output (N,M). 2. 2D grid over input rows/cols. 3. Each program loads BLOCK_R x BLOCK_C tile. 4. Store transposed tile to output. 5. Mask both load and store for OOB.

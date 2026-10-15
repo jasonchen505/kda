@@ -1,0 +1,1 @@
+Transpose 2D matrix using Triton. Allocate output as x.T.contiguous(). Launch 2D grid where each program handles a BLOCK_R x BLOCK_C tile. Load tile from input with row/col masks, store transposed tile to output. Handles odd sizes via masking. No PyTorch compute.

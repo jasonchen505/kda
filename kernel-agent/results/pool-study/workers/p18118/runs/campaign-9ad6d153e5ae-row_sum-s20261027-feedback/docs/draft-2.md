@@ -1,0 +1,1 @@
+One program per row; vectorized FP32 accumulation; adaptive block size to reduce launch overhead on small shapes.

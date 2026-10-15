@@ -1,0 +1,1 @@
+Optimize small-shape latency by reducing launch overhead and tuning block size. Use 256 elements per block for better occupancy on small tensors while maintaining correctness for all sizes. Keep FP32 intermediate arithmetic as required.

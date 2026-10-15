@@ -1,0 +1,1 @@
+Use exp2-based sigmoid for speed. Tune block size per element count to reduce launch overhead on small shapes while keeping large shapes fast.

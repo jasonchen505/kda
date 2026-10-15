@@ -1,0 +1,1 @@
+Vectorized elementwise add with FP32 intermediates. Tuned block size and warps for small-to-mid sizes up to 1M elements. Masked loads/stores handle odd sizes. Preserves dtype and shape.
