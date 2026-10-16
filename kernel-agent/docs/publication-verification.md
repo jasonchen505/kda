@@ -283,7 +283,7 @@ reconstruction. New mechanism fixtures use fake model/GPU verdicts and are not a
 The GPU-only smoke records32 independent NumPy reference checks and two unchanged old
 failed kernels on the UUID-bound physical GPU4. They are separate from the96 model calls.
 
-`results/operational-history-preservation.json` binds every4863 previously published
+`results/operational-history-preservation.json` binds every4847 previously published
 results/evidence file unchanged. `results/operational-study/sources/` is the executed
 freeze; `results/operational-analysis/manifest.json` is the delivery-analysis freeze.
 The completion, browser and delivery audits bind those records to the final HTML and

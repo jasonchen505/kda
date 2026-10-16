@@ -26,7 +26,7 @@ and a new L2 dtype repair. **17/42 patch transactions are rejected**; output rep
 is a measured bottleneck. Keep ordinary generation/repair as default, with the patch
 policy experimental. No post-outcome retries or hand fixes replace failures.
 Three Qwen processes reach three concurrent ports; 107 GPU4 windows peak at one and
-all 4863 older evidence files retain their hashes. CPU mechanisms pass **191 tests**.
+all 4847 older evidence files retain their hashes. CPU mechanisms pass **191 tests**.
 See [results and failure analysis](operational-study-results.zh.md),
 [reproduction](operational-reproduction.md), and the
 [HTML report](../reports/kernel-agent-report.html#operational-study).

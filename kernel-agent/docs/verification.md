@@ -102,6 +102,6 @@ See `results/strategy-delivery-audit.json`, `results/agent-strategy-study.json`,
   syntax and offline evidence checks pass. Fake-driver tests remain separate from scores.
 - New trusted references pass32 independent NumPy equations across two dtypes, shapes and
   scales. Actual old SiLU and transpose failures yield their intended evidence routes.
-- Historical4863 evidence files remain unchanged. Detailed counts, retained-source recovery,
+- Historical4847 evidence files remain unchanged. Detailed counts, retained-source recovery,
   patch rejection costs and uncertainty are in `operational-study-results.zh.md` and the
   corresponding completion/delivery audits. Default remains ordinary repair.

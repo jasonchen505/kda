@@ -1,0 +1,42 @@
+{
+  "created_utc": "2026-10-16T04:50:28.556043+00:00",
+  "status": "verified",
+  "kind": "delivery inventory/documentation correction; not experiment or analysis policy",
+  "reason": "First local inventory included16 ignored log files that were not Git-tracked/published. Server mirror audit detected missing log; use parent git ls-tree rather than checkout file enumeration.",
+  "old_local_inventory_files": 4863,
+  "actual_parent_git_tracked_evidence_files": 4847,
+  "excluded_local_logs": [
+    "results/api-pilot.log",
+    "results/lines-pilot.log",
+    "results/phase4-schema-preflight.log",
+    "results/phase4-wire-probe.log",
+    "results/pilot-smoke.log",
+    "results/pilot-smoke2.log",
+    "results/pilot.log",
+    "results/proposer-probe.log",
+    "results/qwen27-pilot.log",
+    "results/reference-pilot.log",
+    "results/smoke-default-request.log",
+    "results/smoke.log",
+    "results/strategy-study.log",
+    "results/transport-pilot.log",
+    "results/vllm-invalid-cache-root.log",
+    "results/vllm-sampler-startup-failed.log"
+  ],
+  "original_inventory_path": "results/operational-history-preservation.local-before-tracked-filter.json",
+  "original_inventory_sha256": "0f3de03ce821f8f28b95d2fcc38238420cb0962dd25e6896d383e5ea94166bea",
+  "corrected_inventory_sha256": "dc274f7052167ea4b1fb3ac17b839001c57bed96fa17c8659ee816e80e5a8f74",
+  "parent_commit": "61b607f0af7289b3c96826e2d6cf24eceeeb8a66",
+  "initial_delivery_commit": "3ce10b3f425b048e53ddc99705a73dc935e36891",
+  "experiment_plan_sha256": "30e418ff2e8665f8ed3bc33d01067d83b080247bf17f3b045a2871229e3bccfa",
+  "generation_analysis_tests_report_and_browser_unchanged": true,
+  "original_analysis_manifest_sha256": "76e0df8ea37261d57330bcbc26b4fa11e674a49cb707129d142db59c057a6f21",
+  "original_delivery_audit_sha256": "4be92d43ec233fdcc0211273b0ae59cbc0cf9688ffe6ff65ad791595d55a492b",
+  "corrected_current_documentation_sha256": {
+    "README.md": "bad3077c9d1f1a1b901814e05df1b94d6e39803ec844e80236b367fed2126234",
+    "docs/project-summary.md": "fe0fa7f394f7f56039b8a154affca0c175ad24d8adf4235083b4d918656c98d2",
+    "docs/publication-verification.md": "79b57e0de2102fd6a2e4987535601a723c7a664604036ffcf4a3df0dc87c1708",
+    "docs/verification.md": "9a7e6dff2ac4d5fc916dd6393783bd5937f0113dbb1341b0f62a3ff868584b6e"
+  },
+  "scope": "Retain original149-file analysis freeze and first delivery audit; current docs and v2 delivery manifest state correct tracked-file count. No model/GPU rerun or source change."
+}

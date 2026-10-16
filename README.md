@@ -72,7 +72,7 @@ policy remains experimental. See [results and failures](kernel-agent/docs/operat
 
 The previous semantic review study (66 outcomes, 115 calls) found all arms equal:
 7/14 regression and 7/8 fresh starts. The earlier factorial's 13/16 versus 15/16
-negative result also remains unchanged. All **4863 prior evidence files** retain their
+negative result also remains unchanged. All **4847 prior evidence files** retain their
 hashes. No post-outcome retries or human kernel fixes replace failures.
 
 Three local Qwen processes use idle admission and latency EWMA; active blocks stay on
