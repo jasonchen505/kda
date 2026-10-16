@@ -1,0 +1,36 @@
+{
+  "created_utc": "2026-10-16T04:45:23.719797+00:00",
+  "decision": "retain ordinary generation/repair default; operational_patch experimental",
+  "basis": {
+    "regression": {
+      "rewrite": 7,
+      "operational_patch": 9,
+      "scheduled_per_arm": 14,
+      "task_equal_difference": 0.25,
+      "exploratory_interval": [
+        -0.3,
+        0.7
+      ]
+    },
+    "transfer": {
+      "rewrite": 7,
+      "operational_patch": 6,
+      "scheduled_per_arm": 8,
+      "task_equal_difference": -0.125,
+      "exploratory_interval": [
+        -0.375,
+        0.0
+      ]
+    },
+    "dispatched_requests": 96,
+    "request_statuses": {
+      "completed": 96
+    },
+    "patch_rejected": 17,
+    "patch_attempts": 42
+  },
+  "interpretation": "Targeted old-source rescue improved locally; no transfer benefit, patch representation costs real opportunities. No stable generalization claim.",
+  "next_hypothesis": "Prospectively test model-visible span IDs or within-budget full-source fallback against ordinary rewriting; do not change this study after outcomes.",
+  "implemented_as_default": false,
+  "plan_sha256": "30e418ff2e8665f8ed3bc33d01067d83b080247bf17f3b045a2871229e3bccfa"
+}

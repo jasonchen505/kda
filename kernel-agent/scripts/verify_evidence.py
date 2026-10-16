@@ -520,6 +520,19 @@ def check_semantic(root):
             "final_selection_binding_verified")}
 
 
+def check_operational(root):
+    folder = root / "results/operational-study"
+    if not (folder / "summary.json").exists():
+        return None
+    from scripts.summarize_operational import analyze
+    actual = analyze(folder)
+    require(actual == json.loads((folder / "summary.json").read_text()), "operational report differs from evidence")
+    return {k: actual[k] for k in ("status", "scheduled", "resolved", "strata", "dispatched_requests",
+            "request_statuses", "reported_output_tokens", "peak_model_ports", "independent_gpu_windows",
+            "peak_gpu_windows", "shared_initial_verified", "policy_request_binding_verified",
+            "patch_reply_to_code_verified", "final_selection_binding_verified")}
+
+
 def verify(root=ROOT):
     raw = root / "results/agent-selector-validation.json"
     study = json.loads(raw.read_text())
@@ -561,6 +574,7 @@ def verify(root=ROOT):
             "service_pool": check_pool(root),
             "repair_framework_study": check_repair(root),
             "semantic_repair_study": check_semantic(root),
+            "operational_repair_study": check_operational(root),
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

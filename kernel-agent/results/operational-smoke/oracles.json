@@ -1,0 +1,417 @@
+{
+  "status": "transfer_oracles_passed",
+  "independent_checks": 32,
+  "rows": [
+    {
+      "task": "column_sum",
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "column_sum",
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "column_sum",
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "column_sum",
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "column_sum",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "column_sum",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "column_sum",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "column_sum",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "l2_normalize",
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "l2_normalize",
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "l2_normalize",
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "l2_normalize",
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "l2_normalize",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "l2_normalize",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "l2_normalize",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "l2_normalize",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "affine_silu",
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "affine_silu",
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "affine_silu",
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "affine_silu",
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "affine_silu",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "affine_silu",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "affine_silu",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "affine_silu",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "scale_transpose",
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "scale_transpose",
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "scale_transpose",
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "scale_transpose",
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "scale_transpose",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "scale_transpose",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        2,
+        5
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    },
+    {
+      "task": "scale_transpose",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 1.0,
+      "status": "passed"
+    },
+    {
+      "task": "scale_transpose",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        3,
+        4
+      ],
+      "scale": 10.0,
+      "status": "passed"
+    }
+  ],
+  "scope": "Trusted Torch reference vs independent NumPy float64 equations; no model or candidate kernel",
+  "device_audit": {
+    "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "device_index": 0,
+    "device_count": 1,
+    "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50"
+  },
+  "device_binding": {
+    "expected_gpu_index": 4,
+    "expected_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "child_visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+    "actual": {
+      "visible_devices": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "device_index": 0,
+      "device_count": 1,
+      "gpu_uuid": "c3d8eae9-15d0-678b-0245-1cea79503b50"
+    },
+    "verified": true
+  },
+  "measurement_condition": "shared_observed",
+  "resource_audit": {
+    "gpu_index": 4,
+    "policy": "shared_observed",
+    "minimum_free_mib": 1024,
+    "sample_period_seconds": 0.5,
+    "samples": [
+      {
+        "observed_utc": "2026-10-16T02:54:04.814713+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 210,
+        "power_watts": 22.95,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      },
+      {
+        "observed_utc": "2026-10-16T02:54:05.404438+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 0,
+        "sm_clock_mhz": 210,
+        "power_watts": 22.54,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      },
+      {
+        "observed_utc": "2026-10-16T02:54:05.982033+00:00",
+        "free_mib": 23745,
+        "used_mib": 467,
+        "utilization_percent": 5,
+        "sm_clock_mhz": 2520,
+        "power_watts": 26.08,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": [
+          2859044
+        ]
+      },
+      {
+        "observed_utc": "2026-10-16T02:54:06.598882+00:00",
+        "free_mib": 24199,
+        "used_mib": 12,
+        "utilization_percent": 4,
+        "sm_clock_mhz": 2520,
+        "power_watts": 48.98,
+        "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+        "pids": []
+      }
+    ],
+    "scope": "observed coexecution; utilization includes evaluator work; no isolation or known-load claim",
+    "before": {
+      "observed_utc": "2026-10-16T02:54:04.216007+00:00",
+      "free_mib": 24199,
+      "used_mib": 12,
+      "utilization_percent": 0,
+      "sm_clock_mhz": 210,
+      "power_watts": 22.95,
+      "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "pids": []
+    },
+    "after": {
+      "observed_utc": "2026-10-16T02:54:06.670072+00:00",
+      "free_mib": 24199,
+      "used_mib": 12,
+      "utilization_percent": 4,
+      "sm_clock_mhz": 2520,
+      "power_watts": 52.79,
+      "gpu_uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50",
+      "pids": []
+    }
+  }
+}

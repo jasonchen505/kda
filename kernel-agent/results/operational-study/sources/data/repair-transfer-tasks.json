@@ -1,0 +1,30 @@
+{
+  "column_sum": {
+    "name": "Column reduction",
+    "contract": "run(x) returns the sum over dimension zero of contiguous 2D CUDA x. Reference x.float().sum(dim=0).to(x.dtype). Output newly allocated contiguous shape (width,), same device and float32/bfloat16 dtype. Input immutable. Rows 1..256, width 1..4096 including odd sizes. Accumulate FP32, cast once. Each output element reduces rows, not columns.",
+    "timing_shapes": [[7,257],[128,1536],[256,4096]],
+    "final_timing_shapes": [[13,511],[96,2047],[192,4096]],
+    "final_correctness_shapes": [[2,3],[9,65],[5,509],[13,1009]]
+  },
+  "l2_normalize": {
+    "name": "Row L2 normalization",
+    "contract": "run(x) returns fp*rsqrt(sum(fp*fp,dim=-1,keepdim=True)+1e-6), cast once to input dtype, where fp=x.float(). This is L2 normalization using SUM, not mean. Input contiguous 2D CUDA float32/bfloat16, immutable. Output newly allocated contiguous same shape/device/dtype. Rows 1..256, width 1..4096 including odd sizes. All arithmetic FP32.",
+    "timing_shapes": [[7,257],[128,1536],[256,4096]],
+    "final_timing_shapes": [[13,511],[96,2047],[192,4096]],
+    "final_correctness_shapes": [[2,3],[9,65],[5,509],[13,1009]]
+  },
+  "affine_silu": {
+    "name": "Affine SiLU",
+    "contract": "run(x,weight,bias), x contiguous 2D CUDA (rows,width), weight and bias contiguous vectors (width,), same float32/bfloat16 dtype. Compute z=x.float()*weight.float()+bias.float(); result=(z/(1+exp(-z))).to(x.dtype). This is z*sigmoid(z), not sigmoid(z). Fresh contiguous output same shape/device/dtype; inputs immutable. Rows 1..256, width 1..4096 including odd sizes. All arithmetic FP32, single final cast.",
+    "timing_shapes": [[7,257],[128,1536],[256,4096]],
+    "final_timing_shapes": [[13,511],[96,2047],[192,4096]],
+    "final_correctness_shapes": [[2,3],[9,65],[5,509],[13,1009]]
+  },
+  "scale_transpose": {
+    "name": "Column scaling and transpose",
+    "contract": "run(x,weight), contiguous CUDA 2D x of shape (rows,width) and vector weight (width,), same float32/bfloat16 dtype. Compute (x.float()*weight.float()).T.to(x.dtype).contiguous() using Triton. Output newly allocated contiguous (width,rows), same device/dtype. All inputs immutable. Rows 1..256, width 1..1024, including non-square and odd sizes. Multiply FP32 then cast once; a view is not accepted.",
+    "timing_shapes": [[33,257],[128,513],[256,1024]],
+    "final_timing_shapes": [[13,511],[193,769],[251,1001]],
+    "final_correctness_shapes": [[2,3],[9,65],[5,509],[13,1009]]
+  }
+}

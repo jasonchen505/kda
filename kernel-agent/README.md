@@ -11,9 +11,34 @@ and auditable evidence. KDA, Humanize/OpenCode, Qwen and Triton are reused compo
 
 Start with [the project summary](docs/project-summary.md),
 [Chinese resume and interview notes](docs/project-summary.zh.md), and
-[the offline HTML report](reports/kernel-agent-report.html#semantic-study).
+[the offline HTML report](reports/kernel-agent-report.html#operational-study).
 
-## Latest iteration: machine-grounded semantic repair
+## Latest iteration: operational evidence and transactional patches
+
+The semantic review's null result motivated a repair architecture that derives finite
+numeric relations and coordinate witnesses directly from trusted probes, routes actual
+errors, and requests exact model-authored before/after edits against a source SHA. The
+controller applies changes atomically and retains the base after rejection; it never
+invents a kernel fix. Both arms get two repair calls with the same initial and evaluator.
+
+The completed 22-block study has **44 final outcomes and 96 actual calls**, all confirmed.
+Known-failure regression: patch **9/14**, rewriting **7/14**; new four-family/two-seed
+validation: patch **6/8**, rewriting **7/8**. Family-equal differences are +25pp
+(exploratory interval −30 to +70, five families) and −12.5pp (−37.5 to 0, four families).
+The raw regression count difference is +14.3pp; it uses different weighting. Strata are
+separate and new tasks are project-defined, not an external blind benchmark.
+
+Patch repair rescues old SiLU and one transpose source, but fails on row-mean diagnosis
+and a new L2 dtype repair. **17/42 patch transactions are rejected**; output representation
+is a measured bottleneck. Keep ordinary generation/repair as default, with the patch
+policy experimental. No post-outcome retries or hand fixes replace failures.
+Three Qwen processes reach three concurrent ports; 107 GPU4 windows peak at one and
+all 4863 older evidence files retain their hashes. CPU mechanisms pass **191 tests**.
+See [results and failure analysis](docs/operational-study-results.zh.md),
+[reproduction](docs/operational-reproduction.md), and the
+[HTML report](reports/kernel-agent-report.html#operational-study).
+
+## Previous iteration: machine-grounded semantic repair
 
 The preceding factorial's negative result motivated a separate reviewer and bounded AST
 interpreter over complete asymmetric FP32 search probes. Verified expressions and factual

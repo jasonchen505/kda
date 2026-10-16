@@ -1,0 +1,686 @@
+{
+  "created_utc": "2026-10-16T04:46:54.556733+00:00",
+  "status": "verified",
+  "scope": "Post-run integrity and descriptive failure accounting; zero additional model/GPU work",
+  "plan_sha256": "30e418ff2e8665f8ed3bc33d01067d83b080247bf17f3b045a2871229e3bccfa",
+  "scheduled_blocks": 22,
+  "terminal_arm_outcomes": 44,
+  "allocated_calls": 96,
+  "dispatched_calls": 96,
+  "request_statuses": {
+    "completed": 96
+  },
+  "unique_code_opportunity_statuses": {
+    "compile_error": 7,
+    "correct": 45,
+    "patch_error": 17,
+    "numeric_error": 34,
+    "protocol_error": 6,
+    "runtime_error": 1
+  },
+  "duplicate_search_sources": 7,
+  "independent_final_sources": 27,
+  "patch_statuses": {
+    "applied": 25,
+    "patch_error": 17
+  },
+  "patch_error_reasons": {
+    "edit arrays contain complete Python lines only": 4,
+    "before_lines must match exactly one complete-line span; no no-op edits": 12,
+    "Unterminated string starting at: line 1 column 333 (char 332)": 1
+  },
+  "retained_after_rejection": [
+    {
+      "block": "new-l2_normalize-s20261124",
+      "rejected": "operational_patch-r1",
+      "next": "operational_patch-r2",
+      "base_sha256": "ac6c02167345aa84d95625f35fa70d8ad5af5593f5a7f84346745aa63f1991cb",
+      "next_status": "patch_error",
+      "final_correct": false
+    },
+    {
+      "block": "reg-transpose-s20261101-contract-s20261121",
+      "rejected": "operational_patch-r1",
+      "next": "operational_patch-r2",
+      "base_sha256": "1bdd6c03d80a1c0b56d3612ee229440739cce5ed59aaf0017d147830e666252b",
+      "next_status": "patch_error",
+      "final_correct": false
+    },
+    {
+      "block": "reg-row_mean-s20261102-baseline-s20261122",
+      "rejected": "operational_patch-r1",
+      "next": "operational_patch-r2",
+      "base_sha256": "e90162c7538953580398399fa813a2ca17f10b17d2d9d0cab6c7527d104207d0",
+      "next_status": "patch_error",
+      "final_correct": false
+    },
+    {
+      "block": "new-column_sum-s20261124",
+      "rejected": "operational_patch-r1",
+      "next": "operational_patch-r2",
+      "base_sha256": "3dcc7e088756067f47c6bc79da76a7b435612975f05e90df7574781f5509172a",
+      "next_status": "correct",
+      "final_correct": true
+    },
+    {
+      "block": "reg-transpose-s20261101-contract-s20261122",
+      "rejected": "operational_patch-r1",
+      "next": "operational_patch-r2",
+      "base_sha256": "1bdd6c03d80a1c0b56d3612ee229440739cce5ed59aaf0017d147830e666252b",
+      "next_status": "patch_error",
+      "final_correct": false
+    },
+    {
+      "block": "reg-layer_norm-s20261101-contract-s20261122",
+      "rejected": "operational_patch-r1",
+      "next": "operational_patch-r2",
+      "base_sha256": "2302d3d7a5ee677f0f5bbcdb7c05b5d407aad5de87456af406c68c82e8d41a56",
+      "next_status": "correct",
+      "final_correct": true
+    }
+  ],
+  "finish_reasons": {
+    "stop": 92,
+    "length": 4
+  },
+  "omitted_optional_sections": {},
+  "initials": [
+    {
+      "block": "reg-layer_norm-s20261101-contract-s20261121",
+      "stratum": "regression",
+      "task_id": "layer_norm",
+      "initial_status": "compile_error",
+      "imported": true
+    },
+    {
+      "block": "new-l2_normalize-s20261124",
+      "stratum": "transfer",
+      "task_id": "l2_normalize",
+      "initial_status": "compile_error",
+      "imported": false
+    },
+    {
+      "block": "reg-row_mean-s20261101-baseline-s20261121",
+      "stratum": "regression",
+      "task_id": "row_mean",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-silu_mul-s20261102-contract-s20261122",
+      "stratum": "regression",
+      "task_id": "silu_mul",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-transpose-s20261102-contract-s20261122",
+      "stratum": "regression",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "new-scale_transpose-s20261123",
+      "stratum": "transfer",
+      "task_id": "scale_transpose",
+      "initial_status": "protocol_error",
+      "imported": false
+    },
+    {
+      "block": "reg-transpose-s20261101-contract-s20261121",
+      "stratum": "regression",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-rmsnorm-s20261101-baseline-s20261122",
+      "stratum": "regression",
+      "task_id": "rmsnorm",
+      "initial_status": "compile_error",
+      "imported": true
+    },
+    {
+      "block": "reg-row_mean-s20261102-baseline-s20261122",
+      "stratum": "regression",
+      "task_id": "row_mean",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "new-column_sum-s20261124",
+      "stratum": "transfer",
+      "task_id": "column_sum",
+      "initial_status": "runtime_error",
+      "imported": false
+    },
+    {
+      "block": "reg-transpose-s20261101-contract-s20261122",
+      "stratum": "regression",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-row_mean-s20261102-baseline-s20261121",
+      "stratum": "regression",
+      "task_id": "row_mean",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "new-scale_transpose-s20261124",
+      "stratum": "transfer",
+      "task_id": "scale_transpose",
+      "initial_status": "numeric_error",
+      "imported": false
+    },
+    {
+      "block": "reg-row_mean-s20261101-baseline-s20261122",
+      "stratum": "regression",
+      "task_id": "row_mean",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "new-affine_silu-s20261124",
+      "stratum": "transfer",
+      "task_id": "affine_silu",
+      "initial_status": "numeric_error",
+      "imported": false
+    },
+    {
+      "block": "reg-silu_mul-s20261102-contract-s20261121",
+      "stratum": "regression",
+      "task_id": "silu_mul",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "reg-rmsnorm-s20261101-baseline-s20261121",
+      "stratum": "regression",
+      "task_id": "rmsnorm",
+      "initial_status": "compile_error",
+      "imported": true
+    },
+    {
+      "block": "reg-layer_norm-s20261101-contract-s20261122",
+      "stratum": "regression",
+      "task_id": "layer_norm",
+      "initial_status": "compile_error",
+      "imported": true
+    },
+    {
+      "block": "reg-transpose-s20261102-contract-s20261121",
+      "stratum": "regression",
+      "task_id": "transpose",
+      "initial_status": "numeric_error",
+      "imported": true
+    },
+    {
+      "block": "new-l2_normalize-s20261123",
+      "stratum": "transfer",
+      "task_id": "l2_normalize",
+      "initial_status": "correct",
+      "imported": false
+    },
+    {
+      "block": "new-affine_silu-s20261123",
+      "stratum": "transfer",
+      "task_id": "affine_silu",
+      "initial_status": "protocol_error",
+      "imported": false
+    },
+    {
+      "block": "new-column_sum-s20261123",
+      "stratum": "transfer",
+      "task_id": "column_sum",
+      "initial_status": "correct",
+      "imported": false
+    }
+  ],
+  "infrastructure_blocks": [],
+  "strata": [
+    {
+      "stratum": "regression",
+      "cells": [
+        {
+          "arm": "rewrite",
+          "scheduled": 14,
+          "resolved": 14,
+          "correct": 7,
+          "promoted": 2,
+          "initial_failed_observed": 14,
+          "rescued_observed": 7
+        },
+        {
+          "arm": "operational_patch",
+          "scheduled": 14,
+          "resolved": 14,
+          "correct": 9,
+          "promoted": 2,
+          "initial_failed_observed": 14,
+          "rescued_observed": 9
+        }
+      ],
+      "contrasts": {
+        "mean_difference": 0.25,
+        "interval": {
+          "low": -0.3,
+          "high": 0.7,
+          "clusters": 5,
+          "resamples": 3125,
+          "weighted_patterns": 126,
+          "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+        }
+      }
+    },
+    {
+      "stratum": "transfer",
+      "cells": [
+        {
+          "arm": "rewrite",
+          "scheduled": 8,
+          "resolved": 8,
+          "correct": 7,
+          "promoted": 1,
+          "initial_failed_observed": 6,
+          "rescued_observed": 5
+        },
+        {
+          "arm": "operational_patch",
+          "scheduled": 8,
+          "resolved": 8,
+          "correct": 6,
+          "promoted": 1,
+          "initial_failed_observed": 6,
+          "rescued_observed": 4
+        }
+      ],
+      "contrasts": {
+        "mean_difference": -0.125,
+        "interval": {
+          "low": -0.375,
+          "high": 0.0,
+          "clusters": 4,
+          "resamples": 256,
+          "weighted_patterns": 35,
+          "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set"
+        }
+      }
+    }
+  ],
+  "paired_outcomes": [
+    {
+      "block": {
+        "id": "reg-layer_norm-s20261101-contract-s20261121",
+        "model_call_cap": 4,
+        "parent_id": "layer_norm-s20261101-contract",
+        "seed": 20261121,
+        "stratum": "regression",
+        "task_id": "layer_norm"
+      },
+      "initial_status": "compile_error",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "7d543dbf1be3221af3d7ea2daf82d8c1faa6ca14e0207f0c0b810432db91de5f",
+        "rewrite": "c5124c94a0aa61d6e3c2da97c595801aa7f8d170a3c58edd452f6d615cbe63f5"
+      }
+    },
+    {
+      "block": {
+        "id": "new-l2_normalize-s20261124",
+        "model_call_cap": 5,
+        "seed": 20261124,
+        "stratum": "transfer",
+        "task_id": "l2_normalize"
+      },
+      "initial_status": "compile_error",
+      "rewrite_correct": true,
+      "patch_correct": false,
+      "selected": {
+        "operational_patch": null,
+        "rewrite": "c03ea748920d8beaa84250b40f727eb7d02e987aff61fc7ea41b186048ac9f00"
+      }
+    },
+    {
+      "block": {
+        "id": "reg-row_mean-s20261101-baseline-s20261121",
+        "model_call_cap": 4,
+        "parent_id": "row_mean-s20261101-baseline",
+        "seed": 20261121,
+        "stratum": "regression",
+        "task_id": "row_mean"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "e267d5a457650d94cd57026f8f9655369e47b991ec13fb8f70b75b0d6e698a6f",
+        "rewrite": "f73692de91d49f8752a5f7ff834d1d51b22d8177d1bb1060025dc625fe8dd642"
+      }
+    },
+    {
+      "block": {
+        "id": "reg-silu_mul-s20261102-contract-s20261122",
+        "model_call_cap": 4,
+        "parent_id": "silu_mul-s20261102-contract",
+        "seed": 20261122,
+        "stratum": "regression",
+        "task_id": "silu_mul"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": false,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "12738d12527e20f9748d4e0311ab2a85d3e41f2919030419b7a5b282df52b622",
+        "rewrite": null
+      }
+    },
+    {
+      "block": {
+        "id": "reg-transpose-s20261102-contract-s20261122",
+        "model_call_cap": 4,
+        "parent_id": "transpose-s20261102-contract",
+        "seed": 20261122,
+        "stratum": "regression",
+        "task_id": "transpose"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": false,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "eede212d4c9c78bab66c9e90db9d85dc21f8762e442b83a942eccefddcd71994",
+        "rewrite": null
+      }
+    },
+    {
+      "block": {
+        "id": "new-scale_transpose-s20261123",
+        "model_call_cap": 5,
+        "seed": 20261123,
+        "stratum": "transfer",
+        "task_id": "scale_transpose"
+      },
+      "initial_status": "protocol_error",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "bccf221d4dc5afa0d5ebedba21d7eeb211866182a808dd80cc6abdda2a9993bb",
+        "rewrite": "bccf221d4dc5afa0d5ebedba21d7eeb211866182a808dd80cc6abdda2a9993bb"
+      }
+    },
+    {
+      "block": {
+        "id": "reg-transpose-s20261101-contract-s20261121",
+        "model_call_cap": 4,
+        "parent_id": "transpose-s20261101-contract",
+        "seed": 20261121,
+        "stratum": "regression",
+        "task_id": "transpose"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": false,
+      "patch_correct": false,
+      "selected": {
+        "operational_patch": null,
+        "rewrite": null
+      }
+    },
+    {
+      "block": {
+        "id": "reg-rmsnorm-s20261101-baseline-s20261122",
+        "model_call_cap": 4,
+        "parent_id": "rmsnorm-s20261101-baseline",
+        "seed": 20261122,
+        "stratum": "regression",
+        "task_id": "rmsnorm"
+      },
+      "initial_status": "compile_error",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "1d2fef0f0eb9a49b5e0fd7f7496208450da19c1112249ef62595f266b2678ece",
+        "rewrite": "6f08a954f1f4bd2a8263249d3a2fd7b46e74645567393e02faae427f87b2499e"
+      }
+    },
+    {
+      "block": {
+        "id": "reg-row_mean-s20261102-baseline-s20261122",
+        "model_call_cap": 4,
+        "parent_id": "row_mean-s20261102-baseline",
+        "seed": 20261122,
+        "stratum": "regression",
+        "task_id": "row_mean"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": true,
+      "patch_correct": false,
+      "selected": {
+        "operational_patch": null,
+        "rewrite": "90d649ecbef82d3a024e0e128ef7a0fc6ef13d3fee46eaa63b26b35cf0f9cf06"
+      }
+    },
+    {
+      "block": {
+        "id": "new-column_sum-s20261124",
+        "model_call_cap": 5,
+        "seed": 20261124,
+        "stratum": "transfer",
+        "task_id": "column_sum"
+      },
+      "initial_status": "runtime_error",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "79b500759dbb73571aedde74449c9a83330397169cc56a5a5a26d1ef9fb754f0",
+        "rewrite": "96658bc3690767afce6d654f5e679082bd706459141b177f9834205134243225"
+      }
+    },
+    {
+      "block": {
+        "id": "reg-transpose-s20261101-contract-s20261122",
+        "model_call_cap": 4,
+        "parent_id": "transpose-s20261101-contract",
+        "seed": 20261122,
+        "stratum": "regression",
+        "task_id": "transpose"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": false,
+      "patch_correct": false,
+      "selected": {
+        "operational_patch": null,
+        "rewrite": null
+      }
+    },
+    {
+      "block": {
+        "id": "reg-row_mean-s20261102-baseline-s20261121",
+        "model_call_cap": 4,
+        "parent_id": "row_mean-s20261102-baseline",
+        "seed": 20261121,
+        "stratum": "regression",
+        "task_id": "row_mean"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": true,
+      "patch_correct": false,
+      "selected": {
+        "operational_patch": null,
+        "rewrite": "ee57dc3607eaf04156d0b74828ecd5128e0f37bbafa590687c828d5e3067a89a"
+      }
+    },
+    {
+      "block": {
+        "id": "new-scale_transpose-s20261124",
+        "model_call_cap": 5,
+        "seed": 20261124,
+        "stratum": "transfer",
+        "task_id": "scale_transpose"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": false,
+      "patch_correct": false,
+      "selected": {
+        "operational_patch": null,
+        "rewrite": null
+      }
+    },
+    {
+      "block": {
+        "id": "reg-row_mean-s20261101-baseline-s20261122",
+        "model_call_cap": 4,
+        "parent_id": "row_mean-s20261101-baseline",
+        "seed": 20261122,
+        "stratum": "regression",
+        "task_id": "row_mean"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": true,
+      "patch_correct": false,
+      "selected": {
+        "operational_patch": null,
+        "rewrite": "aa4c965435e843b1f33d342bef4996109448a7a32b5aef2373f833a434286bbb"
+      }
+    },
+    {
+      "block": {
+        "id": "new-affine_silu-s20261124",
+        "model_call_cap": 5,
+        "seed": 20261124,
+        "stratum": "transfer",
+        "task_id": "affine_silu"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "70e33692f602a5b64101fbb26e9c4d5fbcde1412f85dda1de81c8ebf9dd42ad9",
+        "rewrite": "9f9ba59942ada31de0219588a14d76f19226efc29276e0142d53df56b3477896"
+      }
+    },
+    {
+      "block": {
+        "id": "reg-silu_mul-s20261102-contract-s20261121",
+        "model_call_cap": 4,
+        "parent_id": "silu_mul-s20261102-contract",
+        "seed": 20261121,
+        "stratum": "regression",
+        "task_id": "silu_mul"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": false,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "9536cdd773d33837554718a165d4145cd462e81af4a1ac4552cf92a3bd2f6255",
+        "rewrite": null
+      }
+    },
+    {
+      "block": {
+        "id": "reg-rmsnorm-s20261101-baseline-s20261121",
+        "model_call_cap": 4,
+        "parent_id": "rmsnorm-s20261101-baseline",
+        "seed": 20261121,
+        "stratum": "regression",
+        "task_id": "rmsnorm"
+      },
+      "initial_status": "compile_error",
+      "rewrite_correct": false,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "d0a4a2d49a470edf095067d6deca20d7d6f8aefcce202885d1a7b37f876bdeeb",
+        "rewrite": null
+      }
+    },
+    {
+      "block": {
+        "id": "reg-layer_norm-s20261101-contract-s20261122",
+        "model_call_cap": 4,
+        "parent_id": "layer_norm-s20261101-contract",
+        "seed": 20261122,
+        "stratum": "regression",
+        "task_id": "layer_norm"
+      },
+      "initial_status": "compile_error",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "686d63dc0b81b9f986b1397e2c672b69319f7ac9c48ac9d48cbb6bc609d01414",
+        "rewrite": "0cb436413aa56375363ed338fe6e66b9f4829653c61eefb2b90d1e4a2d2d1512"
+      }
+    },
+    {
+      "block": {
+        "id": "reg-transpose-s20261102-contract-s20261121",
+        "model_call_cap": 4,
+        "parent_id": "transpose-s20261102-contract",
+        "seed": 20261121,
+        "stratum": "regression",
+        "task_id": "transpose"
+      },
+      "initial_status": "numeric_error",
+      "rewrite_correct": false,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "af3395c5c961163afa39607982ca165721ebf6fe68e7b475bf5e982f95e33719",
+        "rewrite": null
+      }
+    },
+    {
+      "block": {
+        "id": "new-l2_normalize-s20261123",
+        "model_call_cap": 5,
+        "seed": 20261123,
+        "stratum": "transfer",
+        "task_id": "l2_normalize"
+      },
+      "initial_status": "correct",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "7f1a23e5c259436d1530adcafaccc32dcf779c55aa6dc48ba86eddffb9390b05",
+        "rewrite": "3bc43ed3a9569615021f7e43ce01a8b862c884604d30c34aadee092b0a903d75"
+      }
+    },
+    {
+      "block": {
+        "id": "new-affine_silu-s20261123",
+        "model_call_cap": 5,
+        "seed": 20261123,
+        "stratum": "transfer",
+        "task_id": "affine_silu"
+      },
+      "initial_status": "protocol_error",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "a82dc5f93a1f6f91250e22fcf5a8b3e32e5e4401d94f98abb860f20fe3ff057d",
+        "rewrite": "355f840da83b545013d0b22ba5e54ba6d5e47c31ca13ebbd33095d2e965a7e22"
+      }
+    },
+    {
+      "block": {
+        "id": "new-column_sum-s20261123",
+        "model_call_cap": 5,
+        "seed": 20261123,
+        "stratum": "transfer",
+        "task_id": "column_sum"
+      },
+      "initial_status": "correct",
+      "rewrite_correct": true,
+      "patch_correct": true,
+      "selected": {
+        "operational_patch": "f85f343aa72276505376ffa05a859353304b8ab6b614638b424e492924893c18",
+        "rewrite": "f85f343aa72276505376ffa05a859353304b8ab6b614638b424e492924893c18"
+      }
+    }
+  ],
+  "source_bank_selection_verified": true,
+  "generation_policy_sources_match_frozen": true,
+  "analysis_only_exceptions": [],
+  "mechanism_smoke_verified": true
+}

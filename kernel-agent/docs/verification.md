@@ -91,3 +91,17 @@ revision/full hashes remain unverified; no claim of official Qwen3.8 provenance 
 Delivery checks establish the recorded prototype and evidence, not broad generalization.
 See `results/strategy-delivery-audit.json`, `results/agent-strategy-study.json`,
 `results/agent-strategy-summary.json` and `results/selector-fix.patch`.
+
+## Operational repair comparison
+
+- All44 final outcomes and96 physical calls sealed;96 complete replies, no unknown or
+  infrastructure cases. Regression patch9/14 vs rewriting7/14; new tasks6/8 vs7/8.
+- Exact request/policy/schema/seed, shared initial, patch-reply application, source SHA,
+  selection-before-final, physical GPU4 and no-overlap reconstruction all verified.
+- Both SDK versions and a fresh locked environment each pass191 tests. Ruff, shell
+  syntax and offline evidence checks pass. Fake-driver tests remain separate from scores.
+- New trusted references pass32 independent NumPy equations across two dtypes, shapes and
+  scales. Actual old SiLU and transpose failures yield their intended evidence routes.
+- Historical4863 evidence files remain unchanged. Detailed counts, retained-source recovery,
+  patch rejection costs and uncertainty are in `operational-study-results.zh.md` and the
+  corresponding completion/delivery audits. Default remains ordinary repair.

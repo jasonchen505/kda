@@ -5,7 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 ROUTES = {"vector_add": "01-vector-add.py", "transpose": "01-vector-add.py",
           "softmax": "02-fused-softmax.py", "rmsnorm": "05-layer-norm.py",
-          "row_sum": "05-layer-norm.py", "row_mean": "05-layer-norm.py", "layer_norm": "05-layer-norm.py", "silu_mul": "01-vector-add.py"}
+          "row_sum": "05-layer-norm.py", "row_mean": "05-layer-norm.py", "layer_norm": "05-layer-norm.py", "silu_mul": "01-vector-add.py",
+          "column_sum": "05-layer-norm.py", "l2_normalize": "05-layer-norm.py",
+          "affine_silu": "01-vector-add.py", "scale_transpose": "01-vector-add.py"}
 
 
 def retrieve_example(task_id):

@@ -1,0 +1,23 @@
+{
+  "verified_utc": "2026-10-16T04:47:38.355Z",
+  "status": "verified",
+  "scope": "DOM-backed final report, real success/failure selection and timeline controls; no new model/GPU work",
+  "url": "http://127.0.0.1:8765/reports/kernel-agent-report.html#operational-conclusion",
+  "raw_checkpoint_sha256": "e5c313bff357c92172dc836a11321cbd255473d4d43addd62531baba542ad8b9",
+  "summary": "已知失败回归：连续重写 7/14，证据引导补丁 9/14；新增四类任务：连续重写 7/8，证据引导补丁 6/8。已知失败修复有局部改善，新增任务没有收益；补丁格式拒绝带来损失。默认保留连续重写，新策略维持实验性。",
+  "metrics": {
+    "caseOptions": 22,
+    "effectCharts": 2,
+    "overflow": false,
+    "timelineBars": 203,
+    "viewport": [
+      426,
+      725
+    ]
+  },
+  "errors": [],
+  "success_and_failure_controls_verified": true,
+  "timeline_all_and_recent_verified": true,
+  "report_sha256": "9760ffa03f00b1a79765278074491c6f3d7a2b9745f4882143cdb9e41699e082",
+  "preview_sha256": "a6dc042fc455f06b9a525d1b58eb624a881c0d47bcbec53d8c3d767b84cc198a"
+}

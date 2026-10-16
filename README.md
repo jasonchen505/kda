@@ -23,8 +23,11 @@ handwritten kernels as agent successes. The original KDA documentation is preser
 - [GPU4 execution, interference qualification and guarded plan](kernel-agent/docs/multiseed-execution.md)
 - [Why GPU sharing and performance measurement differ](kernel-agent/docs/gpu-sharing-policy.md)
 - [Online feedback with durable finalization](kernel-agent/docs/phased-study-plan.md)
+- [Latest same-budget patch repair results](kernel-agent/docs/operational-study-results.zh.md)
+- [Patch repair design](kernel-agent/docs/operational-study-plan.md)
+- [Operational-study reproduction](kernel-agent/docs/operational-reproduction.md)
 - [Grounded semantic repair: design](kernel-agent/docs/semantic-study-plan.md)
-- [Latest three-arm results and limits](kernel-agent/docs/semantic-study-results.zh.md)
+- [Previous three-arm results and limits](kernel-agent/docs/semantic-study-results.zh.md)
 - [Failure analysis](kernel-agent/docs/semantic-failure-analysis.zh.md)
 - [Semantic-study reproduction](kernel-agent/docs/semantic-reproduction.md)
 - [Preceding generation and counterexample repair design](kernel-agent/docs/repair-study-plan.md)
@@ -46,39 +49,44 @@ The review path above checks published evidence and controller mechanisms on a C
 
 ## Result and scope
 
-The latest iteration adds an independent semantic reviewer and a bounded AST interpreter
-that checks expressions against trusted asymmetric FP32 probes. The grounded writer sees
-verified expressions and factual traces, with unverified narratives filtered. Its three-arm,
-22-block study resolves all **66 outcomes**, with **115 actual model dispatches**:
+The latest repair architecture derives numeric relations and coordinate witnesses from
+trusted search probes and requests exact model-authored source patches. Transactions bind
+the current SHA, apply atomically, and preserve the base after rejection. Each paired arm
+gets two repair calls; the initial source and independent evaluator are shared.
 
-| Separate stratum | Two rewrites | Raw reviewer + writer | Grounded reviewer + writer |
-|---|---:|---:|---:|
-| Known-failure regression (7 parents, 2 seeds, 5 families) | 7/14 | 7/14 | 7/14 |
-| Fresh starts (8 existing families, 1 seed) | 7/8 | 7/8 | 7/8 |
+The completed **22-block / 44-outcome / 96-call** study has mixed results:
 
-All entries are final-correct counts. Each arm has two extra model opportunities; the last
-two arms share the exact review, and get one new kernel rather than two. Strata and paired
-cluster intervals remain separate. Mathematical agreement does not prove API or layout
-correctness. Keep ordinary generation/repair as the default; semantic variants remain
-experimental. See [results and uncertainty](kernel-agent/docs/semantic-study-results.zh.md).
+| Separate stratum | Two rewrites | Evidence-guided patches |
+|---|---:|---:|
+| Known failed sources (7 parents, 2 seeds, 5 families) | 7/14 | 9/14 |
+| New project-defined tasks (4 families, 2 seeds) | 7/8 | 6/8 |
 
-The preceding factorial remains unchanged: contract+diagnostic repair 13/16 final-correct,
-ordinary generation/repair 15/16, 152 calls. Its missing-factor and layout failures motivate
-the new mechanism. All 3700 previously published result/frozen-analysis files retain their
-hashes. No generated kernel is manually patched and negative outcomes are not replaced.
+All counts are independent final-correct outcomes. Family-equal paired differences are
++25pp (exploratory interval −30 to +70) and −12.5pp (−37.5 to 0); the raw regression
+count difference is +14.3pp with different weighting. Strata stay separate. Patches rescue
+old SiLU and one transpose source, but regress on row mean and a new L2 repair.
+**17/42 patch transactions were rejected**. Keep ordinary repair as default; the patch
+policy remains experimental. See [results and failures](kernel-agent/docs/operational-study-results.zh.md),
+[prospective design](kernel-agent/docs/operational-study-plan.md), and
+[reproduction](kernel-agent/docs/operational-reproduction.md).
 
-Three local Qwen services use dynamic discovery, idle admission and latency-EWMA allocation;
-active blocks bind one process, unknown calls are not replayed, and independent GPU4 work
-is cooperatively serialized with physical UUID proof. **176 CPU tests** pass independently
-on both pinned SDKs and a fresh locked install. Their fake-driver mechanism fixtures are
-separate from real model/GPU evidence. No paid model API is used.
+The previous semantic review study (66 outcomes, 115 calls) found all arms equal:
+7/14 regression and 7/8 fresh starts. The earlier factorial's 13/16 versus 15/16
+negative result also remains unchanged. All **4863 prior evidence files** retain their
+hashes. No post-outcome retries or human kernel fixes replace failures.
 
-Earlier pooling, endpoint recovery, selector and SIGKILL experiments retain independent
-denominators. This small regression/fresh evaluation is not a blind external benchmark;
-weight equality across cached roots is unverified. Shared kernel ratios are not isolated
-or end-to-end LLM speedups. The original KDA workflows remain available unchanged.
+Three local Qwen processes use idle admission and latency EWMA; active blocks stay on
+one process. This run reaches three concurrent model ports and 107 independent GPU4
+windows with peak overlap one. GPU sharing is allowed, with child physical UUID proof.
+**191 CPU tests** pass on both pinned SDKs and a fresh locked installation; fake-driver
+tests are separate from model/GPU scores. No paid model API is used.
 
-![Grounded semantic repair results](kernel-agent/reports/semantic-preview.png)
+This is a research engineering prototype suitable for a portfolio, with measured local
+repair gains and measured transfer limits. New tasks are not an external blind benchmark;
+cache-root weight equality is unverified and shared ratios are not isolated or end-to-end
+LLM speedups. Original KDA workflows and historical experiment denominators remain intact.
+
+![Operational repair comparison](kernel-agent/reports/operational-preview.png)
 
 ## License
 

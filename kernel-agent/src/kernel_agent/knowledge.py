@@ -37,7 +37,7 @@ CARDS = {
 def retrieve(result, task_id):
     text = str(result).lower()
     keys = ["launch", "memory"]
-    if task_id in ("softmax", "rmsnorm", "row_sum", "row_mean", "layer_norm") or any(word in text for word in ("shape", "reduction", "numeric")):
+    if task_id in ("softmax", "rmsnorm", "row_sum", "row_mean", "layer_norm", "column_sum", "l2_normalize") or any(word in text for word in ("shape", "reduction", "numeric")):
         keys.append("reduce")
     if result.get("status") == "protocol_error" or "syntax" in text:
         keys.append("format")

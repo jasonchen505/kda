@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "scope": "tokenize only; zero completion calls",
+  "rows": [
+    {
+      "task": "silu_mul",
+      "port": 18118,
+      "input_tokens": 2816
+    },
+    {
+      "task": "silu_mul",
+      "port": 35209,
+      "input_tokens": 2816
+    },
+    {
+      "task": "silu_mul",
+      "port": 35589,
+      "input_tokens": 2816
+    },
+    {
+      "task": "transpose",
+      "port": 18118,
+      "input_tokens": 3358
+    },
+    {
+      "task": "transpose",
+      "port": 35209,
+      "input_tokens": 3358
+    },
+    {
+      "task": "transpose",
+      "port": 35589,
+      "input_tokens": 3358
+    }
+  ]
+}

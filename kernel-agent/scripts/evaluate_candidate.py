@@ -38,6 +38,15 @@ def reference(task, *args):
         return (torch.nn.functional.silu(x.float()) * args[1].float()).to(x.dtype)
     if task == "rmsnorm":
         return args[1] * (x.float() * torch.rsqrt(x.float().square().mean(-1, keepdim=True) + 1e-6)).to(x.dtype)
+    if task == "column_sum":
+        return x.float().sum(0).to(x.dtype)
+    if task == "l2_normalize":
+        return (x.float() * torch.rsqrt(x.float().square().sum(-1, keepdim=True) + 1e-6)).to(x.dtype)
+    if task == "affine_silu":
+        z = x.float() * args[1].float() + args[2].float()
+        return (z * torch.sigmoid(z)).to(x.dtype)
+    if task == "scale_transpose":
+        return (x.float() * args[1].float()).T.to(x.dtype).contiguous()
     raise ValueError(f"unknown task {task}")
 
 
@@ -45,9 +54,9 @@ def inputs(task, shape, dtype):
     x = torch.randn(shape, dtype=dtype, device="cuda")
     if task in ("vector_add", "silu_mul"):
         return (x, torch.randn_like(x))
-    if task == "rmsnorm":
+    if task in ("rmsnorm", "scale_transpose"):
         return (x, torch.randn(shape[-1], dtype=dtype, device="cuda"))
-    if task == "layer_norm":
+    if task in ("layer_norm", "affine_silu"):
         return (x, torch.randn(shape[-1], dtype=dtype, device="cuda"),
                 torch.randn(shape[-1], dtype=dtype, device="cuda"))
     return (x,)
@@ -130,13 +139,15 @@ def main(task, source, final=False, timing=True, diagnostics=False):
         spec.loader.exec_module(module)
     except Exception as error:  # noqa: BLE001 -- generated code can raise arbitrary exceptions
         return {"status": "compile_error", "message": str(error), "traceback": traceback.format_exc()[-4000:]}
-    task_spec = json.loads((ROOT / "data/tasks.json").read_text())[task]
+    tasks = json.loads((ROOT / "data/tasks.json").read_text())
+    transfer = json.loads((ROOT / "data/repair-transfer-tasks.json").read_text())
+    task_spec = {**tasks, **transfer}[task]
     test_shapes = ([[1], [33], [1025], [65537]] if task in ("vector_add", "silu_mul") else
                    [[1, 1], [3, 33], [7, 257], [17, 1536]])
-    if task == "transpose":
+    if task in ("transpose", "scale_transpose"):
         test_shapes[-1] = [17, 769]
     if final:
-        task_spec["timing_shapes"] = {
+        task_spec["timing_shapes"] = task_spec["final_timing_shapes"] if task in transfer else {
             "vector_add": [[513], [131071], [1000003]],
             "softmax": [[13, 511], [96, 1025], [192, 2048]],
             "rmsnorm": [[13, 511], [96, 2047], [192, 4096]],
@@ -146,7 +157,8 @@ def main(task, source, final=False, timing=True, diagnostics=False):
             "layer_norm": [[13, 511], [96, 2047], [192, 4096]],
             "silu_mul": [[513], [131071], [1000003]],
         }[task]
-        test_shapes = ([[3], [8193], [65539], [99991]] if task in ("vector_add", "silu_mul") else
+        test_shapes = (task_spec["final_correctness_shapes"] if task in transfer else
+                       [[3], [8193], [65539], [99991]] if task in ("vector_add", "silu_mul") else
                        [[2, 3], [9, 65], [5, 509], [13, 1009]])
     test_shapes += task_spec["timing_shapes"]
     torch.manual_seed(992771 if final else 771019)

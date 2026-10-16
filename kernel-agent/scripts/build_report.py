@@ -108,6 +108,14 @@ payload["semantic"] = ({"summary": json.loads((semantic_dir / "summary.json").re
 payload["semantic_checks"] = (json.loads((ROOT / "results/semantic-checks.json").read_text())
                               if (ROOT / "results/semantic-checks.json").exists() else None)
 invalid = ROOT / "results/repair-invalid-device-v1"
+operational_dir = ROOT / "results/operational-study"
+payload["operational"] = ({"summary": json.loads((operational_dir / "summary.json").read_text()),
+                           "plan": json.loads((operational_dir / "plan.json").read_text()),
+                           "raw_checkpoint": (operational_dir / "checkpoint.json").read_text()}
+                          if (operational_dir / "summary.json").exists() else None)
+payload["operational_checks"] = (json.loads((ROOT / "results/operational-checks.json").read_text())
+                                 if (ROOT / "results/operational-checks.json").exists() else None)
+
 payload["repair_invalidity"] = None
 if (invalid / "invalidity-receipt.json").exists():
     receipt = json.loads((invalid / "invalidity-receipt.json").read_text())

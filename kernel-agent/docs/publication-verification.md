@@ -268,3 +268,24 @@ offline HTML. HTTP authorization headers, private keys, model weights and native
 session stores are not part of the published evidence. Paths and runtime metadata describe
 the measured server. The original unsanitized study JSON is kept intact so its hash remains
 verifiable.
+
+## Operational patch study delivery
+
+The new 22-block comparison resolves all44 outcomes with96 confirmed physical calls and
+no infrastructure failures. Regression and new-task strata remain separate; a mixed result
+keeps ordinary repair as default. The source freeze is bound to plan
+`30e418ff2e8665f8ed3bc33d01067d83b080247bf17f3b045a2871229e3bccfa`.
+There are no post-outcome generation-policy source exceptions for this study.
+
+`results/operational-checks.json` records 191 tests independently on updated Humanize,
+archived Humanize and a fresh locked installation, plus Ruff, shell syntax and offline
+reconstruction. New mechanism fixtures use fake model/GPU verdicts and are not agent scores.
+The GPU-only smoke records32 independent NumPy reference checks and two unchanged old
+failed kernels on the UUID-bound physical GPU4. They are separate from the96 model calls.
+
+`results/operational-history-preservation.json` binds every4863 previously published
+results/evidence file unchanged. `results/operational-study/sources/` is the executed
+freeze; `results/operational-analysis/manifest.json` is the delivery-analysis freeze.
+The completion, browser and delivery audits bind those records to the final HTML and
+preview. The root README remains English; downstream Chinese resume notes describe both
+targeted rescue gains and new-task regressions without claiming broad algorithmic gains.

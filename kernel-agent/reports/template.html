@@ -13,7 +13,7 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#semantic-study">语义修复新对照</a><a href="#repair-study">上轮负结果</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#operational-study">代码修复新对照</a><a href="#semantic-study">上轮语义审查</a><a href="#repair-study">上轮负结果</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
 <main>
 <header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.15</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
@@ -30,8 +30,25 @@
 <section id="portfolio"><h2>五分钟看懂这个求职项目</h2>
 <p>研究工程问题：如何让一个本地 coding agent 在数值、性能和资源约束下写出可验收的 kernel，并在失败或中断后保留可信实验记录。</p>
 <div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流，以及 Humanize → OpenCode → 本地 Qwen 的真实生成链路。新增直连后端用于八类任务的生成／修复对照，模型源码不经人工修改。</p></div><div class="card"><h3>自己改进了什么</h3><p>实现合约检查清单、微型搜索诊断、失败记忆与正确源码锚点，用同初始源码的 2×2 对照检验生成和修复效果；底层支持独立评测、候选选择、持久化预算、故障恢复和动态多服务调度。</p></div></div>
-<p>研究迭代：历史反馈对照未证明收益，促成候选选择与恢复改进。先完成生成与修复交叉对照，保留退步结果，再基于真实失败提出“核验审查”机制，用共享初稿的新对照检验；失败、未知调用与原始源码一并保留。</p>
+<p>研究迭代：历史反馈对照未证明收益，促成候选选择与恢复改进。先完成生成与修复交叉对照，保留退步结果，再检验“核验审查”，发现公式核验未带来最终收益。这轮把可信数值与索引提示直接接入事务化源码修复，用同预算对照检验；失败、未知调用与原始源码一并保留。</p>
 <p class="small" id="portfolio-evidence">定位：可以写入简历的 agent harness 研究工程原型。三任务集成验证为 3/3 最终正确、2/3 晋升；最新六任务反馈对照见下方。真实生成、工程测试和历史未完成实验分别计数。</p></section>
+
+<section id="operational-study" hidden>
+<div class="section-top"><h2>让修复落到真实代码</h2><span class="tag" id="operational-status"></span></div>
+<p>上轮公式核验没有提高最终正确率：核验能拒绝错误解释，却没约束 API 与指针实现。这轮取消额外审查调用，从两组可信搜索探针计算数值关系和坐标对应，让 Qwen 对保留源码提交带 SHA 的局部补丁。</p>
+<div class="two"><div class="card"><h3>连续重写 · 对照</h3><p>普通完整源码修订，读取真实搜索反馈。两次模型机会。</p></div><div class="card"><h3>证据引导补丁 · 新策略</h3><p>实际错误分流 → 数值／索引提示 → 精确源码补丁 → 原子校验与独立评测。补丁拒绝后保留源码，两次机会。</p></div></div>
+<p class="small">双方共享初稿、API 检查、候选选择和 GPU 评测器，各两次调用、每次最多 2048 输出 tokens。新策略把表示、提示、分流和锚点一起改变，本轮验证整个策略包，不能单独归因于某个组件。</p>
+<div class="cards" id="operational-metrics"></div><p class="notice" id="operational-conclusion" aria-live="polite"></p>
+<div class="two" id="operational-strata"></div>
+<p class="small">回归覆盖原银行全部七份失败初稿、五类任务；新增四类任务分别是列求和、行 L2 归一化、仿射 SiLU 和缩放转置。每项两个新种子。区间按任务族聚类，分别只有 5／4 族，属于探索结果；新任务由本项目定义，不能视为外部盲测。图中差异先在每族内平均，再对任务族等权；回归图的 +25.0 pp 与直接计数差 +14.3 pp 权重不同。</p>
+<h3>修复是否真正发生</h3><p id="operational-mechanism" class="notice"></p>
+<div class="controls"><label for="operational-case">共享起点与修复轨迹</label><select id="operational-case"></select><button id="operational-win" class="secondary" hidden>查看补丁救回</button><button id="operational-failure" class="secondary" hidden>查看未修好的案例</button></div>
+<div id="operational-trajectory"></div>
+<h3>三路模型调度与串行 GPU4</h3><div id="operational-services" class="cards" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))"></div><p id="operational-resource" class="small"></p>
+<div class="card"><div class="controls"><label for="operational-window">时间范围</label><select id="operational-window"><option value="all">本轮全程</option><option value="recent">最近 15 分钟</option></select></div><svg id="operational-timeline" viewBox="0 0 640 235" role="img" aria-label="三路模型请求和GPU4独立评测的真实时间线" style="width:100%;height:auto;display:block"></svg></div>
+<p class="small">GPU4 允许共卡，只串行本项目的评测。相对性能门槛仍展示，但共卡比值不能当作独占加速。数值关系和坐标提示只解释有限搜索探针；最终样本保持独立。源码更改全部来自模型原始回复，控制器只机械应用和校验。</p>
+<details><summary>冻结协议、账本绑定与交付检查</summary><pre id="operational-provenance"></pre><button id="operational-download" class="secondary">下载原始账本</button></details>
+</section>
 
 <section id="semantic-study" hidden>
 <div class="section-top"><h2>从“解释得通”到“算得对”</h2><span class="tag" id="semantic-status"></span></div>
@@ -479,7 +496,7 @@ if(recovery){
   }
   $('recovery-note').textContent=phase==='before'?'A 的结果已提交，B 的预算预留和调用状态已落盘，C 尚未调用。此时对测试子进程发送 SIGKILL。':'A 的结果 SHA 完全复用；B 保留为未知并占据原分母；C 完成。再次启动不新增调用。以上使用测试驱动，不计入 GPU 成绩。';
  }
- const check=DATA.semantic_checks||DATA.repair_checks||DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+ const check=DATA.operational_checks||DATA.semantic_checks||DATA.repair_checks||DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
  $('upgrade-checks').textContent=check?`${check.passed_tests} 项机制与证据检查通过；lint、脚本语法和离线审计通过。`:'SIGKILL 场景与恢复断言通过；机制检查详见项目测试记录。';
  $('multiseed-note').textContent=multiseed?`旧 GPU6 计划保留为零启动的预检记录；修正评测解释器后，新计划在 GPU${multiseed.runtime.gpu_index} 上运行。已终止 ${multiseed.terminal}/${multiseed.scheduled}，结果与进度见上方多种子章节。`:nextPlan?`冻结 ${nextPlan.summary.scheduled} 次运行、108 次提案机会；已启动 ${nextPlan.summary.terminal} 次。状态：等待资源。预检记录：${nextPlan.last_event.error}。预算预留仍为 0。`:'扩展实验尚未启动。';
  $('recovery-detail').textContent=JSON.stringify({assertions:recovery.assertions,summary:recovery.summary,next_plan:nextPlan},null,2);
@@ -487,7 +504,7 @@ if(recovery){
  $('download-recovery').addEventListener('click',()=>download(recovery,'campaign-recovery-validation.json'));
  showRecovery();
 }
-const currentChecks=DATA.semantic_checks||DATA.repair_checks||DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
+const currentChecks=DATA.operational_checks||DATA.semantic_checks||DATA.repair_checks||DATA.pool_checks||DATA.phased_checks||DATA.coexecution_checks||DATA.delivery_checks||DATA.multiseed_checks||DATA.upgrade_checks;
 $('tests-note').textContent=(DATA.validation||'流程单元与集成检查见项目 tests/。')+(currentChecks?` 当前工程 ${currentChecks.passed_tests} 项检查通过，CPU 恢复测试另见调度章节。`:'');$('provenance').textContent=JSON.stringify({metadata:study.metadata,upstreams:DATA.upstreams,study_status:study.status},null,2);$('startup').append(node('p','启动诊断文件：'+(DATA.startup_files||[]).join('、'),'small'));$('generated').textContent=DATA.generated_utc;showSpeed();showRun();
 if(isSelectorValidation&&DATA.selector_validation_audit){$('selector-delivery').hidden=false;$('selector-delivery-data').textContent=JSON.stringify(DATA.selector_validation_audit,null,2)}
 if(shared?.status==='complete'){
@@ -582,6 +599,48 @@ if(DATA.semantic){(()=>{
  $('portfolio-evidence').textContent='项目成果是可实验、可审计的 kernel agent harness：真实生成、语义检查、预算化修复、多服务调度与独立验收。上一轮退步保留为新假设来源，最新三组对照见下方。';
  $('model-info').textContent='本地 Qwen 27B FP8 三路动态服务池 · 共同 8192 上下文 / 2048 输出上限 · 无付费模型 API · GPU4 共卡评测。';
  $('runtime-note').textContent='语义表达式、模型原始响应、父源码与选择提交均有哈希绑定。已知失败回归不能作泛化成绩；8 类新生成验证仅一个新种子。';
+})();}
+
+if(DATA.operational){(()=>{
+ const bundle=DATA.operational,s=bundle.summary,done=s.status==='complete',labels={rewrite:'连续重写',operational_patch:'证据引导补丁'},strata={regression:'已知失败回归',transfer:'新增四类任务'};
+ const details=(title,value)=>{const d=node('details');d.append(node('summary',title),node('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));return d};
+ Object.assign(taskNames,{column_sum:'列求和',l2_normalize:'行 L2 归一化',affine_silu:'仿射 SiLU',scale_transpose:'缩放转置'});
+ $('operational-study').hidden=false;$('operational-status').textContent=done?'44 个结局均已结束':'运行中 · 策略已冻结';
+ const headline=s.strata.map(st=>`${strata[st.stratum]}：${st.cells.map(c=>`${labels[c.arm]} ${c.correct}/${c.scheduled}`).join('，')}`).join('；');
+ for(const[v,l]of [[`${s.resolved}/44`,'已结束的两组结局'],[`${s.dispatched_requests}/96`,'实际派发 / 调用额度'],[String(s.peak_model_ports),'已完成请求峰值并发端口'],[String(s.patch_statuses.applied||0),'已机械应用的模型补丁']]){const c=node('div',undefined,'card');c.append(node('div',v,'metric'),node('p',l));$('operational-metrics').append(c)}
+ $('operational-conclusion').textContent=done?headline+'。已知失败修复有局部改善，新增任务没有收益；补丁格式拒绝带来损失。默认保留连续重写，新策略维持实验性。':'本轮尚未结束，不根据中途结果选择策略或调整提示。已封存结果逐步呈现，失败和基础设施故障保留在预定分母。';
+ for(const st of s.strata){const card=node('div',undefined,'card');card.append(node('h3',strata[st.stratum]));const wrap=node('div',undefined,'table-wrap'),table=node('table'),head=node('tr');for(const t of ['策略','最终正确','条件救回','性能门槛'])head.append(node('th',t));const thead=node('thead');thead.append(head);table.append(thead);const body=node('tbody');
+  for(const c of st.cells){const tr=node('tr');for(const v of [labels[c.arm],`${c.correct}/${c.scheduled}${done?'':` · 结束 ${c.resolved}`}`,`${c.rescued_observed}/${c.initial_failed_observed}`,`${c.promoted}/${c.scheduled}`])tr.append(node('td',v));body.append(tr)}table.append(body);wrap.append(table);card.append(wrap);
+  const affected=new Set(s.rows.filter(r=>r.stratum===st.stratum&&r.infrastructure).map(r=>r.block)).size;card.append(node('p',`基础设施影响 ${affected} 块。条件救回仅计初稿失败、两次调用完成且无基础设施故障的结局；最终正确仍用全部计划分母。`,'small'));
+  if(done){const c=st.contrasts,pct=x=>(100*x).toFixed(1),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 540 145');svg.setAttribute('role','img');svg.setAttribute('aria-label',strata[st.stratum]+'补丁相对重写的任务族配对正确率差异');svg.style.cssText='width:100%;height:auto;display:block';const mark=(tag,attrs,text)=>{const e=document.createElementNS(svg.namespaceURI,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;svg.append(e)},span=Math.max(.25,Math.ceil(Math.max(Math.abs(c.interval.low),Math.abs(c.interval.high))*4)/4),x=v=>100+(v+span)*190/span;
+   for(const t of [-span,0,span]){mark('line',{x1:x(t),x2:x(t),y1:15,y2:100,stroke:t===0?'#586870':'#e2e7e4','stroke-dasharray':t===0?'4 4':'0'});mark('text',{x:x(t),y:125,'text-anchor':'middle','font-size':15,fill:'#586870'},pct(t)+' pp')}
+   const color=c.mean_difference<0?'#a74922':'#17685d';mark('line',{x1:x(c.interval.low),x2:x(c.interval.high),y1:65,y2:65,stroke:color,'stroke-width':4});mark('circle',{cx:x(c.mean_difference),cy:65,r:6,fill:color});mark('text',{x:x(c.mean_difference),y:42,'text-anchor':'middle','font-size':17,fill:color},pct(c.mean_difference)+' pp');card.append(svg,details(`任务族配对差异：${pct(c.mean_difference)} pp；探索区间 [${pct(c.interval.low)}, ${pct(c.interval.high)}]`,c));
+  }else card.append(node('p','全部 22 块结束后计算预定分层效果。','small'));
+  $('operational-strata').append(card);
+ }
+ $('operational-mechanism').textContent=`已封存补丁：${s.patch_statuses.applied||0} 次应用、${s.patch_statuses.patch_error||0} 次拒绝。修复分流 ${Object.entries(s.repair_routes).map(([k,v])=>`${k} ${v}`).join('，')||'尚无完整块'}。直接 API 检查发现 ${Object.entries(s.missing_apis).map(([k,v])=>`${k} ${v} 次`).join('，')||'暂无缺失符号'}。应用成功只表示补丁精确落地，仍需 GPU 判断。`;
+ const blocks=s.blocks.filter(b=>b.result);for(const[i,b]of blocks.entries()){const o=node('option',`${strata[b.block.stratum]} / ${taskNames[b.block.task_id]} / ${b.block.seed}${b.block.parent_id?' / '+b.block.parent_id:''}`);o.value=String(i);$('operational-case').append(o)}
+ function show(){const target=$('operational-trajectory');target.replaceChildren();const b=blocks[Number($('operational-case').value)];if(!b){target.append(node('p','完整配对块封存后展示真实补丁。'));return}const r=b.result;target.append(node('p',`共享初稿：${r.initial.evaluation.status}，${r.initial.imported?'来自原失败银行':'本轮新生成'}；固定模型进程端口 ${r.endpoint.port}。`),details('同一初始源码、两组输入／预期／实际数值与完整裁决',r.initial));
+  const grid=node('div',undefined,'two');for(const [arm,a]of Object.entries(r.arms)){const card=node('div',undefined,'turn');card.append(node('h3',labels[arm]),node('p',`最终${a.correct?'正确':'未通过'} · ${a.attempts.slice(1).map(t=>t.evaluation.status).join(' → ')}`,a.correct?'ok':'bad'),node('p',`选择 SHA：${a.selected_sha256||'无搜索正确候选'}`,'sha'));
+   for(const t of a.attempts.slice(1)){card.append(node('h4',`${t.request_id} · ${t.evaluation.status}`));if(t.diagnosis)card.append(details('由可信探针计算的修复义务',t.diagnosis));if(t.mode==='patch'&&t.reply){try{const p=JSON.parse(t.reply);if(Array.isArray(p.edits)){card.append(node('p',`补丁基线：${p.base_sha256}`,'sha'));for(const e of p.edits)card.append(node('pre',[...(e.before_lines||[]).map(l=>'- '+l),...(e.after_lines||[]).map(l=>'+ '+l)].join('\n')))}}catch{}}
+    const message=t.evaluation.message;if(message)card.append(node('p',String(message).slice(0,500),'small'));card.append(details('模型原始回复、完整生成源码与机械应用收据',t));
+   }card.append(details('独立最终验收（选择在最终数据访问前提交）',{selected_sha256:a.selected_sha256,final:a.final,reused_from:a.final_reused_from}));grid.append(card)}target.append(grid);
+ }
+ const win=blocks.findIndex(b=>b.result.arms.operational_patch.correct&&!b.result.arms.rewrite.correct),failed=blocks.findIndex(b=>!b.result.arms.operational_patch.correct),silu=blocks.findIndex(b=>b.block.task_id==='silu_mul');if(win>=0)$('operational-case').value=String(win);else if(silu>=0)$('operational-case').value=String(silu);
+ for(const[id,index]of [['operational-win',win],['operational-failure',failed]])if(index>=0){$(id).hidden=false;$(id).addEventListener('click',()=>{$('operational-case').value=String(index);show()})}$('operational-case').addEventListener('change',show);show();
+ for(const v of s.services){const c=node('div',undefined,'card');c.append(node('h3',`:${v.endpoint.port} · GPU ${v.endpoint.gpus.join('/')}`),node('p',`分配 ${v.assigned} 块，完成 ${v.completed||0} 块。`),node('p',`请求耗时 EWMA ${Number(v.ewma_seconds||0).toFixed(1)} 秒；vLLM ${v.endpoint.version}。`,'small'));$('operational-services').append(c)}
+ $('operational-resource').textContent=`实际派发 ${s.dispatched_requests}/96 次，完整响应 ${s.request_statuses.completed||0}，响应未知 ${s.request_statuses.response_unknown||0}；已报告输出 ${s.reported_output_tokens} tokens。模型端口峰值并发 ${s.peak_model_ports}；独立 GPU 窗口 ${s.independent_gpu_windows}，峰值重叠 ${s.peak_gpu_windows}。`;
+ function timeline(){const svg=$('operational-timeline');svg.replaceChildren();const entries=s.timeline;if(!entries.length)return;const end=Math.max(...entries.map(e=>Date.parse(e.end_utc))),earliest=Math.min(...entries.map(e=>Date.parse(e.start_utc))),begin=$('operational-window').value==='recent'?Math.max(earliest,end-900000):earliest,span=Math.max(1000,end-begin),lanes=[...new Set(entries.filter(e=>e.lane!=='GPU4').map(e=>e.lane))].sort().concat('GPU4'),x=t=>100+Math.max(0,t-begin)*520/span;
+  const mark=(tag,attrs,text)=>{const e=document.createElementNS(svg.namespaceURI,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;svg.append(e)};
+  lanes.forEach((lane,i)=>{const y=30+i*43;mark('text',{x:3,y:y+13,'font-size':17,fill:'#172b35'},lane);mark('line',{x1:100,x2:620,y1:y+10,y2:y+10,stroke:'#e2e7e4'});for(const e of entries.filter(e=>e.lane===lane&&Date.parse(e.end_utc)>=begin)){const rect=document.createElementNS(svg.namespaceURI,'rect'),a=Math.max(begin,Date.parse(e.start_utc)),b=Date.parse(e.end_utc);for(const[k,v]of Object.entries({x:x(a),y,width:Math.max(1,x(b)-x(a)),height:21,fill:lane==='GPU4'?'#bc683b':'#17685d',rx:2}))rect.setAttribute(k,v);const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=`${e.block} / ${e.phase} / ${e.start_utc} → ${e.end_utc}`;rect.append(title);svg.append(rect)}});mark('text',{x:100,y:225,'font-size':14,fill:'#586870'},new Date(begin).toISOString().slice(11,19)+' UTC');mark('text',{x:620,y:225,'text-anchor':'end','font-size':14,fill:'#586870'},new Date(end).toISOString().slice(11,19)+' UTC');
+ }
+ $('operational-window').addEventListener('change',timeline);timeline();
+ $('operational-provenance').textContent=JSON.stringify({plan:bundle.plan,request_statuses:s.request_statuses,shared_initial_verified:s.shared_initial_verified,patch_reply_to_code_verified:s.patch_reply_to_code_verified,policy_request_binding_verified:s.policy_request_binding_verified,final_selection_binding_verified:s.final_selection_binding_verified,checks:DATA.operational_checks},null,2);$('operational-download').addEventListener('click',()=>downloadRaw(bundle.raw_checkpoint,'operational-checkpoint.json'));
+ $('summary').textContent=done?`最新同预算修复对照已结束。${headline}。`:`最新同预算修复对照正在运行：已封存 ${s.resolved}/44 个结局，实际派发 ${s.dispatched_requests}/96 次。`;
+ $('metrics').replaceChildren();for(const[l,v,t]of [['已结束结局',`${s.resolved}/44`,'回归与新增任务分开分析'],['真实模型调用',String(s.dispatched_requests),'每组两次修复机会，无额外审查'],['服务峰值并发',String(s.peak_model_ports),'固定进程配对，GPU4 串行评测'],['补丁精确应用',String(s.patch_statuses.applied||0),'应用不代表数值正确']]){const c=node('div',undefined,'card');c.append(node('div',l,'small'),node('div',v,'metric'),node('p',t,'small'));$('metrics').append(c)}
+ $('main-finding').textContent=done?'证据引导补丁修好了旧 SiLU 和一组转置，但行均值与新 L2 任务受补丁协议和错误定位影响。回归改善没有迁移成新增任务收益，默认仍用普通修复。':'本轮检验：把数值与索引证据直接转成局部代码修复，能否在同样两次调用内提高最终正确率。策略与任务已冻结，中途结果不用于调参。';
+ $('portfolio-evidence').textContent='项目成果是可实验、可审计的 kernel agent harness：真实生成、语义检查、事务化补丁、预算修复、多服务调度与独立验收。退步结果推动机制改进，所有轮次保留。';
+ $('runtime-note').textContent='两组补丁／源码回复均与实际候选 SHA 绑定。有限探针不是正确性证明；新增四类任务不等于外部泛化；共享 GPU 性能仅作条件观测。';
 })();}
 
 </script>
