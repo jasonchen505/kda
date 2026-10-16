@@ -1,0 +1,46 @@
+{
+  "commands": [
+    {
+      "command": [
+        "/data/home/chenyizhou/kernel-agent-storage/runtimes/controller/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "........................................................................ [ 35%]\n........................................................................ [ 70%]\n.............................................................            [100%]\n205 passed in 10.97s\n"
+    },
+    {
+      "command": [
+        "/data/home/chenyizhou/kernel-agent-storage/runtimes/controller/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "scripts",
+        "tests",
+        "flows"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "All checks passed!\n"
+    }
+  ],
+  "scope": "CPU mechanisms and report-only correction fixture; no new model or GPU calls",
+  "status": "passed",
+  "passed_tests": 205,
+  "generation_preflight_tests": 204,
+  "created_utc": "2026-10-16T11:29:13.445630+00:00",
+  "reporting_correction": {
+    "kind": "reporting-only additional entry point",
+    "reason": "A protocol-failed initial has neither source nor source SHA. It must not match a None parent SHA and supply a source diff.",
+    "new_entry_point": "scripts/export_span_report.py",
+    "new_sha256": "639532d3bf69c0d9b1d255b7a6a0c166d6b4258f68c5f0e3b576834291226f42",
+    "original_entry_point": "scripts/export_span.py",
+    "original_sha256": "5044087960b50d428cf961b69658befcf59fd4637d98c559e24957c376dc7057",
+    "generation_evaluation_selection_and_recorded_outcomes_unchanged": true,
+    "original98_frozen_files_unchanged": true,
+    "test": "test_first_admitted_source_after_protocol_failure_has_no_parent_diff"
+  }
+}

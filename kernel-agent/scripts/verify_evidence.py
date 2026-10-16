@@ -533,6 +533,14 @@ def check_operational(root):
             "patch_reply_to_code_verified", "final_selection_binding_verified")}
 
 
+def check_span(root):
+    path = root / "results/span-summary.json"
+    if not path.exists():
+        return None
+    from scripts.verify_span_summary import verify as verify_summary
+    return verify_summary(path)
+
+
 def verify(root=ROOT):
     raw = root / "results/agent-selector-validation.json"
     study = json.loads(raw.read_text())
@@ -575,6 +583,7 @@ def verify(root=ROOT):
             "repair_framework_study": check_repair(root),
             "semantic_repair_study": check_semantic(root),
             "operational_repair_study": check_operational(root),
+            "indexed_repair_summary": check_span(root),
             "measured_files": len(study["metadata"]["source_sha256"]), "candidate_files": candidates,
             "proposer_requests": len(proposer), "background_requests": len(traces) - len(proposer),
             "correct": sum(run["correct"] for run in study["runs"]),

@@ -1,0 +1,32 @@
+{
+  "status": "verified",
+  "created_utc": "2026-10-16T12:11:59.601Z",
+  "scope": "Browser rendering and selected interactions; not an independent raw-evidence or GPU audit",
+  "report_sha256": "69ded43b503c6ac357ada41b49c644bde849955d16a4978411e6b0bd8cfd978f",
+  "cases": 22,
+  "contrast_charts": 2,
+  "download_href": "../results/span-summary.json",
+  "summary_sha256": "a64268ce3f03d9a85992882f5000baba53cd5799f32408771f089cc101fa038c",
+  "tables": [
+    "策略\t最终正确\t条件救回\t性能门槛\n连续重写\t9/14\t9/14\t2/14\n旧文本补丁\t7/14\t7/14\t2/14\n行号补丁＋回退\t13/14\t13/14\t2/14",
+    "策略\t最终正确\t条件救回\t性能门槛\n连续重写\t6/8\t4/6\t0/8\n旧文本补丁\t6/8\t4/6\t0/8\n行号补丁＋回退\t6/8\t4/6\t0/8"
+  ],
+  "tests": 205,
+  "timeline_bars": 296,
+  "viewport": {
+    "document_width": 440,
+    "height": 725,
+    "width": 440
+  },
+  "checks": {
+    "win_button": true,
+    "failure_button": true,
+    "failure_long_error_without_page_overflow": true,
+    "recent_timeline_bars": 84,
+    "all_timeline_bars": 296,
+    "summary_download_link": true,
+    "download_event_observation": "Timed out in the in-app browser; no downloaded-byte verification claimed; companion JSON identity checked separately"
+  },
+  "console_errors": [],
+  "screenshot_sha256": "10f41309f967b99264fb118599d720724a9e629b416120feab9636902c0e0d29"
+}

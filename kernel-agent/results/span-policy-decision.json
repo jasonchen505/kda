@@ -1,0 +1,177 @@
+{
+  "created_utc": "2026-10-16T11:58:22.049019+00:00",
+  "decision": "keep ordinary generation/repair default; indexed/fallback experimental",
+  "plan_sha256": "2f3a61f845d69d83da6d542b6aaee59c3ab436ecd8bf6e2b5d1b5ed98eb6f7be",
+  "summary_sha256": "a64268ce3f03d9a85992882f5000baba53cd5799f32408771f089cc101fa038c",
+  "scope": "Development-family paired evidence, not external generalization; protocol success and final correctness separate",
+  "strata": [
+    {
+      "cells": [
+        {
+          "arm": "rewrite",
+          "correct": 6,
+          "initial_failed_observed": 6,
+          "promoted": 0,
+          "rescued_observed": 4,
+          "resolved": 8,
+          "scheduled": 8
+        },
+        {
+          "arm": "operational_patch",
+          "correct": 6,
+          "initial_failed_observed": 6,
+          "promoted": 0,
+          "rescued_observed": 4,
+          "resolved": 8,
+          "scheduled": 8
+        },
+        {
+          "arm": "span_repair",
+          "correct": 6,
+          "initial_failed_observed": 6,
+          "promoted": 0,
+          "rescued_observed": 4,
+          "resolved": 8,
+          "scheduled": 8
+        }
+      ],
+      "contrasts": {
+        "operational_vs_rewrite": {
+          "interval": {
+            "clusters": 4,
+            "high": 0.5,
+            "low": -0.625,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set",
+            "resamples": 256,
+            "weighted_patterns": 35
+          },
+          "mean_difference": 0.0
+        },
+        "span_vs_operational": {
+          "interval": {
+            "clusters": 4,
+            "high": 0.625,
+            "low": -0.5,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set",
+            "resamples": 256,
+            "weighted_patterns": 35
+          },
+          "mean_difference": 0.0
+        },
+        "span_vs_rewrite": {
+          "interval": {
+            "clusters": 4,
+            "high": 0.0,
+            "low": 0.0,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set",
+            "resamples": 256,
+            "weighted_patterns": 35
+          },
+          "mean_difference": 0.0
+        }
+      },
+      "stratum": "fresh"
+    },
+    {
+      "cells": [
+        {
+          "arm": "rewrite",
+          "correct": 9,
+          "initial_failed_observed": 14,
+          "promoted": 2,
+          "rescued_observed": 9,
+          "resolved": 14,
+          "scheduled": 14
+        },
+        {
+          "arm": "operational_patch",
+          "correct": 7,
+          "initial_failed_observed": 14,
+          "promoted": 2,
+          "rescued_observed": 7,
+          "resolved": 14,
+          "scheduled": 14
+        },
+        {
+          "arm": "span_repair",
+          "correct": 13,
+          "initial_failed_observed": 14,
+          "promoted": 2,
+          "rescued_observed": 13,
+          "resolved": 14,
+          "scheduled": 14
+        }
+      ],
+      "contrasts": {
+        "operational_vs_rewrite": {
+          "interval": {
+            "clusters": 5,
+            "high": 0.5,
+            "low": -0.55,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set",
+            "resamples": 3125,
+            "weighted_patterns": 126
+          },
+          "mean_difference": -0.05
+        },
+        "span_vs_operational": {
+          "interval": {
+            "clusters": 5,
+            "high": 0.6,
+            "low": 0.1,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set",
+            "resamples": 3125,
+            "weighted_patterns": 126
+          },
+          "mean_difference": 0.35
+        },
+        "span_vs_rewrite": {
+          "interval": {
+            "clusters": 5,
+            "high": 0.7,
+            "low": 0.0,
+            "method": "exact weighted percentile task-cluster bootstrap; exploratory, development-task set",
+            "resamples": 3125,
+            "weighted_patterns": 126
+          },
+          "mean_difference": 0.3
+        }
+      },
+      "stratum": "regression"
+    }
+  ],
+  "arm_mechanisms": {
+    "operational_patch": {
+      "fallback_search_correct": 0,
+      "first_patch_applied": 13,
+      "first_patch_attempts": 21,
+      "full_source_fallbacks": 0,
+      "patch_applied": 26,
+      "patch_attempts": 43,
+      "patch_errors": 17,
+      "repair_slots": 44
+    },
+    "rewrite": {
+      "fallback_search_correct": 0,
+      "first_patch_applied": 0,
+      "first_patch_attempts": 0,
+      "full_source_fallbacks": 0,
+      "patch_applied": 0,
+      "patch_attempts": 0,
+      "patch_errors": 0,
+      "repair_slots": 44
+    },
+    "span_repair": {
+      "fallback_search_correct": 3,
+      "first_patch_applied": 18,
+      "first_patch_attempts": 21,
+      "full_source_fallbacks": 3,
+      "patch_applied": 33,
+      "patch_attempts": 40,
+      "patch_errors": 7,
+      "repair_slots": 44
+    }
+  },
+  "raw_manifest_sha256": "7a59a718b62173f471fdd521e4f9ce4e07780c469a854a6eb706da02a6af394e",
+  "implemented_default_changed": false
+}

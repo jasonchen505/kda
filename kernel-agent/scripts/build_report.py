@@ -116,6 +116,11 @@ payload["operational"] = ({"summary": json.loads((operational_dir / "summary.jso
 payload["operational_checks"] = (json.loads((ROOT / "results/operational-checks.json").read_text())
                                  if (ROOT / "results/operational-checks.json").exists() else None)
 
+span_path = ROOT / "results/span-summary.json"
+payload["span"] = json.loads(span_path.read_text()) if span_path.exists() else None
+span_checks = ROOT / "results/span-checks.json"
+payload["span_checks"] = json.loads(span_checks.read_text()) if span_checks.exists() else None
+
 payload["repair_invalidity"] = None
 if (invalid / "invalidity-receipt.json").exists():
     receipt = json.loads((invalid / "invalidity-receipt.json").read_text())

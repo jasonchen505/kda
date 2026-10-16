@@ -1,18 +1,15 @@
 # 求职项目：本地大模型 Kernel Agent Harness
 
-面向大模型算法／研究工程师。复现 KDA/Humanize，改进写 kernel 的 agent。
+面向大模型算法／研究工程师，改进的是写 kernel 的 agent。
 
-- 实现可信搜索探针、错误分流、带 SHA 的事务化源码补丁、拒绝后保留源码与独立验收。
-  所有候选变更由本地 Qwen 提出，控制器没有人工 kernel 修补。
-- 最新同预算对照：22 配对块、44 结局、96 调用。回归补丁 9/14、重写 7/14；
-  新增四类任务分别 6/8、7/8。旧 SiLU／部分转置救回，但行均值与补丁协议成本退步。
-- 17/42 补丁拒绝形成下一轮可检验假设。默认仍用普通修复，不夸大泛化收益；
-  上轮三组均无收益及更早 13/16 对 15/16 的退步全部保留。
-- 三路 Qwen 动态空闲准入与 EWMA 调度，物理 GPU4 共卡串行验收，持久化预算、
-  未知调用不重放、真实 SIGKILL 恢复。191 项工程测试及原始证据可复核。
+- 复现 KDA/Humanize，搭建独立评测、分类反馈、源码选择、预算和恢复；模型候选不经人工修补。
+- 设计可信数值／坐标提示、SHA 行号补丁与预算内回退。同初稿三组对照，22 块／66 结局／
+  140 调用：回归行号策略 13/14、重写 9/14、旧补丁 7/14；新生成三组均 6/8。
+- 首补丁应用 13/21 → 18/21，补丁拒绝 17/43 → 7/40；按任务族报告区间，
+  保留语义失败与旧负结果。默认仍用普通修复，尚未证明外部泛化收益。
+- 三路 Qwen 空闲准入／EWMA 调度，GPU4 共卡串行验收，持久化预算与未知调用不重放。
+  205 项检查通过；原始数据全部在远端，Git／Mac 只保留代码、文档、派生汇总和最新 HTML。
 
-入口：`reports/kernel-agent-report.html#operational-study`；
-`docs/project-summary.zh.md`；`python3 scripts/verify_evidence.py`。
-
-这是可写简历的 agent harness 研究工程原型。新任务由项目定义、样本小，尚未
-证明外部基准泛化或独占 GPU 性能收益。
+入口：`reports/kernel-agent-report.html#span-study`、`docs/project-summary.zh.md`。
+本地摘要核验：`python3 scripts/verify_span_summary.py results/span-summary.json`；
+完整原始审计与实验经远端 `kernel-agent-storage/bin/run.py` 运行。

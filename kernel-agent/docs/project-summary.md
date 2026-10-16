@@ -6,7 +6,33 @@ OpenCode, then adds a downstream controller whose verdict comes from a separate 
 evaluator. The work targets LLM research engineering and agent evaluation for systems.
 
 
-## Latest iteration: operational evidence and transactional patches
+## Latest: indexed repair with a budget-neutral fallback
+
+The agent now supports SHA-bound, numbered source ranges and complete-source recovery
+inside its second existing repair slot. It never invents an edit or adds a retry. The
+completed three-arm comparison has22 paired blocks,66 final outcomes and140 confirmed
+physical calls. Known failed sources: indexed13/14, rewriting9/14, old text patches7/14.
+Fresh starts on four existing recent families: all arms6/8. Strata stay separate.
+
+First-patch application rises from13/21 to18/21; total refusals fall from17/43 to7/40.
+The primary family-equal regression effect vs old patches is+35pp, exploratory interval
+[+10,+60] over five families; vs rewriting+30pp [0,+70]. Raw-count effects use different
+weights. These are development-family results, not an external benchmark or stable
+probability of success. Keep ordinary repair as default; indexed/fallback remains an
+experimental option pending broader validation. Protocol success is not numerical success.
+
+All three authorized Qwen services participate;156 independent GPU4 windows peak at one.
+The205-test CPU suite and lint pass. All98 generation-freeze files match after execution;
+a separate reporting-only exporter handles missing-source initials without changing outcomes.
+New raw records stay on the server, outside Git and Mac. Only code/docs, compact derived
+summaries and the latest HTML are synchronized. Full raw reconstruction runs remotely;
+local verification checks published summary hashes/counts only.
+
+See [results](span-study-results.zh.md), [prospective protocol](span-study-plan.md),
+[reproduction](span-reproduction.md), [server workflow](server-workflow.md), and
+[the HTML report](../reports/kernel-agent-report.html#span-study).
+
+## Previous iteration: operational evidence and transactional patches
 
 The semantic review's null result motivated a repair architecture that derives finite
 numeric relations and coordinate witnesses directly from trusted probes, routes actual
@@ -29,7 +55,7 @@ Three Qwen processes reach three concurrent ports; 107 GPU4 windows peak at one 
 all 4847 older evidence files retain their hashes. CPU mechanisms pass **191 tests**.
 See [results and failure analysis](operational-study-results.zh.md),
 [reproduction](operational-reproduction.md), and the
-[HTML report](../reports/kernel-agent-report.html#operational-study).
+[HTML report](../reports/kernel-agent-report.html#span-study).
 
 ## Previous iteration: machine-grounded semantic repair
 

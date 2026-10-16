@@ -1,0 +1,84 @@
+{
+  "status": "verified",
+  "created_utc": "2026-10-16T12:12:33.221150+00:00",
+  "scope": "Publication receipt binding derived summaries to completed remote reconstruction; compact verification alone does not re-audit raw records or execute CUDA",
+  "base_head": "8b6d6336db64842965025eb8cd653c3549ad53ed",
+  "plan_sha256": "2f3a61f845d69d83da6d542b6aaee59c3ab436ecd8bf6e2b5d1b5ed98eb6f7be",
+  "summary_sha256": "a64268ce3f03d9a85992882f5000baba53cd5799f32408771f089cc101fa038c",
+  "remote_provenance": {
+    "full_reconstruction_sha256": "bc371177fc5b704bb7e29451477ba5170c190a9c90d309aabf25cf7fe0224cca",
+    "local_scope": "Derived counts, bounded diff excerpts and remote evidence locators; no raw replies/kernels/ledger export",
+    "raw_directory": "/data/home/chenyizhou/kernel-agent-storage/experiments/span-study-v1",
+    "raw_manifest": "/data/home/chenyizhou/kernel-agent-storage/experiments/span-study-v1/evidence-manifest.json",
+    "raw_manifest_files": 916,
+    "raw_manifest_sha256": "7a59a718b62173f471fdd521e4f9ce4e07780c469a854a6eb706da02a6af394e",
+    "server_reconstruction_verified": true,
+    "source_files": 98,
+    "source_manifest_sha256": "d9c5fe273c2aac67ba5597dcb436fa40ec366ad3545f91182e80551d090e5d95"
+  },
+  "completion": {
+    "scheduled": 66,
+    "resolved": 66,
+    "dispatched_requests": 140,
+    "request_statuses": {
+      "completed": 140
+    },
+    "reported_output_tokens": 65102,
+    "peak_model_ports": 3,
+    "independent_gpu_windows": 156,
+    "peak_gpu_windows": 1
+  },
+  "server_checks": {
+    "full_reconstruction_entry_point": "kernel-agent-storage/bin/run.py export_span_report.py --directory kernel-agent-storage/experiments/span-study-v1 --finalize",
+    "full_reconstruction_passed": true,
+    "historical_evidence_verifier_passed": true,
+    "original98_frozen_files_unchanged": true,
+    "source_after_directory": "/data/home/chenyizhou/kernel-agent-storage/checks/span-source-after-v1",
+    "source_diff_excludes_only_additive_reporting_entry_point": "export_span_report.py",
+    "old_tracked_results_and_evidence_diff_exit_code": 0,
+    "context_preflight": {
+      "tokenize_only": true,
+      "requests": 78,
+      "maximum_input_tokens": 4943,
+      "output_limit": 2048,
+      "common_context_limit": 8192
+    },
+    "tests_passed": 205,
+    "lint_passed": true,
+    "report_only_correction": {
+      "kind": "reporting-only additional entry point",
+      "reason": "A protocol-failed initial has neither source nor source SHA. It must not match a None parent SHA and supply a source diff.",
+      "new_entry_point": "scripts/export_span_report.py",
+      "new_sha256": "639532d3bf69c0d9b1d255b7a6a0c166d6b4258f68c5f0e3b576834291226f42",
+      "original_entry_point": "scripts/export_span.py",
+      "original_sha256": "5044087960b50d428cf961b69658befcf59fd4637d98c559e24957c376dc7057",
+      "generation_evaluation_selection_and_recorded_outcomes_unchanged": true,
+      "original98_frozen_files_unchanged": true,
+      "test": "test_first_admitted_source_after_protocol_failure_has_no_parent_diff"
+    }
+  },
+  "storage": {
+    "canonical_repo": "/data/home/chenyizhou/kda-kernel-agent-harness",
+    "launcher": "/data/home/chenyizhou/kernel-agent-storage/bin/run.py",
+    "new_raw_data": "remote only, outside Git; not materialized on Mac",
+    "published": "code, documentation, compact derived results, bounded diff excerpts and latest HTML",
+    "old_paths": "retired; historical records unmodified"
+  },
+  "decision": "keep ordinary repair default; indexed/fallback experimental; regression improvement with no fresh-generation net gain",
+  "published_files_sha256": {
+    "results/span-summary.json": "c1dcdf23f8e7206869baa9b7688b2c3e699ca6045be1da5ff7b137b6aeaf28df",
+    "results/span-checks.json": "ab85f9290fb8c0e2c4c245032e5f7fbf0ad0fb8e6fc49f7abcf40575f819a672",
+    "results/span-policy-decision.json": "da28451a9baef20cd61b5979960ef7d04890a4dc5871e6ae4f1b50c68f77d1a4",
+    "results/span-browser-audit.json": "1c5a5578df79d8b3198d8ff4b507173266778082c630ad1b317954d59d85af3e",
+    "reports/template.html": "782d1ae0066b9f44435e6396cfbbc198a3695307b9a329b9f8fe72a77fd1874d",
+    "reports/kernel-agent-report.html": "69ded43b503c6ac357ada41b49c644bde849955d16a4978411e6b0bd8cfd978f",
+    "src/kernel_agent/span_repair.py": "4d13e21ad6deaa14ca2d030b94f73efab13a163b50d3248fe2aef51c230ad18c",
+    "scripts/run_span_study.py": "30a38545215e1b23d467ce23108131f2ca8e2178d67feb56d902bfc6b991b24b",
+    "scripts/summarize_span.py": "9f6a35d5aff9dace8ab323179d2fcb94315a1a74e5df5964e32405d24a8cf970",
+    "scripts/export_span.py": "5044087960b50d428cf961b69658befcf59fd4637d98c559e24957c376dc7057",
+    "scripts/export_span_report.py": "639532d3bf69c0d9b1d255b7a6a0c166d6b4258f68c5f0e3b576834291226f42",
+    "scripts/verify_span_summary.py": "e84034b10efedbce7c94c40cfb8da005d6176a2a118fc127a2ffb0307ef296d5",
+    "docs/span-study-plan.md": "b5c5a128d800fa1ccf5867bd5f87f52151137c6bb6c60389ae8d8edd0052374b",
+    "docs/span-study-results.zh.md": "22307a026b791d1016cc7f8062325c8fc16824bd06defc1411929a34cd2cbdb1"
+  }
+}
