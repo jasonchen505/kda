@@ -1,4 +1,26 @@
-# Latest delivery: grounded semantic repair
+# Latest delivery: RTX4090 staged-agent port
+
+The real Humanize/LiteLLM local-Qwen flow is separate from historical direct-API repair
+studies. Corrected cohort: nine terminal outcomes,99 completed model calls, zero unknown
+requests. Final correctness: fixed3/3, staged2/3, transferred2/3; no performance promotion
+or complete three-stage trajectory. Each staged arm passes two research stages. The initial
+nine-outcome/68-call cohort retains its interface defects and is not pooled.
+
+236 CPU mechanism tests and lint pass independently in controller and isolated SDK
+runtimes. Synthetic three-phase wiring is not a model success. Real execution uses all
+three authorized Qwen processes and UUID-bound shared GPU4. NCU permission errors remain
+raw; seven CUDA-activity profiles do not supply hardware counters. Recorded request, SDK,
+source, tool and selection reconstruction passes. All54 executed-source hashes still match;
+654 remote files are bound in the raw manifest. New raw requests/replies/kernels/traces
+are not copied to the lean Mac or published in Git.
+
+See [migration results](staged-results.zh.md), [reconstruction](staged-reproduction.md),
+`results/staged-summary.json`, `results/staged-initial-summary.json`,
+`results/staged-checks.json` and `results/staged-runtime-checks.json`.
+
+---
+
+# Earlier delivery: grounded semantic repair
 
 All 22 paired blocks and 66 arm outcomes terminated; 115 actual dispatches.
 Executed source/plan, shared initial/review, exact policy request content, model responses,

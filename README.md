@@ -5,17 +5,36 @@ adapts KDA workflow references, integrates an early Humanize/OpenCode route, and
 a downstream generation/repair controller using local Qwen. Kernels are assessment artifacts and are never hand-repaired.
 Original KDA documentation remains in [README-kda-upstream.md](README-kda-upstream.md).
 
-## Portfolio closeout and workflow boundary
+## Latest: RTX4090 staged-agent port
 
-Strategy additions are paused for interview/application preparation. Recent controlled
-studies call local Qwen directly, without Humanize/OpenCode. This project does not fully
-reproduce KDA's contest research, independent planning/review, profiling and shape-routing
-workflow, or modify Humanize upstream core. Existing internal controls are not a complete
-KDA baseline. See the [source-backed workflow comparison](kernel-agent/docs/workflow-comparison.zh.md).
-A read-only platform audit confirms RTX4090/Torch2.6/Triton3.2, distinct from the public
-B200/FlashInfer reproduction stack; no new model or GPU experiment was launched.
+The new route runs real Humanize SDK planner/writer/reviewer roles through LiteLLM and
+an audited local Qwen gateway. Separate draft and plan calls precede model-chosen hosted
+tools; evidence-citing stage review controls advancement. Existing source memory, SHA
+patches, actual-token packing, three-service scheduling and independent final acceptance
+are ported into that route. All role turns use fresh sessions with host-managed memory.
 
-## Latest results and the controller failure
+See [results and migration limits](kernel-agent/docs/staged-results.zh.md),
+[execution and reconstruction](kernel-agent/docs/staged-reproduction.md), and
+[interactive HTML](kernel-agent/reports/kernel-agent-report.html#staged-study).
+This is a bounded method port, not equivalent reproduction of the original Claude/Codex
+plugin sessions, B200/FlashInfer contest workloads or Humanize upstream core. NCU hardware
+counters are permission-denied; real CUDA activity is an explicitly limited fallback.
+The [earlier workflow audit](kernel-agent/docs/workflow-comparison.zh.md) remains historical.
+
+| Corrected port cohort: three development families / one NEW seed | Final correct | Calls |
+|---|---:|---:|
+| Fixed controller | 3/3 | 18 |
+| Staged agent | 2/3 | 41 |
+| Staged + transferred feedback/repair | 2/3 | 40 |
+
+All nine outcomes terminate with99 confirmed calls and zero unknown requests. No arm earns
+performance promotion; no real trajectory completes all three stages. Each staged arm
+passes two research stages, then stops at refinement. Source facts enter15 actual requests,
+but the model uses no patch actions. The port establishes executable integration, not an
+efficacy gain. Ordinary repair stays default. The initial68-call cohort preserves interface
+defects separately; it is not pooled or replaced. Common ceilings are not equal actual cost.
+
+## Previous source-grounded results and the controller failure
 
 Source-SHA-bound Python/JIT signatures, launch bindings and bounded store dependencies
 are added to indexed/fallback repair. Same source admission, independent evaluator,
@@ -58,7 +77,7 @@ Core contributions: [source facts](kernel-agent/src/kernel_agent/grounded_repair
 
 ## Validation and storage
 
-219 CPU mechanism/evidence checks and lint pass, including self-contained fake-parent
+236 CPU mechanism/evidence checks and lint pass in the controller and isolated SDK runtimes, including self-contained fake-parent
 integration and forced context-failure isolation. These are not model successes. Three
 authorized Qwen services use idle admission/EWMA, pinning one process per pair. No paid
 model API is used. GPU4 evaluations are cooperatively serialized with physical UUID proof;
@@ -71,14 +90,14 @@ summary checks validate self-hashes/counts, not absent raw records or CUDA numer
 
 ```bash
 cd kernel-agent
-python3 scripts/verify_grounded_summary.py results/grounded-summary.json
-python3 scripts/verify_grounded_budget_summary.py results/grounded-budget-summary.json
+python3 scripts/verify_staged_summary.py results/staged-summary.json
+python3 scripts/verify_staged_summary.py results/staged-initial-summary.json
 ```
 
 All server scripts run through `/data/home/chenyizhou/kernel-agent-storage/bin/run.py`;
 canonical repository `/data/home/chenyizhou/kda-kernel-agent-harness`. Supporting runtimes,
 upstreams/services/archives stay in sibling `kernel-agent-storage/`. Use
-`build_grounded_report.py` for the current report. Never restore the full historical corpus
+`build_staged_report.py` for the current report. Never restore the full historical corpus
 on the lean Mac for routine publication. Do not restart completed/unknown experiment work.
 
 This project does not run complete KernelBench, train a kernel model or claim an arbitrary

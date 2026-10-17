@@ -85,7 +85,7 @@ See [its prospective protocol](grounded-study-plan.md) and
 [reproduction/audit scope](grounded-reproduction.md). The same launcher, remote-only raw
 data, three-service admission, source freeze and lean local rules apply.
 
-## Latest budget/isolation cohort
+## Previous budget/isolation cohort
 
 The initial grounded run is complete with two policy-caused context failures preserved.
 A separate `grounded-budget-v2` cohort uses `run_grounded_budget_study.py`,
@@ -93,3 +93,14 @@ A separate `grounded-budget-v2` cohort uses `run_grounded_budget_study.py`,
 `build_grounded_report.py`. Use the same launcher and remote-only raw policy.
 See [scope and reproduction](grounded-budget-reproduction.md). No failed ledger is filled
 with later outcomes, and the two cohorts are never pooled as one efficacy estimate.
+
+## Latest RTX4090 staged-agent port
+
+The real Humanize/LiteLLM route uses a separate `runtimes/multistage` worker runtime;
+the controller and GPU environments remain intact. See [execution and audit](staged-reproduction.md)
+and [migration results](staged-results.zh.md). Both scored cohorts remain remote-only:
+`experiments/staged-study-v2` (initial interface defects) and `staged-study-v3` (new-seed
+phase-interface correction). They are not pooled or replayed. Use `export_staged_report.py`
+for reconstruction and `build_staged_report.py` for the latest HTML. Lean Mac checks use
+`verify_staged_summary.py` against the two compact summaries. Preflight and pilot calls
+are integration data and never agent scores.

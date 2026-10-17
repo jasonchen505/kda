@@ -13,11 +13,11 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#workflow-comparison">KDA 流程比较</a><a href="#grounded-budget-study">&#39044;&#31639;&#19982;&#38548;&#31163;&#39564;&#35777;</a><a href="#grounded-study">&#28304;&#30721;&#32422;&#26463;&#26032;&#23545;&#29031;</a><a href="#span-study">行号修复新对照</a><a href="#operational-study">上轮源码补丁</a><a href="#semantic-study">上轮语义审查</a><a href="#repair-study">上轮负结果</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#staged-study">4090 多阶段移植</a><a href="#portfolio">项目主线</a><a href="#workflow-comparison">KDA 流程比较</a><a href="#grounded-budget-study">&#39044;&#31639;&#19982;&#38548;&#31163;&#39564;&#35777;</a><a href="#grounded-study">&#28304;&#30721;&#32422;&#26463;&#26032;&#23545;&#29031;</a><a href="#span-study">行号修复新对照</a><a href="#operational-study">上轮源码补丁</a><a href="#semantic-study">上轮语义审查</a><a href="#repair-study">上轮负结果</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
 <main>
 <header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.17</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
-<p class="lede">参考 KDA 工作流，早期接入 Humanize/OpenCode，近期直接调用本地 Qwen。自己实现下游 agent 控制器：如何测试、修复、停止和选择候选。项目进入面试与投递收口，暂停新增策略。</p>
+<p class="lede">在 RTX 4090 上移植 KDA 的分阶段规划、工具执行和证据审查。通过真实 Humanize SDK 驱动本地 Qwen，比较固定闭环、多阶段基础版，以及加入现有修复经验的多阶段版。</p>
 <span class="tag">真实模型生成</span> <span class="tag">独立 GPU 评测</span> <span class="tag">离线报告</span>
 </header>
 <div class="notice">本报告的成绩来自真实模型提案与独立 GPU 评测。此前手写算子和模型实验只作辅助材料，不计入 agent 成绩。</div>
@@ -29,16 +29,34 @@
 
 <section id="portfolio"><h2>五分钟看懂这个求职项目</h2>
 <p>研究工程问题：如何让一个本地 coding agent 在数值、性能和资源约束下写出可验收的 kernel，并在失败或中断后保留可信实验记录。</p>
-<div class="two"><div class="card"><h3>上游复用与边界</h3><p>KDA 提供工作流和提示参考，早期 Humanize → OpenCode → 本地 Qwen 链路已跑通。近期对照直连 Qwen，没有完整复现 KDA 比赛研究流程，也没有改造 Humanize 上游核心。</p></div><div class="card"><h3>自己改进了什么</h3><p>实现可信语义证据、SHA行号补丁、实际上下文预算适配与策略故障隔离，用同初稿、同修复机会的对照检验效果；底层支持独立评测、候选选择、持久化预算、恢复和三路模型调度。</p></div></div>
-<p>研究迭代：从退步与空结果定位协议成本，上一轮行号修复改善了已知失败。最新源码事实初轮新生成为8/8对7/8，同时暴露上下文连带取消对照；保留失败后，另用新种子验证预算与隔离修复，诊断回归为5/6对3/6。两轮分开解释，仍有转置失败。</p>
+<div class="two"><div class="card"><h3>上游复用与边界</h3><p>KDA 提供工作流和提示参考。早期接入 Humanize/OpenCode，中期进行直连 Qwen 对照，本轮新增真实 Humanize SDK/LiteLLM 的三角色流程。没有等价复现 KDA 比赛流程或改造 Humanize 上游核心。</p></div><div class="card"><h3>自己改进了什么</h3><p>实现可信语义证据、SHA行号补丁、实际上下文预算适配与策略故障隔离，用同初稿、同修复机会的对照检验效果；底层支持独立评测、候选选择、持久化预算、恢复和三路模型调度。</p></div></div>
+<p>研究迭代：先用对照检验生成／修复与预算机制，再把这些经验迁入多阶段 agent。本轮保留阶段条件串用、工具事件缺失和坏回复终止的初轮失败，另用新种子验证接口修正。所有历史正、负结果分别展示。</p>
 <p class="small" id="portfolio-evidence">定位：可以写入简历的 agent harness 研究工程原型。三任务集成验证为 3/3 最终正确、2/3 晋升；最新六任务反馈对照见下方。真实生成、工程测试和历史未完成实验分别计数。</p></section>
 
+<section id="staged-study" hidden>
+<div class="section-top"><h2>4090 多阶段 agent：经验能迁移多少</h2><span class="tag" id="staged-status"></span></div>
+<p>新增真实路线：Humanize 的 planner／writer／reviewer → LiteLLM → 受预算约束的本地 Qwen 网关。规划先单独落盘，writer 选择真实工具，fresh reviewer 引用实际证据；阶段不通过便阻止推进。它使用受限工具集，没有执行原 Claude/Codex 插件的完整流程。</p>
+<div class="flow"><div class="node"><b>研究与做对</b><span>独立草案／计划；读资料、提交与测试</span></div><div class="node"><b>诊断与迭代</b><span>只 profile 已验证源码；测量支持决策</span></div><div class="node"><b>形状调优</b><span>至少两份正确源码、三种搜索形状</span></div><div class="node"><b>独立最终验收</b><span>三组先提交选择；最终结果不回传</span></div></div>
+<div class="notice">NCU 的硬件计数器被服务器权限拒绝，原错误保留。使用真实 CUDA 活动追踪作为降级工具，记录 kernel／launch 轨迹；没有获得 SM、DRAM 或 stall 计数器，不能据此声称完成完整瓶颈归因。</div>
+<div class="cards" id="staged-metrics"></div><p id="staged-conclusion" class="notice" aria-live="polite"></p>
+<div class="table-wrap"><table class="changes"><thead><tr><th>策略</th><th>最终正确</th><th>性能晋升</th><th>实际调用</th><th>已报告输入／输出 tokens</th><th>阶段通过／尝试：研究→诊断→形状</th></tr></thead><tbody id="staged-table"></tbody></table></div>
+<p class="small">三类已用于开发的任务、一个新种子、九个结局。每组上限相同：24 次模型机会、六次候选提交；固定闭环通常只用六次调用。规划和审查也计费于预算。相同上限不等于相同实际成本，工作流、工具与审查是组合干预，不是单独规划效果。</p><p class="small" id="staged-costs"></p>
+<p>迁移结论须区分：框架接线通过、模型阶段完成，以及最终数值／性能收益。计划落盘不保证可执行；不支持的工具名、过长行动计划和降级 profiler 的能力边界均保留在失败分析中。<a href="../docs/staged-results.zh.md">查看完整迁移结论</a>。</p>
+<div class="two"><div class="card"><h3>KDA／Humanize 经验的迁移</h3><p id="staged-origin"></p></div><div class="card"><h3>本项目经验的迁移</h3><p id="staged-transfer"></p></div></div>
+<p class="small" id="staged-knowledge"></p>
+<div class="controls"><label for="staged-case">查看阶段、审查与实际工具轨迹</label><select id="staged-case"></select></div><div id="staged-trajectory"></div>
+<details><summary>展开：预演、预检和本轮证据边界</summary><p>预演只用于发现接线与控制器缺陷，不计入正式成功率。它暴露过被拒源码未保留、阶段审查未阻止推进和旧张量记录挤爆上下文。正式版单独冻结，保留最新完整源码／裁决／一个数值反例，额外事实按实际分词预算选择；不修改失败账本。</p><pre id="staged-provenance"></pre><a href="../results/staged-summary.json" download>下载本轮派生汇总</a> · <a href="../docs/staged-study-plan.md">查看预先声明的方案</a></details>
+<div id="staged-initial-note"></div>
+<p class="small">所有角色使用同一个 Qwen 服务的不同新会话，不能假设错误独立。原始请求、候选、完整计划、CUDA trace 与冻结源码只留远端；HTML 展示有界摘录与派生计数。数值验收以独立 GPU 程序为准，reviewer 的“通过”不是 kernel 成绩。</p>
+</section>
+
 <section id="workflow-comparison">
-<div class="section-top"><h2>KDA 的完整流程，与你现在的流程</h2><span class="tag">收口审阅 · 暂停策略实验</span></div>
+<div class="section-top"><h2>KDA 的完整流程，与移植前的流程</h2><span class="tag">历史收口审阅</span></div>
+<p class="small">本节保留用户重新启动移植研究之前的比较；新增 4090 多阶段路线与结果见上方。</p>
 <p class="notice"><b>定位：参考 KDA、接入过 Humanize 的下游 Kernel Agent Harness。</b>完整 KDA 比赛方法让 agent 自主使用工具、探索与逐项接受审查；当前项目由固定控制器决定评测、修复和选择顺序。不能把三个输出字段当作完整研究流程，也没有做过胜过完整 KDA 的对照。</p>
 <div class="two">
 <div class="card"><h3>KDA 比赛公开流程</h3><ol><li><b>研究：</b>调查仓库与工作负载，检索 KernelWiki，做出正确基线。</li><li><b>迭代：</b>采集 NCU 证据，定位瓶颈，多方向优化和回退。</li><li><b>调优：</b>扫描形状分布，形成专门化 kernel 与按形状分派。</li></ol><p class="small">每阶段：独立草案 → 详细可执行计划 → writer 使用工具实施 → 独立 reviewer 按验收条件检查证据 → 通过或继续。总说明强调形状调优，个别任务的第三阶段是继续探索。</p></div>
-<div class="card"><h3>当前受控实验流程</h3><ol><li><b>冻结与派发：</b>任务、种子、预算、服务身份入账；本地 Qwen 提案。</li><li><b>验证与修复：</b>源码／API 检查，独立 GPU 搜索评测，最多两次模型修复。</li><li><b>选择与交付：</b>提交门槛优先所选 SHA，最终检查仅接受或否决，保存轨迹与报告。</li></ol><p class="small">draft、plan、代码同一次生成；没有独立规划调用。近期直连 Qwen，不经过 Humanize。最新诊断队列从已知失败父源码开始，不含新任务生成。</p></div>
+<div class="card"><h3>移植前的受控实验流程</h3><ol><li><b>冻结与派发：</b>任务、种子、预算、服务身份入账；本地 Qwen 提案。</li><li><b>验证与修复：</b>源码／API 检查，独立 GPU 搜索评测，最多两次模型修复。</li><li><b>选择与交付：</b>提交门槛优先所选 SHA，最终检查仅接受或否决，保存轨迹与报告。</li></ol><p class="small">draft、plan、代码同一次生成；没有独立规划调用。近期直连 Qwen，不经过 Humanize。最新诊断队列从已知失败父源码开始，不含新任务生成。</p></div>
 </div>
 <div class="table-wrap" style="margin-top:20px"><table class="changes"><thead><tr><th>环节</th><th>KDA 完整公开实例</th><th>当前项目与贡献</th></tr></thead><tbody>
 <tr><td>调查与规划</td><td>自主读仓库／检索；草案先于独立详细规划与实现</td><td>控制器提供合约、规则卡和固定示例；一回复返回 draft / plan / code</td></tr>
@@ -48,7 +66,7 @@
 <tr><td>预算与恢复</td><td>按公开阶段规则推进；完整中间账本未发布</td><td>持久化预算、未知调用不重放、阶段恢复、三服务调度、上下文与策略隔离</td></tr>
 <tr><td>结果能否横比</td><td>B200、FlashInfer 实际工作负载、任务指定基线</td><td>RTX 4090、自定义开发任务、torch.compile；现有成绩不支持胜过完整 KDA</td></tr>
 </tbody></table></div>
-<p><b>这次不新增完整流程实验。</b>已有证据支持“agent harness 研究工程原型”的求职定位。4090 上改写任务和多阶段提示只能算移植版，不能冒充 B200 比赛复现。独立规划、工具探索与 profiler 对照是另一个研究问题，此时继续搭建会扩大项目。</p>
+<p><b>历史收口审阅当时不启动完整流程实验。</b>已有证据支持“agent harness 研究工程原型”的求职定位。4090 上改写任务和多阶段提示只能算移植版，不能冒充 B200 比赛复现。用户随后授权了上方的4090移植版对照；该历史决定和只读审计保留，不覆盖新增实验。</p>
 <details><summary>展开：早期基线、实验边界与固定来源</summary><p>通用 KDA 仓库提供合约→调查→草案→计划→实现→验证→证据迭代的参考，并没有统一可执行评测系统。早期 <code>kda_prompt</code> 是单次适配提示，反馈模式最多三轮；它不等于完整 KDA 的等预算基线。后续对照仅证明本 harness 内策略在指定开发样本上的表现。</p><p>若将来比较移植版工作流，应对齐模型、任务、资料和最终验收，报告全部规划／审查 tokens、工具与 GPU 时间、候选数；三路服务按配对块平衡。只对齐外层轮数不足以公平比较。官方最终解不能作为生成输入。</p><p class="sources"><a href="https://github.com/NVlabs/kda/blob/ef6ce617693ef0782b3ecb9f37e39bbf10226a90/docs/agent-flow.md">通用工作流</a> · <a href="https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/README.md">比赛阶段与 Humanize 命令</a> · <a href="https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/docs/HAN_Lab_Kernel_Mafia_Technical_Report.pdf">技术报告 §3 / Algorithm 1</a> · <a href="../docs/workflow-comparison.zh.md">完整流程比较与一分钟面试表述</a> · <a href="../results/workflow-audit.json" download>来源与平台审计</a></p><pre id="workflow-audit-details"></pre></details>
 <p class="small" id="workflow-audit-note"></p>
 </section>
@@ -250,7 +268,7 @@
 <div id="run-summary"></div><div id="turns"></div>
 </section>
 
-<section><h2>05 · 复现的边界</h2><div class="two"><div class="card"><h3>已经执行</h3><p>KDA 固定版本及子模块准备；Humanize 真实驱动本地 coding agent；生成任务与反馈循环；独立 GPU 正确性评测；正确候选进入计时与最终检查；可查看的完整轨迹。</p><p id="tests-note"></p></div><div class="card"><h3>尚未证明</h3><p>没有运行完整 KernelBench。各轮仅覆盖少量自定义开发任务与有限新种子，任务族区间属于探索性描述。没有训练 kernel 模型，也没有证明达到领域最优性能。</p><p>当前 agent 通过结构化提案生成源码，由控制器写文件。它已按任务路由检索固定官方示例；尚未接入自主搜索、Nsight Compute 分析与开放式 shell 工具。KDA 提示是适配版，不是对原始完整研究流程的等价复现。</p></div></div>
+<section><h2>05 · 复现的边界</h2><div class="two"><div class="card"><h3>已经执行</h3><p>KDA 固定版本及子模块准备；Humanize 真实驱动本地 coding agent；生成任务与反馈循环；独立 GPU 正确性评测；正确候选进入计时与最终检查；可查看的完整轨迹。</p><p id="tests-note"></p></div><div class="card"><h3>尚未证明</h3><p>没有运行完整 KernelBench。各轮仅覆盖少量自定义开发任务与有限新种子，任务族区间属于探索性描述。没有训练 kernel 模型，也没有证明达到领域最优性能。</p><p>早期路线由控制器按顺序写入模型源码与运行工具；新增多阶段路线允许模型选择受限的读、检索、提交、评测和profile工具。NCU计数器未获权限，实际使用CUDA活动降级；没有开放式shell，也没有等价复现原始完整研究流程。</p></div></div>
 <div class="notice" id="probe-note"></div><details><summary>单次成功探针：源码、最终延迟与门槛</summary><pre id="probe-detail"></pre><button class="secondary" id="download-probe">下载探针原始数据</button></details><details><summary>保留的同预算 API 规则对照</summary><p id="api-study"></p><button class="secondary" id="download-api">下载第二阶段 8 次运行</button></details><details><summary>保留的第一轮探索试验</summary><p id="initial-study"></p><button class="secondary" id="download-initial">下载先前 8 次运行</button></details>
 <details><summary>此前示例辅助版本的完整评测</summary><p id="reference-study"></p><button class="secondary" id="download-reference">下载第三阶段 4 次运行</button></details>
 <details><summary>本轮接口诊断探针与结构化输出预检</summary><pre id="transport-probes"></pre></details>
@@ -270,9 +288,9 @@
 <div class="two"><div class="card"><h3>已经验证的工程能力</h3><p id="upgrade-checks"></p><p>单写者锁、原子检查点、计划漂移拒绝、结果 SHA 绑定、失败分母及预算不重置。A/C 执行真实 Humanize 流程，但模型回复与 GPU 裁决使用测试驱动。</p></div><div class="card"><h3>此前未完成的多种子计划</h3><p id="multiseed-note"></p><p>六类任务已用于开发，不能当作未见任务。三种随机种子、两组各三次提案，温度 0.2；固定同一运行环境，按任务分组报告。资源预检通过后才会开始。</p></div></div>
 <p class="small">恢复粒度是任务边界；没有恢复任务内会话，也不保证外部调用恰好一次。预算预留是调度额度，无法代替完整的服务端 token 使用记录。GPU 预检不能排除其他用户在运行中占用设备。</p>
 <details><summary>冻结计划、资源预检与恢复断言</summary><pre id="recovery-detail"></pre></details></section>
-<section><h2>07 · 求职展示怎么讲</h2><p>可陈述的贡献是：参考 KDA，早期接入 Humanize/OpenCode，近期直连本地 Qwen，自己实现生成／修复控制器、独立评测、预算、选择与恢复。没有完整复现 KDA 比赛研究流程或改造 Humanize 核心。对照结果以本报告真实计数为准。</p><p>项目主线是 kernel agent 的复现、改进与验证。从原始同预算对照定位选择缺陷，再补可恢复的实验调度，用真实中断验证结果复用与未知状态处理。各轮 GPU 实验、CPU 故障测试和未完成计划保留各自的分母。最新同初稿三组修复对照见上方；已知失败修复有改善，新生成任务未获净收益，更广任务泛化仍需验证。</p></section>
+<section><h2>07 · 求职展示怎么讲</h2><p>可陈述的贡献是：参考 KDA，早期接入 Humanize/OpenCode，中期直连本地 Qwen，本轮在真实 Humanize SDK 上实现分阶段规划、工具执行与审查；自己维护独立评测、预算、选择与恢复。没有完整复现 KDA 比赛研究流程或改造 Humanize 核心。对照结果以本报告真实计数为准。</p><p>项目主线是 kernel agent 的复现、改进与验证。从原始同预算对照定位选择缺陷，再补可恢复的实验调度，用真实中断验证结果复用与未知状态处理。各轮 GPU 实验、CPU 故障测试和未完成计划保留各自的分母。最新同初稿三组修复对照见上方；已知失败修复有改善，新生成任务未获净收益，更广任务泛化仍需验证。</p></section>
 
-<section id="evidence"><h2>08 · 证据、复现与表达来源</h2><p>报告是单个 HTML 文件，内嵌图表与轨迹数据，断网仍可交互查看。本轮结果JSON另附于results/grounded-summary.json与results/grounded-budget-summary.json；下载入口需要这份配套文件，原始实验仅在远端。</p>
+<section id="evidence"><h2>08 · 证据、复现与表达来源</h2><p>报告是单个 HTML 文件，内嵌图表与轨迹数据，断网仍可交互查看。最新移植结果另附于results/staged-summary.json，首轮另存staged-initial-summary.json；下载入口需要这份配套文件，原始实验仅在远端。</p>
 <details><summary>固定版本与源文件 SHA</summary><pre id="provenance"></pre></details>
 <details id="selector-delivery" hidden><summary>本轮实际请求、候选选择与文件核对</summary><pre id="selector-delivery-data"></pre></details>
 <details><summary>远端复现入口</summary><pre>cd /data/home/chenyizhou/kernel-agent
@@ -795,6 +813,48 @@ if(DATA.grounded_budget){(()=>{
  $('tests-note').textContent='当前219项CPU机制与证据检查通过；真实生成与GPU验收另计。';
  $('upgrade-checks').textContent=`${DATA.grounded_budget_checks?.passed_tests||'—'}项CPU机制／证据检查及lint通过；测试夹具不计agent成绩。`;
 })();}
+
+(function(){
+ const port=DATA.staged;if(!port)return;
+ const labels={fixed:'固定闭环',staged:'多阶段基础',staged_transfer:'多阶段＋经验迁移'};
+ const tasks={affine_silu:'仿射 SiLU',scale_transpose:'缩放转置',l2_normalize:'L2 归一化'};const phaseNames={research:'研究与做对',profile_refine:'诊断与迭代',shape_tune:'形状比较'};const toolNames={read:'读取',research:'检索',submit:'提交源码',patch:'源码补丁',evaluate:'独立评测',profile:'性能追踪',finish:'申请审查',decode_reply:'回复解码'};
+ const done=port.status==='complete', totals=Object.values(port.arms);
+ const resolved=totals.reduce((n,r)=>n+r.resolved,0), calls=totals.reduce((n,r)=>n+r.calls,0);
+ const tests=(DATA.staged_checks?.commands?.[0]?.stdout||'').match(/(\d+) passed/), passed=tests?Number(tests[1]):null;
+ const caseRows=port.blocks.flatMap(b=>Object.entries(b.arms).map(([arm,r])=>({block:b,arm,row:r})));
+ const allStages=caseRows.flatMap(c=>c.row.stages);
+ const full=caseRows.filter(c=>c.arm!=='fixed'&&c.row.stages.length===3&&c.row.stages.every(s=>s.accepted)).length;
+ const profileRows=caseRows.flatMap(c=>c.row.profiles);
+ const traces=profileRows.filter(p=>p.status==='profiled_activity').length;
+ const unknown=totals.reduce((n,r)=>n+r.unknown_calls,0);
+ $('staged-study').hidden=false;
+ const corrected=port.kind.includes('corrected');$('staged-status').textContent=(corrected?'阶段接口修正后 · ':'首轮移植 · ')+(done?'对照结束':'对照进行中');
+ function cards(target){target.replaceChildren();for(const [value,label] of [[`${resolved}/9`,'已终止结局'],[`${calls}/216`,'实际调用 / 上限'],[Object.keys(port.services).length,'实际分配服务'],[passed??'—','CPU 机制检查']]){const card=node('div',undefined,'card');card.append(node('div',String(value),'metric'),node('div',label));target.append(card);}}
+ cards($('staged-metrics'));cards($('metrics'));
+ const resourceRows=Object.entries(port.arms).map(([arm])=>{const rows=caseRows.filter(c=>c.arm===arm), m=rows.reduce((n,c)=>n+(c.row.resource_usage?.completed_model_wall_seconds||0),0),t=rows.reduce((n,c)=>n+Object.values(c.row.resource_usage?.host_tool_wall_seconds||{}).reduce((a,b)=>a+b,0),0);return `${labels[arm]}：已完成模型请求累计 ${(m/60).toFixed(1)} 分钟，搜索期工具壁钟 ${(t/60).toFixed(1)} 分钟`;});
+ $('staged-costs').textContent=resourceRows.join('；')+`。已完成请求峰值并发 ${port.completed_request_peak_concurrency??'—'}；累计时间含排队，工具时间不含最终验收，非纯GPU计算时间或独占性能。`;
+ const conclusion=done?`最终正确：固定闭环 ${port.arms.fixed.correct}/3，多阶段基础 ${port.arms.staged.correct}/3，多阶段＋经验迁移 ${port.arms.staged_transfer.correct}/3。完整三阶段通过 ${full}/6 条多阶段轨迹。kernel 正确与阶段完成分别计数。`:'仅显示已结束配对块的结局与调用，未计入仍在运行的请求；不报告迁移净收益或完整成功率。';
+ $('staged-conclusion').textContent=conclusion;$('summary').textContent=conclusion;
+ $('main-finding').textContent='本轮未观察到多阶段或经验增强带来最终正确性收益，普通修复仍为默认。对照只有三个开发任务族和一个种子；原方法的阶段接线、工具使用与模型完成能力分别报告。';
+ $('model-info').textContent='真实 Humanize SDK → LiteLLM → 审计网关 → 本地 Qwen；三角色均使用同一模型的新会话。GPU4 允许共卡，最终验收独立。';
+ $('portfolio-evidence').textContent='最新工作已从固定生成／修复扩展到受限工具的多阶段 agent；保留独立验收与可审计预算。原始 KDA 比赛方法没有被等价复现。';if(passed){$('upgrade-checks').textContent=`当前 ${passed} 项工程机制检查及lint通过；合成测试不计agent成绩。`;$('tests-note').textContent=`当前控制器 ${passed} 项CPU机制检查通过；独立SDK环境亦通过完整检查。历史各轮计数保留，测试均不计作模型成功。`;}
+ $('staged-table').replaceChildren();
+ for(const [arm,r] of Object.entries(port.arms)){const tr=node('tr');const phase=arm==='fixed'?'不适用':['research','profile_refine','shape_tune'].map(k=>`${r.accepted_stages[k]}/${caseRows.filter(c=>c.arm===arm&&c.row.stages.some(s=>s.stage===k)).length}`).join(' → ');for(const value of [labels[arm],`${r.correct}/3`,`${r.promoted}/3`,String(r.calls),`${r.input_tokens.toLocaleString()} / ${r.output_tokens.toLocaleString()}`,phase])tr.append(node('td',value));$('staged-table').append(tr);}
+ const planners=caseRows.reduce((n,c)=>n+(c.row.role_calls.planner||0),0),reviewers=caseRows.reduce((n,c)=>n+(c.row.role_calls.reviewer||0),0);
+ $('staged-origin').textContent=`实际规划调用 ${planners}、审查调用 ${reviewers}；已记录 ${allStages.length} 个阶段。三阶段完整通过 ${full}/6。正式轨迹实际采集 CUDA 活动降级 profile ${traces} 次，硬件计数器仍不可用。分阶段模块、审查和活动追踪的可运行性，与最终收益是两件事。`;
+ const transferred=caseRows.filter(c=>c.arm==='staged_transfer');const facts=transferred.reduce((n,c)=>n+c.row.source_facts_dispatched,0),patches=transferred.reduce((n,c)=>n+(c.row.tool_calls.patch||0),0),applied=transferred.reduce((n,c)=>n+c.row.trace.filter(e=>e.tool==='patch'&&e.status==='admitted').length,0);
+ $('staged-transfer').textContent=`增强组 ${facts} 次实际请求带有部分源码事实；模型选择补丁 ${patches} 次，其中 ${applied} 次准入。SHA 绑定、被拒源码保留、实际分词预算和独立选择／最终否决迁入新路线。效果仍按本轮三组最终结局判断，不把协议通过当作数值正确。`;
+ if(DATA.staged_knowledge){const k=DATA.staged_knowledge;$('staged-knowledge').textContent=`零模型／GPU调用的独立检索诊断：${k.rows.length} 条原失败查询，轻量字面检索为0页，上游查询工具返回 ${k.rows.map(r=>r.upstream_query_pages.length).join('、')} 页。返回条目未回灌本轮agent，Ada适用性未验证，不计作生成收益。`;}
+ const select=$('staged-case');select.replaceChildren();caseRows.forEach((c,i)=>{const o=node('option',`${tasks[c.block.task_id]} / ${labels[c.arm]}`);o.value=String(i);select.append(o);});
+ function draw(){const c=caseRows[Number(select.value)];const target=$('staged-trajectory');target.replaceChildren();if(!c){target.append(node('p','尚无完整配对块。'));return;}
+ target.append(node('p',`服务端口 ${c.block.port}；模型调用 ${c.row.actual_calls}；未知响应 ${c.row.unknown_calls}；所选 SHA：${c.row.selected_sha256||'没有已提交的正确候选'}`,'small sha'));
+ if(c.row.failure){target.append(node('p','存在未完成阶段或执行错误；完整记录保留。','notice'));const failed=node('details');failed.append(node('summary','查看具体原因'),node('pre',JSON.stringify(c.row.failure,null,2)));target.append(failed);}
+ for(const phase of c.row.stages){const card=node('div',undefined,'turn');card.append(node('h3',`${phaseNames[phase.stage]||phase.stage} · ${phase.accepted?'通过':'未通过'}`));const detail=node('details');detail.append(node('summary','独立草案和计划的有界摘录'));detail.append(node('pre','草案：\n'+phase.draft_excerpt+'\n\n计划：\n'+phase.plan_excerpt));card.append(detail);for(const rr of phase.reviews){const review=rr.review;card.append(node('p',`Reviewer ${review.accept?'接受':'拒绝'}；控制器门槛 ${rr.gate_passed?'通过':'拒绝'}；引用 ${review.evidence_ids.join(', ')||'无'}。${rr.gate_reason}`));if(review.missing)card.append(node('p','缺失：'+review.missing));if(review.next_step)card.append(node('p','建议：'+review.next_step));}target.append(card);}
+ const wrap=node('div',undefined,'table-wrap'),table=node('table',undefined,'changes'),head=node('thead'),hrow=node('tr');for(const text of ['事件','阶段 / 工具','实际结果','模型理由（摘录）'])hrow.append(node('th',text));head.append(hrow);table.append(head);const body=node('tbody');for(const e of c.row.trace){const tr=node('tr');for(const text of [e.id,`${phaseNames[e.stage]||e.stage} / ${toolNames[e.tool]||e.tool}`,e.status+(e.message?' · '+e.message:''),e.reason])tr.append(node('td',text));body.append(tr);}table.append(body);wrap.append(table);target.append(wrap);}
+ select.addEventListener('change',draw);draw();
+ if(DATA.staged_initial){const old=DATA.staged_initial;const box=$('staged-initial-note');box.replaceChildren();const note=node('div',undefined,'notice');note.append(node('b','首轮阶段接口缺陷完整保留'));note.append(node('p',`首轮最终正确：固定闭环 ${old.arms.fixed.correct}/3，多阶段基础 ${old.arms.staged.correct}/3，多阶段＋经验迁移 ${old.arms.staged_transfer.correct}/3。两组多阶段都没有通过研究阶段；至少一条轨迹被错误要求完成未来的形状阶段，审查包也缺失真实读取／检索事件。`));note.append(node('p','本轮另用新种子验证阶段专属条件和完整工具事件，不替换旧结局，不合并成功率。首轮不能用于评价完整多阶段方法的净收益。'));const a=node('a','查看首轮派生汇总');a.href='../results/staged-initial-summary.json';note.append(a);box.append(note);}
+ $('staged-provenance').textContent=JSON.stringify({remote_directory:port.directory,plan_sha256:port.plan_sha256,summary_sha256:port.summary_sha256,raw_manifest_sha256:port.manifest_sha256,manifest_file_count:port.manifest_file_count,current_sources_match:port.current_sources_match,unknown_calls:unknown,scope:port.scope,projection:port.public_projection,environment:DATA.staged_environment},null,2);
+})();
 
 </script>
 </body></html>

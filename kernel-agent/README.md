@@ -1,14 +1,33 @@
 # Evidence-driven Kernel Agent Harness
 
-## Portfolio closeout and upstream boundary
+## Latest: RTX4090 staged-agent port
 
-Strategy additions are paused for interview/application preparation. KDA supplies workflow
-and prompt references; an early Humanize/OpenCode route provides agent execution. Recent
-controlled studies call local Qwen directly. The downstream controller is our contribution.
-This is not a full reproduction of KDA's contest research/planning/review/profiling/router
-workflow, nor a modification of Humanize core. See the [workflow comparison](docs/workflow-comparison.zh.md).
+A real Humanize SDK flow now separates drafting, executable planning, writer-selected
+hosted tools and fresh-context review across research, profiling/refinement and shape
+comparison. It runs through LiteLLM and an audited local Qwen gateway. The existing
+source/evidence memory, budgeted patches, tokenizer packing, three-service scheduling,
+independent GPU oracle and committed-selection/final-veto boundary are reused.
 
-## Latest: source facts, actual context budgets and arm isolation
+This is a bounded adaptation of KDA/Humanize methods to RTX4090 and local models. It is
+not an equivalent reproduction of the original Claude/Codex plugin sessions, B200 contest
+workloads or Humanize upstream core. All role turns are fresh; memory is host-managed.
+NCU counters are denied by server permissions; real CUDA activity is explicitly a fallback.
+
+Read [the port results and migration limits](docs/staged-results.zh.md),
+[execution and audit](docs/staged-reproduction.md),
+[the historical workflow comparison](docs/workflow-comparison.zh.md), and the
+[latest HTML](reports/kernel-agent-report.html#staged-study).
+236 CPU checks and lint pass in controller and isolated SDK environments. Synthetic
+three-phase wiring tests are not model successes. New raw evidence remains remote.
+
+The corrected nine-outcome cohort finishes with99 confirmed calls: fixed3/3 correct
+(18 calls), staged2/3 (41), transferred2/3 (40). No performance promotion or full
+three-stage completion. Source facts enter15 requests; no patch action is used. Ordinary
+repair stays default. The initial68-call interface-defect cohort is preserved separately.
+Common ceilings do not imply equal actual cost; these are three development families/one
+new seed per cohort, not external generalization or an isolated planning effect.
+
+## Previous iteration: source facts, actual context budgets and arm isolation
 
 Initial fresh generation: indexed7/8, source-grounded8/8, eight development families/one
 seed. Initial diagnostic0/6 vs3/6 is contaminated by two policy context refusals cancelling
@@ -18,12 +37,12 @@ Same parents and two repair slots; no candidate is hand-fixed. Do not pool cohor
 
 Read [results/failure](docs/grounded-study-results.zh.md), [follow-up](docs/grounded-budget-results.zh.md),
 [reproduction](docs/grounded-budget-reproduction.md), [resume](docs/project-summary.zh.md).
-219 CPU checks/lint pass. New raw evidence stays remote; only code/docs/derived summaries
+The preceding release passed219 CPU checks/lint. New raw evidence stays remote; only code/docs/derived summaries
 and latest HTML are synchronized. Ordinary repair remains default.
 
 
-A job-portfolio prototype that adapts KDA workflow references, integrates an early real
-Humanize coding-agent session, and implements a downstream controller. The research object is the
+A job-portfolio prototype that adapts KDA workflow references, integrates real
+Humanize execution routes, and implements a downstream controller. The research object is the
 agent that generates kernels, not manually authored operator optimization.
 
 **Portfolio scope:** local-model agent orchestration and evaluation for LLM research
@@ -33,7 +52,7 @@ and auditable evidence. KDA, Humanize/OpenCode, Qwen and Triton are reused compo
 
 Start with [the project summary](docs/project-summary.md),
 [Chinese resume and interview notes](docs/project-summary.zh.md), and
-[the offline HTML report](reports/kernel-agent-report.html#grounded-budget-study).
+[the offline HTML report](reports/kernel-agent-report.html#staged-study).
 
 ## Previous iteration: indexed repair with a budget-neutral fallback
 
