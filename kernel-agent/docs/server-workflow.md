@@ -76,3 +76,20 @@ evidence checkout. New raw evidence is private to the owner's server, not includ
 this branch. Public review can inspect code/protocol/summary/diffs; independent raw
 reconstruction requires access to that server. Do not describe compact verification as
 re-executing models, validating CUDA numerics or auditing unavailable raw files.
+
+## Source-grounded follow-up
+
+The next paired controller comparison uses `run_grounded_study.py` and
+`export_grounded.py`, with remote raw root `experiments/grounded-study-v1`.
+See [its prospective protocol](grounded-study-plan.md) and
+[reproduction/audit scope](grounded-reproduction.md). The same launcher, remote-only raw
+data, three-service admission, source freeze and lean local rules apply.
+
+## Latest budget/isolation cohort
+
+The initial grounded run is complete with two policy-caused context failures preserved.
+A separate `grounded-budget-v2` cohort uses `run_grounded_budget_study.py`,
+`export_grounded_budget.py`, `verify_grounded_budget_summary.py` and the additive
+`build_grounded_report.py`. Use the same launcher and remote-only raw policy.
+See [scope and reproduction](grounded-budget-reproduction.md). No failed ledger is filled
+with later outcomes, and the two cohorts are never pooled as one efficacy estimate.

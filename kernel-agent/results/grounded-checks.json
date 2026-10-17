@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "passed_tests": 212,
+  "scope": "CPU mechanisms and fake-driver evidence, not agent scores",
+  "context_preflight": {
+    "sources": 48,
+    "tokenize_calls": 288,
+    "maximum_input_tokens": 5843,
+    "context_limit": 8192,
+    "output_limit": 2048
+  },
+  "gpu_preflight": {
+    "status": "numeric_error",
+    "physical_uuid_verified": true,
+    "uuid": "GPU-c3d8eae9-15d0-678b-0245-1cea79503b50"
+  },
+  "created_utc": "2026-10-17T08:18:42.711765+00:00",
+  "portable_fixture": {
+    "status": "passed",
+    "tests": 212,
+    "private_parent_data_required": false,
+    "scope": "Synthetic-parent CPU integration fixture only; generation source and active experiment unchanged",
+    "remote_receipt": "/data/home/chenyizhou/kernel-agent-storage/checks/grounded-portable-fixture.json"
+  }
+}

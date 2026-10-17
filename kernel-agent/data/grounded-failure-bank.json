@@ -1,0 +1,33 @@
+{
+  "selection": "Every final failure of span_repair in span-study-v1; take initial source, or first admitted repair when initial had no source. Diagnostic regression only.",
+  "parent_raw_manifest_sha256": "7a59a718b62173f471fdd521e4f9ce4e07780c469a854a6eb706da02a6af394e",
+  "cases": [
+    {
+      "id": "affine_silu-source",
+      "task_id": "affine_silu",
+      "origin_block": "new-affine_silu-s20261204",
+      "origin_attempt": "span_repair-r1",
+      "source_sha256": "9c96b89d09bee5d6ba4155862de771496ae8816e15975344e665713e3279aeed",
+      "source_path": "/data/home/chenyizhou/kernel-agent-storage/experiments/span-study-v1/blocks/new-affine_silu-s20261204/candidates/9c96b89d09bee5d6ba4155862de771496ae8816e15975344e665713e3279aeed.py",
+      "attempt_path": "/data/home/chenyizhou/kernel-agent-storage/experiments/span-study-v1/blocks/new-affine_silu-s20261204/attempts/span_repair-r1.json"
+    },
+    {
+      "id": "scale_transpose-source",
+      "task_id": "scale_transpose",
+      "origin_block": "new-scale_transpose-s20261204",
+      "origin_attempt": "initial",
+      "source_sha256": "f3796e65d2630e7a85fc81b685c8df930e603212e5805528526c51a3bc33f7f1",
+      "source_path": "/data/home/chenyizhou/kernel-agent-storage/experiments/span-study-v1/blocks/new-scale_transpose-s20261204/candidates/f3796e65d2630e7a85fc81b685c8df930e603212e5805528526c51a3bc33f7f1.py",
+      "attempt_path": "/data/home/chenyizhou/kernel-agent-storage/experiments/span-study-v1/blocks/new-scale_transpose-s20261204/attempts/initial.json"
+    },
+    {
+      "id": "transpose-source",
+      "task_id": "transpose",
+      "origin_block": "reg-transpose-s20261101-contract-s20261202",
+      "origin_attempt": "imported",
+      "source_sha256": "1bdd6c03d80a1c0b56d3612ee229440739cce5ed59aaf0017d147830e666252b",
+      "source_path": "/data/home/chenyizhou/kernel-agent-storage/experiments/span-study-v1/blocks/reg-transpose-s20261101-contract-s20261202/candidates/1bdd6c03d80a1c0b56d3612ee229440739cce5ed59aaf0017d147830e666252b.py",
+      "attempt_path": "/data/home/chenyizhou/kernel-agent-storage/experiments/span-study-v1/blocks/reg-transpose-s20261101-contract-s20261202/attempts/imported.json"
+    }
+  ]
+}

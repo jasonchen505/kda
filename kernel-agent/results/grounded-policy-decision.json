@@ -1,0 +1,17 @@
+{
+  "decision": "keep ordinary generation/repair default; indexed/source-grounded variants experimental",
+  "v1_primary_fresh": {
+    "indexed": "7/8",
+    "grounded": "8/8"
+  },
+  "v1_regression": "0/6 vs3/6 retained but contaminated by two policy-context block-wide cancellations",
+  "v2_independent_diagnostic": {
+    "indexed": "3/6",
+    "grounded": "5/6"
+  },
+  "no_pooling": true,
+  "v1_summary_sha256": "09df61fd2708b3ee80547b40080133a8c9d9b17ebaf339b278ffdceb43a07470",
+  "v2_summary_sha256": "6df446982657e5bd8796946333f52f91aa8b2c6af50af39449de8ede8d4be89e",
+  "v1_raw_manifest_sha256": "e76c998bd1ee201151dd684a9899e5d3284ef0270a5897698bc192ffd5c607c8",
+  "v2_raw_manifest_sha256": "9c8953c8fc88121b1fa7af22b4a98491bc33bf7d5329dd094a5811f253992646"
+}

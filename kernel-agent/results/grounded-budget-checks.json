@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "passed_tests": 219,
+  "scope": "CPU fake-driver mechanisms, not model scores",
+  "isolation_fault_injection": true,
+  "context_preflight": {
+    "policy_preflights": 168,
+    "first_view_overflows": 12,
+    "maximum_selected_input_tokens": 6102,
+    "choices": {
+      "grounded:full": 72,
+      "indexed:baseline": 84,
+      "grounded:compact": 12
+    },
+    "model_completions": 0
+  }
+}

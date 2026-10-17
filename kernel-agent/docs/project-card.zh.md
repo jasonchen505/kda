@@ -1,15 +1,11 @@
-# 求职项目：本地大模型 Kernel Agent Harness
+# 本地大模型Kernel Agent Harness
 
-面向大模型算法／研究工程师，改进的是写 kernel 的 agent。
+面向大模型算法／研究工程师，改进agent的生成、修复与验收。
 
-- 复现 KDA/Humanize，搭建独立评测、分类反馈、源码选择、预算和恢复；模型候选不经人工修补。
-- 设计可信数值／坐标提示、SHA 行号补丁与预算内回退。同初稿三组对照，22 块／66 结局／
-  140 调用：回归行号策略 13/14、重写 9/14、旧补丁 7/14；新生成三组均 6/8。
-- 首补丁应用 13/21 → 18/21，补丁拒绝 17/43 → 7/40；按任务族报告区间，
-  保留语义失败与旧负结果。默认仍用普通修复，尚未证明外部泛化收益。
-- 三路 Qwen 空闲准入／EWMA 调度，GPU4 共卡串行验收，持久化预算与未知调用不重放。
-  205 项检查通过；原始数据全部在远端，Git／Mac 只保留代码、文档、派生汇总和最新 HTML。
+- 复现KDA/Humanize、本地Qwen生成、独立数值／性能评测、预算与恢复；模型代码不经人工修补。
+- 设计SHA行号补丁与预算内回退：上轮已知失败13/14，对照9/14、7/14；新生成三组均6/8。
+- 新源码事实反馈：初轮八族新生成8/8对7/8；发现并保留两块上下文连带取消对照的失败，另设新种子预算验证5/6对3/6，不混合两轮成功率。
+- 实际分词驱动的上下文适配、策略隔离、三路Qwen调度与GPU4共卡串行验收；219项工程检查通过。
 
-入口：`reports/kernel-agent-report.html#span-study`、`docs/project-summary.zh.md`。
-本地摘要核验：`python3 scripts/verify_span_summary.py results/span-summary.json`；
-完整原始审计与实验经远端 `kernel-agent-storage/bin/run.py` 运行。
+[简历与面试叙述](project-summary.zh.md) · [初轮完整结果](grounded-study-results.zh.md) · [独立验证](grounded-budget-results.zh.md)。
+原始数据留远端；Mac/Git只保留代码、文档、派生汇总和最新HTML。

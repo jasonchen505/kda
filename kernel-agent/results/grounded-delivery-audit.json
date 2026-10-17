@@ -1,0 +1,122 @@
+{
+  "status": "verified",
+  "created_utc": "2026-10-17T09:08:33.289673+00:00",
+  "base_head": "149d2f5835c4b28e6287807ceda0407516a44ab5",
+  "scope": "Closing record/summary/publication audit, not fresh model or CUDA re-execution",
+  "cohorts": {
+    "source_facts_v1": {
+      "plan_sha256": "0cbb018554dadea278eff0726f55a65961375348d3195e006ea5d0e3790c3949",
+      "summary_sha256": "09df61fd2708b3ee80547b40080133a8c9d9b17ebaf339b278ffdceb43a07470",
+      "provenance": {
+        "full_reconstruction_sha256": "f0d33e3f9d662621a218c4f1a37d72d74bd9b43e620baf138ad1a644934ebd74",
+        "local_scope": "Derived counts, bounded diff excerpts and remote evidence locators; no raw replies/kernels/ledger export",
+        "raw_directory": "/data/home/chenyizhou/kernel-agent-storage/experiments/grounded-study-v1",
+        "raw_manifest": "/data/home/chenyizhou/kernel-agent-storage/experiments/grounded-study-v1/evidence-manifest.json",
+        "raw_manifest_files": 470,
+        "raw_manifest_sha256": "e76c998bd1ee201151dd684a9899e5d3284ef0270a5897698bc192ffd5c607c8",
+        "server_reconstruction_verified": true,
+        "source_files": 97,
+        "source_manifest_sha256": "4045668ef95936b73c2ec0f01f000c32a073f34c9c99be8605cd886e085ffc9e"
+      },
+      "model_calls": 56,
+      "completed_responses": 56,
+      "not_dispatched": 2,
+      "contaminated_regression_blocks": [
+        "reg-scale_transpose-source-s20261211",
+        "reg-scale_transpose-source-s20261212"
+      ],
+      "interpretation": "Fresh7/8 vs8/8 is complete; scheduled regression0/6 vs3/6 retained but not clean paired efficacy",
+      "original_frozen_files_matching_at_closure": 97
+    },
+    "context_budget_v2": {
+      "plan_sha256": "0b7302eb1162203db2566239e7087b05d41d39c15ef0a051af6343816504bec9",
+      "summary_sha256": "6df446982657e5bd8796946333f52f91aa8b2c6af50af39449de8ede8d4be89e",
+      "provenance": {
+        "full_reconstruction_sha256": "35851a9df1dc064fa5df40d188c0796abef1bd5285120773c94b97fa2776cbcc",
+        "local_scope": "Derived counts, bounded diff excerpts and remote evidence locators; no raw replies/kernels/ledger export",
+        "raw_directory": "/data/home/chenyizhou/kernel-agent-storage/experiments/grounded-budget-v2",
+        "raw_manifest": "/data/home/chenyizhou/kernel-agent-storage/experiments/grounded-budget-v2/evidence-manifest.json",
+        "raw_manifest_files": 301,
+        "raw_manifest_sha256": "9c8953c8fc88121b1fa7af22b4a98491bc33bf7d5329dd094a5811f253992646",
+        "server_reconstruction_verified": true,
+        "source_files": 107,
+        "source_manifest_sha256": "7d86484fdb866afc8158afed12f23a3c70542524e1ec350754919644fc547f25"
+      },
+      "model_calls": 24,
+      "completed_responses": 24,
+      "control_correct": "3/6",
+      "grounded_correct": "5/6",
+      "context_adaptation": {
+        "binding_verified": true,
+        "policy_local_refusals": {
+          "grounded": 0,
+          "indexed": 0
+        },
+        "scope": "Source-bound first-fitting-view receipts reconstructed; tokenization is not a model completion",
+        "tokenization_measurements": 26,
+        "views": {
+          "grounded:compact": 2,
+          "grounded:full": 10,
+          "indexed:baseline": 12
+        }
+      },
+      "original_frozen_files_matching_at_closure": 107
+    }
+  },
+  "cpu_checks": 219,
+  "lint_passed": true,
+  "historical_evidence_verifier_exit_code": 0,
+  "old_tracked_results_and_evidence_diff_exit_code": 0,
+  "actual_model_calls_total": 80,
+  "reported_output_tokens_total": 29210,
+  "no_pooled_efficacy": true,
+  "new_raw_experiments_materialized_on_mac": false,
+  "new_raw_experiments_in_git": false,
+  "storage_policy": "Raw only in remote kernel-agent-storage/experiments; scripts through consolidated launcher; Mac receives code/docs/derived results/latest HTML only",
+  "published_files_sha256": {
+    "README.md": "56405a258a652754f4caee2ab3a583fe02926ded4f7971861f696ada49b6c162",
+    "kernel-agent/README.md": "c9452b33f60dde3268a88541aaedd472926b538c01717a4b1ff2bac70815ee75",
+    "kernel-agent/data/grounded-failure-bank.json": "34651c0a697d22051005686ac2af162c60a17813103ff531a6cf8a6e701e3f8e",
+    "kernel-agent/docs/grounded-budget-reproduction.md": "cdf69f318ab3e03ac836ec634c3d0050d9038b8c466870826b997f467703a671",
+    "kernel-agent/docs/grounded-budget-results.zh.md": "70083b85e1a8e49f6f71269c6cabc2627ea1fd3e07b082a19941d526ef3f6850",
+    "kernel-agent/docs/grounded-budget-study-plan.md": "629048aa79931f90a5d69ff66b3db2cbb6d650ae1cd7772b22a920ba7c8333fc",
+    "kernel-agent/docs/grounded-reproduction.md": "4fd2093c794674c4a22dfb3ebde19071fbbda97c73f068f0ef8508a6fca9882a",
+    "kernel-agent/docs/grounded-study-plan.md": "67f48d13f6f75c3d78b28826f542121160f97d795c6ae3553c6852f114524a3a",
+    "kernel-agent/docs/grounded-study-results.zh.md": "a00cf49a07ec3f6a4bb5e9e978cd1c82834cf322788ff91ea6adbcaa843c246e",
+    "kernel-agent/docs/project-card.zh.md": "633c3a28024fe76a71f250f180361cd60cdfde34923a50e5b25e694be42f7828",
+    "kernel-agent/docs/project-summary.md": "266e97781ec7ad8a1c9db2c0a1c1c8f91b75323f400b75397ef3d365ad1890dc",
+    "kernel-agent/docs/project-summary.zh.md": "593aabfc20d7124aa47cb18122a8d4ec628d78c5804c57e4c3b79f3cc761b71d",
+    "kernel-agent/docs/server-workflow.md": "c11fc42fd95339c3899568c81bef15ad506e3b1d8c8893cbe4451250e4dbd602",
+    "kernel-agent/reports/kernel-agent-report.html": "1ab23c2a90220fa759da0085fe81542cd48ffa42b19825e61b73bb0711a853bf",
+    "kernel-agent/reports/template.html": "136b9a94eb1491058941dcae2b710520fb2086c15b1dbe88fd3fd3d05d8d14b2",
+    "kernel-agent/results/grounded-browser-audit.json": "20a4e84b219915e1dc3620e3d427becc5c9cbcffc7726a75fb23335386729943",
+    "kernel-agent/results/grounded-budget-checks.json": "2e04a016921e844d6fcff7023187786d886c66cf9716085b09ee7cc22e804829",
+    "kernel-agent/results/grounded-budget-costs.json": "ae94cf79f9809f385cdf919f554a5419d4c6ae77a36373929c990087542800ce",
+    "kernel-agent/results/grounded-budget-summary.json": "ba88ec57e8dbf604c28f8c70759246f3f020bdcb696736d77a6b4559862db2de",
+    "kernel-agent/results/grounded-checks.json": "100fdbcd38ba3465f2a7bf3e89c2d4e3fd168219ceedb6195bc7f6cbb90f28f4",
+    "kernel-agent/results/grounded-costs.json": "2eabe8fb8ec18f4a4bc19ce3b79aefa9f3c6e8ce99091a06de62c46460b679ab",
+    "kernel-agent/results/grounded-policy-decision.json": "03ff6c857200d0e57159f3e3ffb229f0d55389098780d32634dcb963658595ab",
+    "kernel-agent/results/grounded-summary.json": "df8c12588cc8360c83a5e17e838f082d6c06d1d2f42a5d7fa183e6cd2e086a78",
+    "kernel-agent/scripts/build_grounded_report.py": "8871f3e538c115fda9dfc06ea70f5f8dedb1e357172883feda77f2670cb02966",
+    "kernel-agent/scripts/build_report.py": "de888a10e1ed22e0b7ebf846b527beef3a0472a240a4c443481a495e77a710a5",
+    "kernel-agent/scripts/check_grounded.py": "9ee6d3e539c5b64a2a7bd2d834afb514a5c51fa8d6a07803e3916e5714ebc481",
+    "kernel-agent/scripts/check_grounded_budget.py": "cad7853d489b2df8aa283bd84dc76d40d43c934a087cca1df8448c7ac7d39fc4",
+    "kernel-agent/scripts/export_grounded.py": "e9df9c6662421168eacf2940ab8c0a4883833255a719789b2707f008f6860eaf",
+    "kernel-agent/scripts/export_grounded_budget.py": "5ebc247e9d7281c31db2dad8cee2311f2773a8512621883cbf83337c27d4e37c",
+    "kernel-agent/scripts/export_grounded_report.py": "9a1fff0540277b8de9c4a913422b8488fc4b5ee20eaa0e1f6148e971be2e2b42",
+    "kernel-agent/scripts/run_grounded_budget_study.py": "8f99f1c4f11722b75e4614f5d86ba9c4772d9fb82d7de17b44dd43df7379b1d9",
+    "kernel-agent/scripts/run_grounded_study.py": "feb7caddae1feaa1269eeab52b7c8be6ff871899708a0ddd4d41ab2942038148",
+    "kernel-agent/scripts/summarize_grounded.py": "fe799a61878e6cb867c5af7e31f17bae02dbaa35b9539298f4c24a88d422ce98",
+    "kernel-agent/scripts/summarize_grounded_budget.py": "ec9a5c1737fa84e9df027e40dd6b2b3460dcfdc1e729939a0c44277802b08e1d",
+    "kernel-agent/scripts/summarize_grounded_budget_costs.py": "79ba39cbdb84c19fed1f5d7c69f5c23bfeeb71e9291dba1d8d66422ed446e3ff",
+    "kernel-agent/scripts/summarize_grounded_costs.py": "82c55e4f1f1f849a4143bdd3b14f4cd3f4d31d2e62ad417caa2173261a27acb7",
+    "kernel-agent/scripts/verify_grounded_budget_summary.py": "90357b18c012910ad3b13bc5d6738fa11b13f7005c8aa653caa4247d36070e39",
+    "kernel-agent/scripts/verify_grounded_summary.py": "9efd9669e4cb5e9b77ed2513f7f1342e6d3d930e191c32435ae774e1aa73efc0",
+    "kernel-agent/src/kernel_agent/grounded_budget.py": "2664b2a86437ac5e83cc8cd05a95a2804cac9cc6e8c12f62aed9cc1818b14ded",
+    "kernel-agent/src/kernel_agent/grounded_repair.py": "27ce96729f6cae5cbd4e35fdab8d81d100a68ba9e36a4e282a06aa0c640577ab",
+    "kernel-agent/tests/integration/test_grounded_budget_study.py": "a9baf16f87097bbb685982bba8b266f0745bd6ee34481fae221209d5388672b5",
+    "kernel-agent/tests/integration/test_grounded_study.py": "17b280feaed8cae0cbfb41bb196508304a1a366b8f303aa8688e14aa05618067",
+    "kernel-agent/tests/unit/test_grounded_budget.py": "b5a12f4ef5a59c0aac2663b3b0d10c73f95b7306bdb25bbfd21ca12be406fef3",
+    "kernel-agent/tests/unit/test_grounded_repair.py": "e3e19e8ef4745d2a1d861b04d23a4fd90bf91da913b885ed3e9d182d7f709d74"
+  }
+}

@@ -1,89 +1,80 @@
 # Evidence-driven Kernel Agent Harness
 
-A portfolio research engineering project about the **agent that writes kernels**.
-It adapts KDA's contract/draft/plan workflow through Humanize/OpenCode and a local Qwen
-backend, then studies the downstream generation/repair controller. Candidate kernels are
-assessment artifacts; none are hand-repaired to obtain model scores. Original KDA docs
-and workflows remain in [README-kda-upstream.md](README-kda-upstream.md) and their directories.
+A portfolio research engineering project about the **agent that writes kernels**. It
+reproduces KDA/Humanize/OpenCode workflows with local Qwen, then studies the downstream
+generation/repair controller. Kernels are assessment artifacts and are never hand-repaired.
+Original KDA documentation remains in [README-kda-upstream.md](README-kda-upstream.md).
 
-## Latest controlled result
+## Latest results and the controller failure
 
-An indexed source patch binds 1-based line ranges to a source SHA. On first-patch rejection,
-the agent spends its second existing slot on complete-source recovery. Both controls and
-the new policy share the same initial source, API preflight, independent GPU evaluator
-and selector; each arm has two repair calls capped at 2048 output tokens.
+Source-SHA-bound Python/JIT signatures, launch bindings and bounded store dependencies
+are added to indexed/fallback repair. Same source admission, independent evaluator,
+selector and two repair opportunities per arm.
 
-| Independent stratum | Two rewrites | Old text patches | Indexed patch + fallback |
-|---|---:|---:|---:|
-| Known failed sources: 7 parents × 2 seeds, 5 families | 9/14 | 7/14 | **13/14** |
-| Fresh starts on 4 existing recent families × 2 seeds | 6/8 | 6/8 | 6/8 |
+| Separate cohort | Indexed control | Source-grounded | Interpretation |
+|---|---:|---:|---|
+| Eight development families, one fresh generation seed | 7/8 | 8/8 | One affine-SiLU discordance |
+| Initial selected diagnostic parents | 0/6 | 3/6 | Two context failures cancelled controls; not clean efficacy |
+| Budget/isolation follow-up: same parents, two NEW repair seeds | 3/6 | 5/6 | Separate diagnostic cohort; no fresh generation |
 
-All **22 paired blocks / 66 final outcomes / 140 physical calls** completed, with no unknown
-responses or infrastructure failures. First-patch application is 13/21 vs 18/21; total
-refusals are 17/43 vs 7/40. Fallbacks use the existing budget, so patch-attempt denominators
-differ. Protocol acceptance is not compilation or numerical correctness.
+The initial run dispatched56/64 calls. Its preflight missed the longest actual patch
+mode; policy context refusal incorrectly stopped both arms. Keep its failures and raw
+labels. The follow-up tokenizes actual prompts and chooses full/compact/exact-baseline
+views, preserving complete parent source/common evidence; a policy refusal cannot cancel
+its counterpart. It dispatched24/24 calls. No extra repair slot or unknown replay.
 
-The primary family-equal regression difference vs old patches is +35 pp (exploratory 95%
-interval [+10, +60], five families); vs rewriting +30 pp [0, +70]. Raw-count effects have
-different weights. Recent-family fresh starts show no net gain. These are small development
-sets, not an external blind benchmark or a stable generalization claim. Keep ordinary
-repair as default; indexed/fallback remains an experimental option.
+Do not pool cohorts, claim stable generalization, or equate source facts with numerical
+proof. Keep ordinary repair as default. The earlier indexed study separately achieved13/14
+known-failure correctness versus9/14 rewriting and7/14 text patches; recent fresh starts
+were6/8 in all three arms. Earlier negative/null studies remain unchanged.
 
-## Review the project
+## Review
 
-- [Chinese resume and interview summary](kernel-agent/docs/project-summary.zh.md)
-- [English project summary](kernel-agent/docs/project-summary.md)
-- [Latest results, failure analysis and limitations](kernel-agent/docs/span-study-results.zh.md)
-- [Prospective design](kernel-agent/docs/span-study-plan.md) and [reproduction](kernel-agent/docs/span-reproduction.md)
-- [Interactive HTML](kernel-agent/reports/kernel-agent-report.html#span-study)
-- [Canonical server / lean local workflow](kernel-agent/docs/server-workflow.md)
-- [Implementation](kernel-agent/README.md), [Humanize compatibility](kernel-agent/docs/humanize-update.md)
+- [Resume and interview notes](kernel-agent/docs/project-summary.zh.md)
+- [Initial results and failure analysis](kernel-agent/docs/grounded-study-results.zh.md)
+- [Separate follow-up results](kernel-agent/docs/grounded-budget-results.zh.md)
+- [Prospective follow-up protocol](kernel-agent/docs/grounded-budget-study-plan.md)
+- [Reproduction and scope](kernel-agent/docs/grounded-budget-reproduction.md)
+- [Interactive HTML](kernel-agent/reports/kernel-agent-report.html#grounded-budget-study)
+- [Canonical server workflow](kernel-agent/docs/server-workflow.md)
 
-The contributions are budgeted repair policies, exact candidate lineage, independent
-search/final evaluation, durable state and failure handling, and three-service scheduling.
-KDA, Humanize/OpenCode, Qwen and Triton are reused components, not original implementations.
+Core contributions: [source facts](kernel-agent/src/kernel_agent/grounded_repair.py),
+[context adaptation](kernel-agent/src/kernel_agent/grounded_budget.py),
+[controller](kernel-agent/scripts/run_grounded_budget_study.py),
+[request/selection reconstruction](kernel-agent/scripts/summarize_grounded_budget.py),
+[model pool](kernel-agent/src/kernel_agent/model_pool.py) and
+[independent evaluator](kernel-agent/scripts/evaluate_candidate.py).
 
-Core entry points are [indexed repair](kernel-agent/src/kernel_agent/span_repair.py),
-[the study controller](kernel-agent/scripts/run_span_study.py),
-[raw reconstruction](kernel-agent/scripts/summarize_span.py),
-[the local model pool](kernel-agent/src/kernel_agent/model_pool.py) and
-[the independent evaluator](kernel-agent/scripts/evaluate_candidate.py).
+## Validation and storage
 
-## Run and audit
+219 CPU mechanism/evidence checks and lint pass, including self-contained fake-parent
+integration and forced context-failure isolation. These are not model successes. Three
+authorized Qwen services use idle admission/EWMA, pinning one process per pair. No paid
+model API is used. GPU4 evaluations are cooperatively serialized with physical UUID proof;
+sharing is allowed, and cached cross-root weight equality is unverified. Do not claim
+isolated kernel performance or end-to-end model throughput gains.
 
-Current canonical code is `/data/home/chenyizhou/kda-kernel-agent-harness/kernel-agent`.
-Run scripts through `/data/home/chenyizhou/kernel-agent-storage/bin/run.py`:
-
-```bash
-python3 /data/home/chenyizhou/kernel-agent-storage/bin/run.py check_project.py
-python3 /data/home/chenyizhou/kernel-agent-storage/bin/run.py verify_evidence.py
-```
-
-The 205-test CPU suite and lint pass. Fake HTTP/GPU fixtures test mechanisms, not agent
-success rates. Three authorized Qwen services use idle admission and latency EWMA, keeping
-one process per paired block.156 independent GPU4 windows peak at one, with child physical
-UUID proof. GPU sharing is allowed; performance ratios are conditional, not isolated or
-end-to-end LLM speedups. Cross-root cached weight equality is unverified. No paid API is used.
-
-**New raw experiment data stay on the owner's server, outside Git and Mac.** This branch
-publishes code, documentation, compact derived summaries, bounded diff excerpts and the
-latest HTML. Raw manifest identity and locations are in the summary. Public summary
-verification checks self-hashes/counts; complete raw reconstruction requires server access:
+New raw evidence stays on the owner's server, outside Git and Mac. This branch publishes
+core code, documentation, compact derived summaries/bounded diffs and latest HTML. Public
+summary checks validate self-hashes/counts, not absent raw records or CUDA numerics:
 
 ```bash
 cd kernel-agent
-python3 scripts/verify_span_summary.py results/span-summary.json
+python3 scripts/verify_grounded_summary.py results/grounded-summary.json
+python3 scripts/verify_grounded_budget_summary.py results/grounded-budget-summary.json
 ```
 
-Do not restore the full historical corpus on the lean Mac as a routine publishing step.
-Historical frozen results remain unchanged on the server/in Git history. Previous negative
-and null studies, selector fixes, endpoint handoffs and real SIGKILL recovery keep their own
-denominators. This project does not run the complete KernelBench or reproduce all KDA
-research results. Further work should test structural/semantic repair on additional families.
+All server scripts run through `/data/home/chenyizhou/kernel-agent-storage/bin/run.py`;
+canonical repository `/data/home/chenyizhou/kda-kernel-agent-harness`. Supporting runtimes,
+upstreams/services/archives stay in sibling `kernel-agent-storage/`. Use
+`build_grounded_report.py` for the current report. Never restore the full historical corpus
+on the lean Mac for routine publication. Do not restart completed/unknown experiment work.
+
+This project does not run complete KernelBench, train a kernel model or claim an arbitrary
+code sandbox. KDA/Humanize/OpenCode/Qwen/Triton are reused components with attribution.
 
 ## License
 
-Original KDA files retain the root license and notices. Downstream code uses
-[kernel-agent/LICENSE](kernel-agent/LICENSE); referenced Triton tutorials retain MIT
-attribution in [the notices](kernel-agent/THIRD_PARTY_NOTICES.md). Model weights and
-Humanize/OpenCode source are not redistributed.
+Original KDA files retain root notices. Downstream code uses [its license](kernel-agent/LICENSE);
+Triton examples retain MIT [attribution](kernel-agent/THIRD_PARTY_NOTICES.md). Model weights
+and Humanize/OpenCode source are not redistributed.

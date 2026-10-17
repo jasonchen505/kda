@@ -117,6 +117,11 @@ payload["operational_checks"] = (json.loads((ROOT / "results/operational-checks.
                                  if (ROOT / "results/operational-checks.json").exists() else None)
 
 span_path = ROOT / "results/span-summary.json"
+payload["grounded"] = (json.loads((ROOT / "results/grounded-summary.json").read_text())
+                       if (ROOT / "results/grounded-summary.json").exists() else None)
+payload["grounded_checks"] = (json.loads((ROOT / "results/grounded-checks.json").read_text())
+                              if (ROOT / "results/grounded-checks.json").exists() else None)
+
 payload["span"] = json.loads(span_path.read_text()) if span_path.exists() else None
 span_checks = ROOT / "results/span-checks.json"
 payload["span_checks"] = json.loads(span_checks.read_text()) if span_checks.exists() else None

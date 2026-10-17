@@ -1,5 +1,19 @@
 # Evidence-driven Kernel Agent Harness
 
+## Latest: source facts, actual context budgets and arm isolation
+
+Initial fresh generation: indexed7/8, source-grounded8/8, eight development families/one
+seed. Initial diagnostic0/6 vs3/6 is contaminated by two policy context refusals cancelling
+controls; retain it, do not claim clean efficacy. A separate two-NEW-seed controller
+follow-up records indexed3/6, source-grounded5/6, 24/24 physical calls.
+Same parents and two repair slots; no candidate is hand-fixed. Do not pool cohorts.
+
+Read [results/failure](docs/grounded-study-results.zh.md), [follow-up](docs/grounded-budget-results.zh.md),
+[reproduction](docs/grounded-budget-reproduction.md), [resume](docs/project-summary.zh.md).
+219 CPU checks/lint pass. New raw evidence stays remote; only code/docs/derived summaries
+and latest HTML are synchronized. Ordinary repair remains default.
+
+
 A job-portfolio prototype that reproduces the KDA task workflow through a real Humanize
 coding-agent session and improves the downstream controller. The research object is the
 agent that generates kernels, not manually authored operator optimization.
@@ -11,9 +25,9 @@ and auditable evidence. KDA, Humanize/OpenCode, Qwen and Triton are reused compo
 
 Start with [the project summary](docs/project-summary.md),
 [Chinese resume and interview notes](docs/project-summary.zh.md), and
-[the offline HTML report](reports/kernel-agent-report.html#span-study).
+[the offline HTML report](reports/kernel-agent-report.html#grounded-budget-study).
 
-## Latest: indexed repair with a budget-neutral fallback
+## Previous iteration: indexed repair with a budget-neutral fallback
 
 The agent now supports SHA-bound, numbered source ranges and complete-source recovery
 inside its second existing repair slot. It never invents an edit or adds a retry. The

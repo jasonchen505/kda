@@ -13,9 +13,9 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#span-study">行号修复新对照</a><a href="#operational-study">上轮源码补丁</a><a href="#semantic-study">上轮语义审查</a><a href="#repair-study">上轮负结果</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#grounded-budget-study">&#39044;&#31639;&#19982;&#38548;&#31163;&#39564;&#35777;</a><a href="#grounded-study">&#28304;&#30721;&#32422;&#26463;&#26032;&#23545;&#29031;</a><a href="#span-study">行号修复新对照</a><a href="#operational-study">上轮源码补丁</a><a href="#semantic-study">上轮语义审查</a><a href="#repair-study">上轮负结果</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
 <main>
-<header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.16</div>
+<header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.17</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
 <p class="lede">复现 KDA 的任务工作流，用 Humanize 驱动本地 Qwen 生成 Triton 代码。改进对象是 agent 控制器：如何测试、修复、停止和选择候选。新增直连 Qwen 后端，用同起点对照验证生成与修复策略。</p>
 <span class="tag">真实模型生成</span> <span class="tag">独立 GPU 评测</span> <span class="tag">离线报告</span>
@@ -29,9 +29,35 @@
 
 <section id="portfolio"><h2>五分钟看懂这个求职项目</h2>
 <p>研究工程问题：如何让一个本地 coding agent 在数值、性能和资源约束下写出可验收的 kernel，并在失败或中断后保留可信实验记录。</p>
-<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流，以及 Humanize → OpenCode → 本地 Qwen 的真实生成链路。新增直连后端用于八类任务的生成／修复对照，模型源码不经人工修改。</p></div><div class="card"><h3>自己改进了什么</h3><p>实现可信语义证据、带源码 SHA 的行号补丁与预算内回退，用同初稿、同修复机会的三组对照检验效果；底层支持独立评测、候选选择、持久化预算、故障恢复和三路模型调度。</p></div></div>
-<p>研究迭代：先保留生成／修复策略的退步与空结果，再从真实失败定位补丁协议成本。本轮行号补丁与回退在已知失败回归达到 13/14，对照重写 9/14、旧补丁 7/14；近期任务的新生成三组均 6/8。收益范围和仍未解决的语义失败一起公开。</p>
+<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流，以及 Humanize → OpenCode → 本地 Qwen 的真实生成链路。新增直连后端用于八类任务的生成／修复对照，模型源码不经人工修改。</p></div><div class="card"><h3>自己改进了什么</h3><p>实现可信语义证据、SHA行号补丁、实际上下文预算适配与策略故障隔离，用同初稿、同修复机会的对照检验效果；底层支持独立评测、候选选择、持久化预算、恢复和三路模型调度。</p></div></div>
+<p>研究迭代：从退步与空结果定位协议成本，上一轮行号修复改善了已知失败。最新源码事实初轮新生成为8/8对7/8，同时暴露上下文连带取消对照；保留失败后，另用新种子验证预算与隔离修复，诊断回归为5/6对3/6。两轮分开解释，仍有转置失败。</p>
 <p class="small" id="portfolio-evidence">定位：可以写入简历的 agent harness 研究工程原型。三任务集成验证为 3/3 最终正确、2/3 晋升；最新六任务反馈对照见下方。真实生成、工程测试和历史未完成实验分别计数。</p></section>
+
+<section id="grounded-budget-study" hidden>
+<div class="section-top"><h2>先修复上下文与策略隔离</h2><span class="tag" id="gb-status"></span></div>
+<p>初轮两个回归块因新增事实包超出上下文，还连带取消了对照组。该轮完整记录保留，回归差异不作净修复收益。本轮另开六个配对块、两个新种子，检验预算适配和策略隔离，不替换旧结果，也没有新增任务生成。</p>
+<div class="two"><div class="card"><h3>信息按实际预算选择</h3><p>先尝试完整事实，再尝试有明确省略标记的压缩事实，仍过长时使用原对照提示。每次都用实际模式、源码和反馈分词；完整源码与共同数值证据保留。</p></div><div class="card"><h3>一个策略失败，另一组继续</h3><p>上下文拒绝只占本策略的一次机会。外部服务身份变化或未知调用仍停止整个块；未知请求不重放，不追加修复。</p></div></div>
+<div class="cards" id="gb-metrics"></div><p class="notice" id="gb-conclusion" aria-live="polite"></p>
+<div id="gb-table" class="table-wrap"></div><p id="gb-interval" class="small"></p><div id="gb-views" class="two"></div>
+<div class="controls"><label for="gb-case">查看预算选择与模型修复</label><select id="gb-case"></select></div><div id="gb-trajectory"></div>
+<p id="gb-resource" class="small"></p><details><summary>独立验证的协议与证据</summary><pre id="gb-provenance"></pre><a href="../results/grounded-budget-summary.json" download="grounded-budget-summary.json">下载预算验证汇总 JSON</a></details>
+</section>
+
+<section id="grounded-study" hidden>
+<div class="section-top"><h2>让修复遵守实际源码约束</h2><span class="tag" id="grounded-status"></span></div>
+<p>上轮仍出现参数重复、dtype 接口误修和转置轴混淆。新策略从源码提取函数签名、JIT 调用绑定与存储依赖，把这些事实交给模型。控制器不替模型修改源码，也不追加调用。</p>
+<div class="two"><div class="card"><h3>行号策略 · 对照</h3><p>保留上轮行号补丁、可信搜索证据和预算内源码回退。</p></div><div class="card"><h3>源码约束 · 新策略</h3><p>相同流程增加源码 SHA 绑定的结构事实与修复义务。它们是部分观察，不能证明数值语义正确。</p></div></div>
+<div class="flow" aria-label="本轮 agent 修复流程"><div class="node">保留失败源码<span>源码 SHA 与真实搜索反馈</span></div><div class="node">提取源码事实<span>签名、调用绑定、存储依赖</span></div><div class="node">模型提交修改<span>同样两次机会；无人工修补</span></div><div class="node">独立最终验收<span>选择先提交；最终结果不回传</span></div></div>
+<div id="grounded-metrics" class="cards"></div><p id="grounded-conclusion" class="notice" aria-live="polite"></p>
+<div id="grounded-strata" class="two"></div>
+<p class="small">主要问题是八类既有开发任务、一个新种子的新生成效果。另对上轮全部三类最终失败取父源码，各两个新种子作诊断回归。两层分开报告；小样本区间不支持外部泛化或等效性结论。</p>
+<h3>事实是否进入修复，机会如何使用</h3><div id="grounded-mechanisms" class="two"></div>
+<div class="controls"><label for="grounded-case">比较同一初稿的修复轨迹</label><select id="grounded-case"></select></div><div id="grounded-trajectory"></div>
+<h3>三路服务与 GPU4 的实际工作</h3><div id="grounded-services" class="two"></div><p id="grounded-resource" class="small"></p>
+<svg id="grounded-timeline" viewBox="0 0 640 220" role="img" aria-label="源码约束对照的模型调用与GPU4时间线" style="width:100%;height:auto"></svg>
+<details><summary>本轮协议、检查与远端证据</summary><pre id="grounded-provenance"></pre><a href="../results/grounded-summary.json" download="grounded-summary.json">下载本轮结果汇总 JSON</a></details>
+<p class="small">原始请求、回复、候选、父源码和测量只留远端 kernel-agent-storage/experiments/grounded-study-v1。有限差异摘录可离线查看；JSON 下载需要配套汇总文件。</p>
+</section>
 
 <section id="span-study" hidden>
 <div class="section-top"><h2>减少修复机会被协议浪费</h2><span class="tag" id="span-status"></span></div>
@@ -204,7 +230,7 @@
 <div id="run-summary"></div><div id="turns"></div>
 </section>
 
-<section><h2>05 · 复现的边界</h2><div class="two"><div class="card"><h3>已经执行</h3><p>KDA 固定版本及子模块准备；Humanize 真实驱动本地 coding agent；生成任务与反馈循环；独立 GPU 正确性评测；正确候选进入计时与最终检查；可查看的完整轨迹。</p><p id="tests-note"></p></div><div class="card"><h3>尚未证明</h3><p>没有运行完整 KernelBench。最新对照仅覆盖少量自定义开发任务与两个新种子，任务族区间属于探索性描述。没有训练 kernel 模型，也没有证明达到领域最优性能。</p><p>当前 agent 通过结构化提案生成源码，由控制器写文件。它已按任务路由检索固定官方示例；尚未接入自主搜索、Nsight Compute 分析与开放式 shell 工具。KDA 提示是适配版，不是对原始完整研究流程的等价复现。</p></div></div>
+<section><h2>05 · 复现的边界</h2><div class="two"><div class="card"><h3>已经执行</h3><p>KDA 固定版本及子模块准备；Humanize 真实驱动本地 coding agent；生成任务与反馈循环；独立 GPU 正确性评测；正确候选进入计时与最终检查；可查看的完整轨迹。</p><p id="tests-note"></p></div><div class="card"><h3>尚未证明</h3><p>没有运行完整 KernelBench。各轮仅覆盖少量自定义开发任务与有限新种子，任务族区间属于探索性描述。没有训练 kernel 模型，也没有证明达到领域最优性能。</p><p>当前 agent 通过结构化提案生成源码，由控制器写文件。它已按任务路由检索固定官方示例；尚未接入自主搜索、Nsight Compute 分析与开放式 shell 工具。KDA 提示是适配版，不是对原始完整研究流程的等价复现。</p></div></div>
 <div class="notice" id="probe-note"></div><details><summary>单次成功探针：源码、最终延迟与门槛</summary><pre id="probe-detail"></pre><button class="secondary" id="download-probe">下载探针原始数据</button></details><details><summary>保留的同预算 API 规则对照</summary><p id="api-study"></p><button class="secondary" id="download-api">下载第二阶段 8 次运行</button></details><details><summary>保留的第一轮探索试验</summary><p id="initial-study"></p><button class="secondary" id="download-initial">下载先前 8 次运行</button></details>
 <details><summary>此前示例辅助版本的完整评测</summary><p id="reference-study"></p><button class="secondary" id="download-reference">下载第三阶段 4 次运行</button></details>
 <details><summary>本轮接口诊断探针与结构化输出预检</summary><pre id="transport-probes"></pre></details>
@@ -226,7 +252,7 @@
 <details><summary>冻结计划、资源预检与恢复断言</summary><pre id="recovery-detail"></pre></details></section>
 <section><h2>07 · 求职展示怎么讲</h2><p>可陈述的贡献是：基于 KDA 与 Humanize 实现本地 kernel 生成 agent，把候选选择交给独立评测器；加入反馈、预算、去重、回退和最终检查，并保留完整实验轨迹。对照结果以本报告真实计数为准。</p><p>项目主线是 kernel agent 的复现、改进与验证。从原始同预算对照定位选择缺陷，再补可恢复的实验调度，用真实中断验证结果复用与未知状态处理。各轮 GPU 实验、CPU 故障测试和未完成计划保留各自的分母。最新同初稿三组修复对照见上方；已知失败修复有改善，新生成任务未获净收益，更广任务泛化仍需验证。</p></section>
 
-<section id="evidence"><h2>08 · 证据、复现与表达来源</h2><p>报告是单个 HTML 文件，内嵌图表与轨迹数据，断网仍可交互查看。最新结果 JSON 另附于 results/span-summary.json；下载入口需要这份配套文件，原始实验仅在远端。</p>
+<section id="evidence"><h2>08 · 证据、复现与表达来源</h2><p>报告是单个 HTML 文件，内嵌图表与轨迹数据，断网仍可交互查看。本轮结果JSON另附于results/grounded-summary.json与results/grounded-budget-summary.json；下载入口需要这份配套文件，原始实验仅在远端。</p>
 <details><summary>固定版本与源文件 SHA</summary><pre id="provenance"></pre></details>
 <details id="selector-delivery" hidden><summary>本轮实际请求、候选选择与文件核对</summary><pre id="selector-delivery-data"></pre></details>
 <details><summary>远端复现入口</summary><pre>cd /data/home/chenyizhou/kernel-agent
@@ -697,6 +723,56 @@ if(DATA.span){(()=>{
  $('main-finding').textContent=done?'本轮行号策略回归最终正确 13/14，连续重写 9/14、旧补丁 7/14；近期新生成三组均 6/8。已知失败修复有实测改善，广泛泛化收益仍未证明。':'这轮直接检验上一轮的主要瓶颈：修复机会是否被格式拒绝浪费。原始证据全部留在服务器，Mac 保持轻量。';
  $('runtime-note').textContent='当前主项目和环境已收拢。所有脚本通过 kernel-agent-storage/bin/run.py 运行；最新原始实验不再复制到 Mac。历史路径与冻结证据保持原样。';
  if(DATA.span_checks){$('upgrade-checks').textContent=`${DATA.span_checks.passed_tests} 项机制／证据检查及 lint 通过；测试驱动不计入 agent 成绩。`;$('tests-note').textContent=`当前 ${DATA.span_checks.passed_tests} 项 CPU 检查通过。新原始证据在远端复核，本地只检查发布汇总一致性。`}
+})();}
+
+
+if(DATA.grounded){(()=>{
+ const s=DATA.grounded,done=s.status==='complete',labels={indexed:'行号策略',grounded:'源码约束'},strata={fresh:'八族新生成 · 主要结果',regression:'已知失败 · 诊断回归'};
+ $('grounded-study').hidden=false;$('grounded-status').textContent=done?'28 个结局均已结束':'正式运行中 · 策略冻结';
+ for(const[v,l]of [[`${s.resolved}/28`,'已结束结局'],[`${s.dispatched_requests}/64`,'真实模型调用 / 上限'],[s.peak_model_ports,'已完成请求峰值并发端口'],[DATA.grounded_checks?.passed_tests||'—','CPU 机制与证据检查']]){const c=node('div',undefined,'card');c.append(node('div',String(v),'metric'),node('p',l));$('grounded-metrics').append(c)}
+ const ordered=s.strata.slice().sort((a,b)=>(a.stratum==='fresh'?0:1)-(b.stratum==='fresh'?0:1));
+ const headline=ordered.map(st=>`${strata[st.stratum]}：${st.cells.map(c=>`${labels[c.arm]} ${c.correct}/${c.scheduled}`).join('，')}`).join('；');
+ $('grounded-conclusion').textContent=done?headline+'。新机制保持实验性，是否有效以同预算的独立最终检查为准。':'14 个配对块共享初稿，各两次修复，最多 64 次调用。完整结果结束前不计算整体效应，不根据中途成绩修改策略。';
+ if(done&&s.execution_diagnostics?.policy_context_budget_blocks?.length){$('grounded-conclusion').textContent+=' '+s.execution_diagnostics.policy_context_budget_blocks.length+' 个回归块因策略上下文超限而连带取消对照；该层记录保留，不能作为净修复收益，已关闭效果区间展示。';}
+ for(const st of ordered){const card=node('div',undefined,'card');card.append(node('h3',strata[st.stratum]));const wrap=node('div',undefined,'table-wrap'),table=node('table'),head=node('tr');for(const v of ['策略','最终正确','条件救回','性能门槛'])head.append(node('th',v));table.append(head);for(const c of st.cells){const tr=node('tr');for(const v of [labels[c.arm],done?`${c.correct}/${c.scheduled}`:`${c.correct} correct; ${c.resolved}/${c.scheduled} ended`,done?`${c.rescued_observed}/${c.initial_failed_observed}`:'pending',done?`${c.promoted}/${c.scheduled}`:'pending'])tr.append(node('td',v));table.append(tr)}wrap.append(table);card.append(wrap);if(done&&!(st.stratum==='regression'&&s.execution_diagnostics?.policy_context_budget_blocks?.length)){const q=st.contrasts.grounded_vs_indexed;card.append(node('p',`源码约束－行号：${(q.mean_difference*100).toFixed(1)} pp；探索区间 [${(q.interval.low*100).toFixed(1)}, ${(q.interval.high*100).toFixed(1)}]；${q.interval.clusters} 个任务族。`));const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 520 100');svg.setAttribute('role','img');svg.setAttribute('aria-label',strata[st.stratum]+'最终正确数比较');svg.style.cssText='width:100%;height:auto';for(const[c,i]of st.cells.map((c,i)=>[c,i])){const text=document.createElementNS(svg.namespaceURI,'text');text.setAttribute('x',5);text.setAttribute('y',28+i*42);text.textContent=`${labels[c.arm]} ${c.correct}/${c.scheduled}`;svg.append(text);const bar=document.createElementNS(svg.namespaceURI,'rect');for(const[k,v]of Object.entries({x:180,y:10+i*42,width:300*c.correct/c.scheduled,height:25,fill:i?'#17685d':'#416fac'}))bar.setAttribute(k,v);svg.append(bar)}card.append(svg)}const infra=new Set(s.rows.filter(r=>r.stratum===st.stratum&&r.infrastructure).map(r=>r.block)).size;card.append(node('p',`执行中断 ${infra} 块（含策略自身上下文问题）；条件救回只计充分观察的初稿失败。`,'small'));$('grounded-strata').append(card)}
+ for(const arm of s.protocol.arms){const m=s.arm_mechanisms[arm],u=s.arm_usage[arm]||{},c=node('div',undefined,'card');c.append(node('h3',labels[arm]),node('p',`源码事实包 ${m.source_packets||0} 次；调用绑定 ${m.launches_reported||0} 条，存储依赖 ${m.stores_reported||0} 条。事实会重复出现，不是独立成功数。`),node('p',`补丁应用 ${m.patch_applied||0}/${m.patch_attempts||0}；拒绝 ${m.patch_errors||0}；预算内回退 ${m.full_source_fallbacks||0} 次。`),node('p',`修复派发 ${u.dispatched||0} 次；已报告输出 ${u.reported_output_tokens||0} tokens。`));$('grounded-mechanisms').append(c)}
+ const cases=s.cases;for(const[i,b]of cases.entries()){const o=node('option',`${strata[b.block.stratum]} / ${taskNames[b.block.task_id]||b.block.task_id} / ${b.block.seed}`);o.value=String(i);$('grounded-case').append(o)}
+ function show(){const target=$('grounded-trajectory');target.replaceChildren();const b=cases[Number($('grounded-case').value)];if(!b){target.append(node('p','完整配对块封存后显示真实轨迹。'));return}target.append(node('p',`共享初稿 ${b.initial_status}；端口 ${b.endpoint_port}。`),node('p',`初稿 SHA：${b.initial_sha256||'尚无准入源码'}`,'sha'));const grid=node('div',undefined,'two');for(const arm of s.protocol.arms){const a=b.arms[arm],card=node('article',undefined,'turn');card.append(node('h3',labels[arm]),node('p',`最终${a.correct?'正确':'未通过'}；${a.attempts.map(t=>`${t.mode}: ${t.status}`).join(' → ')}`),node('p',`选中 SHA：${a.selected_sha256||'无搜索正确候选'}`,'sha'));for(const t of a.attempts){card.append(node('h4',`${t.request_id} · ${t.status}`));if(t.message_excerpt)card.append(node('p',t.message_excerpt,'small'));if(t.derived_diff_excerpt)card.append(node('pre',t.derived_diff_excerpt))}grid.append(card)}target.append(grid,node('p','以上为模型候选之间的有限差异，未人工修补。完整源码与证据在远端。','small'),node('p',b.remote_evidence,'sha'))}
+ $('grounded-case').addEventListener('change',show);show();
+ for(const service of s.services){const e=service.endpoint,c=node('div',undefined,'card');c.append(node('h3',`:${e.port} · GPU ${e.gpus.join('/')}`),node('p',`分配 ${service.assigned} 块，完成 ${service.completed||0} 块。vLLM ${e.version}。`));$('grounded-services').append(c)}
+ $('grounded-resource').textContent=`完整响应 ${s.request_statuses.completed||0}；响应未知 ${s.request_statuses.response_unknown||0}；已报告输出 ${s.reported_output_tokens} tokens。独立 GPU4 窗口 ${s.independent_gpu_windows}，峰值重叠 ${s.peak_gpu_windows}。共卡性能只作条件观测，不作跨服务模型质量比较。`;
+ const entries=s.timeline,svg=$('grounded-timeline');if(entries.length){const start=Math.min(...entries.map(e=>Date.parse(e.start_utc))),end=Math.max(...entries.map(e=>Date.parse(e.end_utc))),lanes=[...new Set(entries.filter(e=>e.lane!=='GPU4').map(e=>e.lane))].sort().concat('GPU4'),span=Math.max(1000,end-start);for(const[lane,i]of lanes.map((l,i)=>[l,i])){const text=document.createElementNS(svg.namespaceURI,'text');text.setAttribute('x',10);text.setAttribute('y',40+i*42);text.textContent=lane;svg.append(text)}for(const e of entries){const r=document.createElementNS(svg.namespaceURI,'rect');for(const[k,v]of Object.entries({x:100+520*(Date.parse(e.start_utc)-start)/span,y:25+lanes.indexOf(e.lane)*42,width:Math.max(1,520*(Date.parse(e.end_utc)-Date.parse(e.start_utc))/span),height:20,fill:e.lane==='GPU4'?'#a74922':'#17685d'}))r.setAttribute(k,v);svg.append(r)}}
+ if(DATA.grounded_costs){const c=DATA.grounded_costs.arms;$('grounded-resource').textContent+=` 修复组实报输入／输出tokens：行号 ${c.indexed.reported_prompt_tokens}/${c.indexed.reported_output_tokens}，源码约束 ${c.grounded.reported_prompt_tokens}/${c.grounded.reported_output_tokens}。另有 ${s.request_statuses.not_dispatched||0} 条上下文请求未派发。`;}
+ $('grounded-provenance').textContent=JSON.stringify({protocol:s.protocol,provenance:s.provenance,plan_sha256:s.plan_sha256,summary_sha256:s.summary_sha256,checks:DATA.grounded_checks},null,2);
+ $('summary').textContent=done?'最新源码约束对照已结束。'+headline:`最新源码约束对照运行中：结束 ${s.resolved}/28 个结局，派发 ${s.dispatched_requests}/64 次。`;
+ $('main-finding').textContent=done?headline+'。完整结果保留，默认策略不按小样本点估计自动更换。':'本轮检验源码签名、调用与存储依赖，能否在相同两次修复机会内提高最终正确率。';
+ $('metrics').replaceChildren(...[...$('grounded-metrics').children].map(e=>e.cloneNode(true)));
+ $('tests-note').textContent='Current212 CPU mechanism and evidence checks pass; raw reconstruction stays remote.';
+ $('upgrade-checks').textContent=`${DATA.grounded_checks?.passed_tests||'—'} 项 CPU 机制与证据检查及 lint 通过；测试驱动不计 agent 成绩。`;
+})();}
+
+
+if(DATA.grounded_budget){(()=>{
+ const s=DATA.grounded_budget,done=s.status==='complete',names={indexed:'行号对照',grounded:'源码约束＋预算适配'},st=s.strata[0];
+ $('grounded-budget-study').hidden=false;$('gb-status').textContent=done?'独立验证已结束':'新种子验证中 · 策略冻结';
+ for(const[v,l]of [[`${s.resolved}/12`,'已结束结局'],[`${s.dispatched_requests}/24`,'模型调用 / 上限'],[s.peak_model_ports,'已完成请求峰值并发端口'],[DATA.grounded_budget_checks?.passed_tests||'—','CPU 机制与证据检查']]){const c=node('div',undefined,'card');c.append(node('div',String(v),'metric'),node('p',l));$('gb-metrics').append(c)}
+ const headline=st.cells.map(c=>`${names[c.arm]} ${c.correct}/${c.scheduled}`).join('；');
+ $('gb-conclusion').textContent=done?`同三类已知父源码、两个新种子的独立验证：${headline}。这是诊断回归，不是新生成任务或外部泛化证据。`:'六个配对块，每组两次修复，最多24次模型调用。此轮与初轮分别保存；完整结束前不根据中途效果调参。';
+ const table=node('table'),head=node('tr');for(const v of ['策略','最终正确','条件救回','性能门槛'])head.append(node('th',v));table.append(head);for(const c of st.cells){const row=node('tr');for(const v of [names[c.arm],done?`${c.correct}/${c.scheduled}`:`结束${c.resolved}/${c.scheduled}`,done?`${c.rescued_observed}/${c.initial_failed_observed}`:'待完整结果',done?`${c.promoted}/${c.scheduled}`:'待完整结果'])row.append(node('td',v));table.append(row)}$('gb-table').append(table);
+ if(done){const q=st.contrasts.grounded_vs_indexed;$('gb-interval').textContent=`源码约束－行号：任务族等权差 ${(q.mean_difference*100).toFixed(1)} pp，探索区间 [${(q.interval.low*100).toFixed(1)}, ${(q.interval.high*100).toFixed(1)}]；仅三个任务族。区间不证明稳定收益或等效性。`;}
+ for(const arm of s.protocol.arms){const c=node('div',undefined,'card'),m=s.arm_mechanisms[arm],v=s.context_adaptation.views;c.append(node('h3',names[arm]),node('p',`完整事实 ${v[arm+':full']||0} 次；压缩事实 ${v[arm+':compact']||0} 次；原对照视图 ${v[arm+':baseline']||0} 次。`),node('p',`本策略上下文拒绝 ${s.context_adaptation.policy_local_refusals[arm]||0}；实际派发 ${s.arm_usage[arm]?.dispatched||0} 次。`),node('p',`补丁应用 ${m.patch_applied||0}/${m.patch_attempts||0}；协议拒绝 ${m.patch_errors||0}。`));$('gb-views').append(c)}
+ const cases=s.cases;for(const[i,b]of cases.entries()){const o=node('option',`${taskNames[b.block.task_id]||b.block.task_id} / ${b.block.seed}`);o.value=String(i);$('gb-case').append(o)}
+ function show(){const target=$('gb-trajectory');target.replaceChildren();const b=cases[Number($('gb-case').value)];if(!b){target.append(node('p','完整配对块封存后显示轨迹。'));return}target.append(node('p',`共享初稿 ${b.initial_status}；端口 ${b.endpoint_port}。`));const grid=node('div',undefined,'two');for(const arm of s.protocol.arms){const a=b.arms[arm],card=node('article',undefined,'turn');card.append(node('h3',names[arm]),node('p',`最终${a.correct?'正确':'未通过'}`),node('p',`选中 SHA：${a.selected_sha256||'无搜索正确候选'}`,'sha'));for(const t of a.attempts){card.append(node('h4',`${t.request_id} · ${t.status}`),node('p',`上下文视图：${t.context_view||'未选中'}；修复模式：${t.mode}`,'small'));if(t.message_excerpt)card.append(node('p',t.message_excerpt,'small'));if(t.derived_diff_excerpt)card.append(node('pre',t.derived_diff_excerpt))}grid.append(card)}target.append(grid,node('p',b.remote_evidence,'sha'))}
+ $('gb-case').addEventListener('change',show);show();
+ const infra=new Set(s.rows.filter(r=>r.infrastructure).map(r=>r.block)).size;
+ $('gb-resource').textContent=`完整响应 ${s.request_statuses.completed||0}；响应未知 ${s.request_statuses.response_unknown||0}；基础设施影响 ${infra} 块。视图选择分词记录 ${s.context_adaptation.tokenization_measurements} 条，不计作模型完成调用。GPU4独立窗口 ${s.independent_gpu_windows}、峰值重叠 ${s.peak_gpu_windows}。共卡性能只作条件观察。`;
+ if(DATA.grounded_budget_costs){const c=DATA.grounded_budget_costs.arms;$('gb-resource').textContent+=` 实报输入／输出tokens：行号 ${c.indexed.reported_prompt_tokens}/${c.indexed.reported_output_tokens}，源码约束 ${c.grounded.reported_prompt_tokens}/${c.grounded.reported_output_tokens}；不据此声称端到端提速。`;}
+ $('gb-provenance').textContent=JSON.stringify({protocol:s.protocol,context_adaptation:s.context_adaptation,provenance:s.provenance,summary_sha256:s.summary_sha256,checks:DATA.grounded_budget_checks},null,2);
+ $('metrics').replaceChildren(...[...$('gb-metrics').children].map(e=>e.cloneNode(true)));
+ $('summary').textContent=done?`最新预算与隔离验证已结束：${headline}。初轮八族新生成：源码约束8/8，行号7/8；两轮不合并成功率。`:`预算与隔离独立验证：结束${s.resolved}/12，派发${s.dispatched_requests}/24次；初轮数据完整保留。`;
+ $('main-finding').textContent=done?'源码事实带来的初步修复差异与框架预算缺陷分别验证。普通修复默认保留；新机制仍需更多任务与种子。':'当前主线：防止新增反馈挤爆上下文或取消对照，让 agent 改进有可信的同预算实验。';
+ $('tests-note').textContent='当前219项CPU机制与证据检查通过；真实生成与GPU验收另计。';
+ $('upgrade-checks').textContent=`${DATA.grounded_budget_checks?.passed_tests||'—'}项CPU机制／证据检查及lint通过；测试夹具不计agent成绩。`;
 })();}
 
 </script>

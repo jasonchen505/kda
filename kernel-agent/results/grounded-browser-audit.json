@@ -1,0 +1,26 @@
+{
+  "status": "verified",
+  "created_utc": "2026-10-17T09:07:28.124Z",
+  "scope": "Browser rendering and selected case interactions; not a raw-evidence or CUDA re-execution",
+  "report_sha256": "1ab23c2a90220fa759da0085fe81542cd48ffa42b19825e61b73bb0711a853bf",
+  "invalid_regression_charts": 0,
+  "latest_metrics": "12/12\n\n已结束结局\n\n24/24\n\n模型调用 / 上限\n\n3\n\n已完成请求峰值并发端口\n\n219\n\nCPU 机制与证据检查",
+  "latest_table": "策略\t最终正确\t条件救回\t性能门槛\n行号对照\t3/6\t3/6\t0/6\n源码约束＋预算适配\t5/6\t5/6\t0/6",
+  "v1_case_options": 14,
+  "v1_summary_sha256": "09df61fd2708b3ee80547b40080133a8c9d9b17ebaf339b278ffdceb43a07470",
+  "v2_case_options": 6,
+  "v2_summary_sha256": "6df446982657e5bd8796946333f52f91aa8b2c6af50af39449de8ede8d4be89e",
+  "viewport": {
+    "document_width": 440,
+    "height": 725,
+    "width": 440
+  },
+  "checks": {
+    "successful_compact_view_case": true,
+    "failed_transpose_case": true,
+    "no_page_overflow_in_failure_case": true,
+    "invalid_initial_regression_effect_chart_suppressed": true
+  },
+  "console_errors": [],
+  "screenshot_sha256": "97449006cd8dd9ca32d62e0bff62689d21945c26d71a4bd04abd098bbdd2f663"
+}
