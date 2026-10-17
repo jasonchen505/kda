@@ -2,10 +2,11 @@
 
 面向大模型算法／研究工程师，改进agent的生成、修复与验收。
 
-- 复现KDA/Humanize、本地Qwen生成、独立数值／性能评测、预算与恢复；模型代码不经人工修补。
+- 参考 KDA 工作流，早期接入 Humanize/OpenCode，近期直连本地 Qwen；自主实现评测、预算修复与恢复，模型代码不经人工修补。
 - 设计SHA行号补丁与预算内回退：上轮已知失败13/14，对照9/14、7/14；新生成三组均6/8。
 - 新源码事实反馈：初轮八族新生成8/8对7/8；发现并保留两块上下文连带取消对照的失败，另设新种子预算验证5/6对3/6，不混合两轮成功率。
 - 实际分词驱动的上下文适配、策略隔离、三路Qwen调度与GPU4共卡串行验收；219项工程检查通过。
 
-[简历与面试叙述](project-summary.zh.md) · [初轮完整结果](grounded-study-results.zh.md) · [独立验证](grounded-budget-results.zh.md)。
+[简历与面试叙述](project-summary.zh.md) · [与完整 KDA 的流程比较](workflow-comparison.zh.md) · [独立验证](grounded-budget-results.zh.md)。
+没有完整复现 KDA 比赛研究流程，也没有改造 Humanize 上游核心。暂停新增策略，进入投递收口。
 原始数据留远端；Mac/Git只保留代码、文档、派生汇总和最新HTML。

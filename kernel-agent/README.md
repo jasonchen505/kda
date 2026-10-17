@@ -1,5 +1,13 @@
 # Evidence-driven Kernel Agent Harness
 
+## Portfolio closeout and upstream boundary
+
+Strategy additions are paused for interview/application preparation. KDA supplies workflow
+and prompt references; an early Humanize/OpenCode route provides agent execution. Recent
+controlled studies call local Qwen directly. The downstream controller is our contribution.
+This is not a full reproduction of KDA's contest research/planning/review/profiling/router
+workflow, nor a modification of Humanize core. See the [workflow comparison](docs/workflow-comparison.zh.md).
+
 ## Latest: source facts, actual context budgets and arm isolation
 
 Initial fresh generation: indexed7/8, source-grounded8/8, eight development families/one
@@ -14,8 +22,8 @@ Read [results/failure](docs/grounded-study-results.zh.md), [follow-up](docs/grou
 and latest HTML are synchronized. Ordinary repair remains default.
 
 
-A job-portfolio prototype that reproduces the KDA task workflow through a real Humanize
-coding-agent session and improves the downstream controller. The research object is the
+A job-portfolio prototype that adapts KDA workflow references, integrates an early real
+Humanize coding-agent session, and implements a downstream controller. The research object is the
 agent that generates kernels, not manually authored operator optimization.
 
 **Portfolio scope:** local-model agent orchestration and evaluation for LLM research

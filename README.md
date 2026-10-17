@@ -1,9 +1,19 @@
 # Evidence-driven Kernel Agent Harness
 
 A portfolio research engineering project about the **agent that writes kernels**. It
-reproduces KDA/Humanize/OpenCode workflows with local Qwen, then studies the downstream
-generation/repair controller. Kernels are assessment artifacts and are never hand-repaired.
+adapts KDA workflow references, integrates an early Humanize/OpenCode route, and studies
+a downstream generation/repair controller using local Qwen. Kernels are assessment artifacts and are never hand-repaired.
 Original KDA documentation remains in [README-kda-upstream.md](README-kda-upstream.md).
+
+## Portfolio closeout and workflow boundary
+
+Strategy additions are paused for interview/application preparation. Recent controlled
+studies call local Qwen directly, without Humanize/OpenCode. This project does not fully
+reproduce KDA's contest research, independent planning/review, profiling and shape-routing
+workflow, or modify Humanize upstream core. Existing internal controls are not a complete
+KDA baseline. See the [source-backed workflow comparison](kernel-agent/docs/workflow-comparison.zh.md).
+A read-only platform audit confirms RTX4090/Torch2.6/Triton3.2, distinct from the public
+B200/FlashInfer reproduction stack; no new model or GPU experiment was launched.
 
 ## Latest results and the controller failure
 
@@ -30,12 +40,13 @@ were6/8 in all three arms. Earlier negative/null studies remain unchanged.
 
 ## Review
 
+- [KDA versus current workflow and interview boundaries](kernel-agent/docs/workflow-comparison.zh.md)
 - [Resume and interview notes](kernel-agent/docs/project-summary.zh.md)
 - [Initial results and failure analysis](kernel-agent/docs/grounded-study-results.zh.md)
 - [Separate follow-up results](kernel-agent/docs/grounded-budget-results.zh.md)
 - [Prospective follow-up protocol](kernel-agent/docs/grounded-budget-study-plan.md)
 - [Reproduction and scope](kernel-agent/docs/grounded-budget-reproduction.md)
-- [Interactive HTML](kernel-agent/reports/kernel-agent-report.html#grounded-budget-study)
+- [Interactive HTML](kernel-agent/reports/kernel-agent-report.html#workflow-comparison)
 - [Canonical server workflow](kernel-agent/docs/server-workflow.md)
 
 Core contributions: [source facts](kernel-agent/src/kernel_agent/grounded_repair.py),

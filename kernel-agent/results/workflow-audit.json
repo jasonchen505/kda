@@ -1,0 +1,179 @@
+{
+  "audited_utc": "2026-10-17T09:33:10.637674+00:00",
+  "contest_commit": "d61573ffb2008b6e68fb32fe8e17703e4b2448c9",
+  "current_code_sha256": {
+    "flows/kernel_loop.py": "68448d2c63ae911e43a57bd71cf29972d7c7520d07b2daa83a35b43d7ce29ab5",
+    "scripts/run_grounded_budget_study.py": "8f99f1c4f11722b75e4614f5d86ba9c4772d9fb82d7de17b44dd43df7379b1d9",
+    "scripts/run_grounded_study.py": "feb7caddae1feaa1269eeab52b7c8be6ff871899708a0ddd4d41ab2942038148",
+    "src/kernel_agent/grounded_budget.py": "2664b2a86437ac5e83cc8cd05a95a2804cac9cc6e8c12f62aed9cc1818b14ded",
+    "src/kernel_agent/humanize_api.py": "d1e93c1a205f5bc49e064ca21c6a763aee3263ad781aeb0268fabf713119bd61",
+    "src/kernel_agent/model_pool.py": "87beea68ebb55ca62de31dad82c86035f21caeb3282b9f9edc247765c06061bd",
+    "src/kernel_agent/protocol.py": "06e46378cea682506abb1a9c51fdc3344723b2bb0f47a60bb234ce60f3227699",
+    "src/kernel_agent/repair.py": "0cc84ed809d28258415ff2bb3a9b103dff09b830d001723de2bdcef7479cd9aa"
+  },
+  "decision": "Do not launch a new strategy study during portfolio closeout. The contest's B200/FlashInfer stack differs from this RTX4090/Triton fixture harness. A local staged-flow trial would be a port, not a full contest reproduction or matched KDA baseline.",
+  "gpu_evaluations": 0,
+  "gpu_runtime_packages": {
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "{\"torch\": \"2.6.0\", \"triton\": \"3.2.0\", \"flashinfer-python\": null, \"flashinfer-bench\": null}"
+  },
+  "hardware": {
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "0, NVIDIA GeForce RTX 4090, GPU-ef6e1a80-1424-bac0-852e-6b1746370905\n1, NVIDIA GeForce RTX 4090, GPU-70253a64-a089-bd3b-81c1-f1ad11d055d5\n2, NVIDIA GeForce RTX 4090, GPU-adaf3d01-f565-84b6-4ead-be0a9c9824d4\n3, NVIDIA GeForce RTX 4090, GPU-d9244202-43a5-0750-9746-fa133befb069\n4, NVIDIA GeForce RTX 4090, GPU-c3d8eae9-15d0-678b-0245-1cea79503b50\n5, NVIDIA GeForce RTX 4090, GPU-4a196958-8179-4656-daa4-ebc348dd6961\n6, NVIDIA GeForce RTX 4090, GPU-8952c987-d622-3b7d-f86b-5d2f691222cd\n7, NVIDIA GeForce RTX 4090, GPU-6a1e27d9-cd1f-f628-207c-6b81297bede8"
+  },
+  "kda_commit": "ef6ce617693ef0782b3ecb9f37e39bbf10226a90",
+  "kind": "workflow_source_and_platform_audit",
+  "model_calls": 0,
+  "ncu_path": "/usr/bin/ncu",
+  "ncu_version": {
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "NVIDIA (R) Nsight Compute Command Line Profiler\nCopyright (c) 2018-2021 NVIDIA Corporation\nVersion 2021.3.1.0 (build 30610069) (public-release)"
+  },
+  "pdf_text_sha256": "f6e6ee6ef8df5ce7dc852f8cd8e36b7112ac5d0f711541ddf3c4907fab85a77a",
+  "schema_version": 1,
+  "scope": "Source identity and capability inventory only; not a reproduction or efficacy experiment. ncu availability does not establish profiling permission or successful collection.",
+  "source_archive": "/data/home/chenyizhou/kernel-agent-storage/archives/source-audits/kda-workflow-20261017-v2",
+  "sources": [
+    {
+      "bytes": 6102,
+      "path": "kda/README.md",
+      "sha256": "b2a3f7ed36ff98e874600e161f061b2c8b1588cc31746406900f15f8273b90d6",
+      "url": "https://github.com/NVlabs/kda/blob/ef6ce617693ef0782b3ecb9f37e39bbf10226a90/README.md"
+    },
+    {
+      "bytes": 2118,
+      "path": "kda/docs/agent-flow.md",
+      "sha256": "c0bf00c893197cbcebdb8dbbbe742c0fd4b51ac7b34e5bab5c3ea4cd94cdb7de",
+      "url": "https://github.com/NVlabs/kda/blob/ef6ce617693ef0782b3ecb9f37e39bbf10226a90/docs/agent-flow.md"
+    },
+    {
+      "bytes": 1762,
+      "path": "kda/prompts/basic-flow.md",
+      "sha256": "0ccd7f7c2a8a09bc1eaca287eb3c0026a99db7033a1a032d50c17f8cff96d038",
+      "url": "https://github.com/NVlabs/kda/blob/ef6ce617693ef0782b3ecb9f37e39bbf10226a90/prompts/basic-flow.md"
+    },
+    {
+      "bytes": 1687,
+      "path": "kda/CLAUDE.md",
+      "sha256": "c33c2d34d27fb3439b0bbde642542c860dfbee1229d7aa056efec8f14aa27c25",
+      "url": "https://github.com/NVlabs/kda/blob/ef6ce617693ef0782b3ecb9f37e39bbf10226a90/CLAUDE.md"
+    },
+    {
+      "bytes": 7590,
+      "path": "contest/README.md",
+      "sha256": "5e9d8008ce4c1a95afd459c42858e0fd6fe725dec8928ccbf92dda4cc808bcce",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/README.md"
+    },
+    {
+      "bytes": 5526,
+      "path": "contest/docs/reproduction.md",
+      "sha256": "3f8fc02cfc58ce4f18fcb9ae4fad3c1474273143d8dc1430eb4a08ba4e8b84ac",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/docs/reproduction.md"
+    },
+    {
+      "bytes": 4426,
+      "path": "contest/prompts/README.md",
+      "sha256": "8c18a27f5a065298db81a502d10c83edaf0efd8c2b4bb5ab3db06c2f9aa7f99f",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/README.md"
+    },
+    {
+      "bytes": 3117275,
+      "path": "contest/docs/HAN_Lab_Kernel_Mafia_Technical_Report.pdf",
+      "sha256": "90901789d3e7bc25b8556f8d89cf30aaabe2ec6209793dc24b0329be99f4dbfa",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/docs/HAN_Lab_Kernel_Mafia_Technical_Report.pdf"
+    },
+    {
+      "bytes": 3843,
+      "path": "contest/prompts/gdn-decode/phase1.md",
+      "sha256": "1bf52f9861dabdb0191730b53a4eaec3b1b0f38b498ac1d913ac7562c0417f95",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/gdn-decode/phase1.md"
+    },
+    {
+      "bytes": 5121,
+      "path": "contest/prompts/gdn-decode/phase2.md",
+      "sha256": "4e07dfa9ca177f496178b3e3ec0e43c8e92c6024457c8c9f63281f305d0ff238",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/gdn-decode/phase2.md"
+    },
+    {
+      "bytes": 5191,
+      "path": "contest/prompts/gdn-decode/phase3.md",
+      "sha256": "0605bad98935e94597001186b27cf1b4cc8f1e8922cdc0d9ce3710d8e6a7a334",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/gdn-decode/phase3.md"
+    },
+    {
+      "bytes": 4093,
+      "path": "contest/prompts/gdn-prefill/phase1.md",
+      "sha256": "28e86abd187450f8b247d1427a721bd61785d5cefeabee1fa88e85e032871dbc",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/gdn-prefill/phase1.md"
+    },
+    {
+      "bytes": 4926,
+      "path": "contest/prompts/gdn-prefill/phase2.md",
+      "sha256": "f6994011b9e7d31c458a6068ca8ef47dbec6979c5ed7e066fbac9294bd5ee5cc",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/gdn-prefill/phase2.md"
+    },
+    {
+      "bytes": 4369,
+      "path": "contest/prompts/gdn-prefill/phase3.md",
+      "sha256": "5fe42c8daa5d5ef63a185790075e234d1312940a6f2d282ed836a03afac5f8f4",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/gdn-prefill/phase3.md"
+    },
+    {
+      "bytes": 4063,
+      "path": "contest/prompts/dsa-topk-indexer/phase1.md",
+      "sha256": "ca4a235d218f77e11502842666fa04c4fd16e283afe1f330be38a3f1bd3821f7",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/dsa-topk-indexer/phase1.md"
+    },
+    {
+      "bytes": 4801,
+      "path": "contest/prompts/dsa-topk-indexer/phase2.md",
+      "sha256": "5ca45227d3e9ac6cc58a1c1d8ad420960faef93b6e639696c2260610d93ef2e4",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/dsa-topk-indexer/phase2.md"
+    },
+    {
+      "bytes": 4367,
+      "path": "contest/prompts/dsa-topk-indexer/phase3.md",
+      "sha256": "2d5fa574944c8aaf51c3e7da07e8ff087c7a9732fc5e89c033b854cb7888290e",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/dsa-topk-indexer/phase3.md"
+    },
+    {
+      "bytes": 4076,
+      "path": "contest/prompts/dsa-sparse-attention/phase1.md",
+      "sha256": "f58a6bd23c488ed947de9f7e36347c59a866c2a97db4343afc8ac29d9ccc8721",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/dsa-sparse-attention/phase1.md"
+    },
+    {
+      "bytes": 4862,
+      "path": "contest/prompts/dsa-sparse-attention/phase2.md",
+      "sha256": "70a4c0a1f11070c170956b7000dc8b50009e4b399eb0f92c0d5bad08d204bdf1",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/dsa-sparse-attention/phase2.md"
+    },
+    {
+      "bytes": 4301,
+      "path": "contest/prompts/dsa-sparse-attention/phase3.md",
+      "sha256": "e7a675ffbb541980330fc5153bfb81bef4e74faa3a053a9d2a0a44b6193174dc",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/dsa-sparse-attention/phase3.md"
+    },
+    {
+      "bytes": 4458,
+      "path": "contest/prompts/moe-fp8/phase1.md",
+      "sha256": "917cc09a37b2c9cd4cc712839a5d150642bd465eb7ed3bfaf9827d681ca4e517",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/moe-fp8/phase1.md"
+    },
+    {
+      "bytes": 5273,
+      "path": "contest/prompts/moe-fp8/phase2.md",
+      "sha256": "d4e79b2e030539149fb6493f32850017d58c6ca67c96151a73069b9f44f6fa71",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/moe-fp8/phase2.md"
+    },
+    {
+      "bytes": 4692,
+      "path": "contest/prompts/moe-fp8/phase3.md",
+      "sha256": "234c67c6bb264027b39144f9425ca0f16bb2691f61fedba14d671faa3fdd7258",
+      "url": "https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/moe-fp8/phase3.md"
+    }
+  ]
+}

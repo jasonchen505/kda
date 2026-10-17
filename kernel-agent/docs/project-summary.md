@@ -1,9 +1,14 @@
 # Local Qwen Kernel Agent Harness
 
 A portfolio research engineering prototype about the agent that writes kernels. Reuse
-KDA, Humanize/OpenCode, Qwen and Triton; downstream contributions are source-grounded,
+KDA's workflow references and an early Humanize/OpenCode integration, plus Qwen and Triton; downstream contributions are source-grounded,
 budgeted repair, independent evaluation/selection, durable recovery, three-service scheduling
 and reconstructible experiments. Candidate kernels are never hand-repaired.
+
+Portfolio closeout: pause strategy additions. Recent controlled studies call Qwen directly,
+without Humanize/OpenCode. The project does not reproduce KDA's full contest research,
+planning/reviewer, profiling and shape-routing workflow or modify Humanize upstream core.
+See the [source-backed workflow comparison](workflow-comparison.zh.md).
 
 | Separate cohort | Indexed control | Source-grounded | Scope |
 |---|---:|---:|---|

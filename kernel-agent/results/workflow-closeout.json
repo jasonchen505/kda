@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "kind": "portfolio_workflow_closeout",
+  "status": "reviewed",
+  "updated_utc": "2026-10-17T09:37:35.432294+00:00",
+  "strategy_additions": "paused_by_user",
+  "new_model_calls": 0,
+  "new_gpu_evaluations": 0,
+  "new_strategy_experiments": 0,
+  "existing_cpu_checks": 219,
+  "checks_status": "passed",
+  "pinned_source_documents": 23,
+  "current_agent_code_matches_audit": true,
+  "artifact_sha256": {
+    "README.md": "9bc5ff1b237e07e49b1ff1706df505149917c64cf9f88c8eec893ce666ae17cf",
+    "docs/workflow-comparison.zh.md": "05388e2644d306b1f6074a6d9405a597bfb888c35d662a34647c0238741ebc88",
+    "docs/project-summary.zh.md": "5a090378e771a350ad6919bf02f979035b381beaf42f34ed52e9593ccfa4fc2d",
+    "docs/project-summary.md": "75a4f9890075e392827f096c33cc7cbed1fcd95d92d804180a397af4267bd129",
+    "docs/project-card.zh.md": "c2ad9ef596f6e6c6d138aedaa6094304dc300a4f657382f732f3ab7189cefaf7",
+    "reports/template.html": "0ea84b3314b600ef763ba389c24ad9e656a5533769d555a8081f1488cd0256b6",
+    "reports/kernel-agent-report.html": "a7295374c48c499612875fa5e6daa4abaa7e3d07a454b24581b3b22cfdcadb1c",
+    "scripts/audit_workflow_sources.py": "3d31862a4737d3128bda1fa441eca4ff6dac5b9c34f1ad8bb33e0dfb65a59cf5",
+    "scripts/build_grounded_report.py": "6f496c80cf531b84cd4b382eade7386c09af9b2ab42664214b97c7d1f647d20f",
+    "results/workflow-audit.json": "813f612b263863da24b34e1ad0a95e5c3f853fa34e116bfa346101ffabae3916",
+    "results/workflow-closeout-checks.json": "b58fddeb2636536f9d0263f225729568619577977de1f22a8268c7bf8434f97d"
+  },
+  "browser_review": {
+    "viewport": [
+      440,
+      725
+    ],
+    "document_scroll_width": 440,
+    "comparison_rows": 6,
+    "console_errors": [],
+    "screenshot_sha256": "34fad2eb74cd79a838757827c723b9eee1c762c41746dd29b5fa526ccedef31f"
+  },
+  "experiment_decision": "No new KDA efficacy trial during closeout. Full contest workflow is not the implemented fixed controller; B200/FlashInfer conditions differ. A future matched staged-flow port would need its own protocol and must not be called full contest reproduction."
+}

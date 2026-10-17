@@ -13,11 +13,11 @@
 </style>
 </head>
 <body>
-<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#grounded-budget-study">&#39044;&#31639;&#19982;&#38548;&#31163;&#39564;&#35777;</a><a href="#grounded-study">&#28304;&#30721;&#32422;&#26463;&#26032;&#23545;&#29031;</a><a href="#span-study">行号修复新对照</a><a href="#operational-study">上轮源码补丁</a><a href="#semantic-study">上轮语义审查</a><a href="#repair-study">上轮负结果</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
+<nav><b>KERNEL AGENT / RESEARCH LOG</b><a href="#portfolio">项目主线</a><a href="#workflow-comparison">KDA 流程比较</a><a href="#grounded-budget-study">&#39044;&#31639;&#19982;&#38548;&#31163;&#39564;&#35777;</a><a href="#grounded-study">&#28304;&#30721;&#32422;&#26463;&#26032;&#23545;&#29031;</a><a href="#span-study">行号修复新对照</a><a href="#operational-study">上轮源码补丁</a><a href="#semantic-study">上轮语义审查</a><a href="#repair-study">上轮负结果</a><a href="#pool-study">服务池对照</a><a href="#phased">阶段恢复</a><a href="#shared-study">既有对照</a><a href="#evidence">证据</a></nav>
 <main>
 <header class="hero"><div class="eyebrow">求职项目 · 大模型算法 / 研究工程师 · 2026.10.17</div>
 <h1>让写 kernel 的 agent<br>在证据中迭代。</h1>
-<p class="lede">复现 KDA 的任务工作流，用 Humanize 驱动本地 Qwen 生成 Triton 代码。改进对象是 agent 控制器：如何测试、修复、停止和选择候选。新增直连 Qwen 后端，用同起点对照验证生成与修复策略。</p>
+<p class="lede">参考 KDA 工作流，早期接入 Humanize/OpenCode，近期直接调用本地 Qwen。自己实现下游 agent 控制器：如何测试、修复、停止和选择候选。项目进入面试与投递收口，暂停新增策略。</p>
 <span class="tag">真实模型生成</span> <span class="tag">独立 GPU 评测</span> <span class="tag">离线报告</span>
 </header>
 <div class="notice">本报告的成绩来自真实模型提案与独立 GPU 评测。此前手写算子和模型实验只作辅助材料，不计入 agent 成绩。</div>
@@ -29,9 +29,29 @@
 
 <section id="portfolio"><h2>五分钟看懂这个求职项目</h2>
 <p>研究工程问题：如何让一个本地 coding agent 在数值、性能和资源约束下写出可验收的 kernel，并在失败或中断后保留可信实验记录。</p>
-<div class="two"><div class="card"><h3>复现了什么</h3><p>KDA 的合约、草案和计划工作流，以及 Humanize → OpenCode → 本地 Qwen 的真实生成链路。新增直连后端用于八类任务的生成／修复对照，模型源码不经人工修改。</p></div><div class="card"><h3>自己改进了什么</h3><p>实现可信语义证据、SHA行号补丁、实际上下文预算适配与策略故障隔离，用同初稿、同修复机会的对照检验效果；底层支持独立评测、候选选择、持久化预算、恢复和三路模型调度。</p></div></div>
+<div class="two"><div class="card"><h3>上游复用与边界</h3><p>KDA 提供工作流和提示参考，早期 Humanize → OpenCode → 本地 Qwen 链路已跑通。近期对照直连 Qwen，没有完整复现 KDA 比赛研究流程，也没有改造 Humanize 上游核心。</p></div><div class="card"><h3>自己改进了什么</h3><p>实现可信语义证据、SHA行号补丁、实际上下文预算适配与策略故障隔离，用同初稿、同修复机会的对照检验效果；底层支持独立评测、候选选择、持久化预算、恢复和三路模型调度。</p></div></div>
 <p>研究迭代：从退步与空结果定位协议成本，上一轮行号修复改善了已知失败。最新源码事实初轮新生成为8/8对7/8，同时暴露上下文连带取消对照；保留失败后，另用新种子验证预算与隔离修复，诊断回归为5/6对3/6。两轮分开解释，仍有转置失败。</p>
 <p class="small" id="portfolio-evidence">定位：可以写入简历的 agent harness 研究工程原型。三任务集成验证为 3/3 最终正确、2/3 晋升；最新六任务反馈对照见下方。真实生成、工程测试和历史未完成实验分别计数。</p></section>
+
+<section id="workflow-comparison">
+<div class="section-top"><h2>KDA 的完整流程，与你现在的流程</h2><span class="tag">收口审阅 · 暂停策略实验</span></div>
+<p class="notice"><b>定位：参考 KDA、接入过 Humanize 的下游 Kernel Agent Harness。</b>完整 KDA 比赛方法让 agent 自主使用工具、探索与逐项接受审查；当前项目由固定控制器决定评测、修复和选择顺序。不能把三个输出字段当作完整研究流程，也没有做过胜过完整 KDA 的对照。</p>
+<div class="two">
+<div class="card"><h3>KDA 比赛公开流程</h3><ol><li><b>研究：</b>调查仓库与工作负载，检索 KernelWiki，做出正确基线。</li><li><b>迭代：</b>采集 NCU 证据，定位瓶颈，多方向优化和回退。</li><li><b>调优：</b>扫描形状分布，形成专门化 kernel 与按形状分派。</li></ol><p class="small">每阶段：独立草案 → 详细可执行计划 → writer 使用工具实施 → 独立 reviewer 按验收条件检查证据 → 通过或继续。总说明强调形状调优，个别任务的第三阶段是继续探索。</p></div>
+<div class="card"><h3>当前受控实验流程</h3><ol><li><b>冻结与派发：</b>任务、种子、预算、服务身份入账；本地 Qwen 提案。</li><li><b>验证与修复：</b>源码／API 检查，独立 GPU 搜索评测，最多两次模型修复。</li><li><b>选择与交付：</b>提交门槛优先所选 SHA，最终检查仅接受或否决，保存轨迹与报告。</li></ol><p class="small">draft、plan、代码同一次生成；没有独立规划调用。近期直连 Qwen，不经过 Humanize。最新诊断队列从已知失败父源码开始，不含新任务生成。</p></div>
+</div>
+<div class="table-wrap" style="margin-top:20px"><table class="changes"><thead><tr><th>环节</th><th>KDA 完整公开实例</th><th>当前项目与贡献</th></tr></thead><tbody>
+<tr><td>调查与规划</td><td>自主读仓库／检索；草案先于独立详细规划与实现</td><td>控制器提供合约、规则卡和固定示例；一回复返回 draft / plan / code</td></tr>
+<tr><td>执行与验收</td><td>Humanize 计划／RLCR；writer 工具执行，reviewer 逐项审查</td><td>早期 SDK 接入，近期原生 Chat；确定性程序独立裁决，没有完整 RLCR 复现</td></tr>
+<tr><td>优化与形状</td><td>NCU 瓶颈诊断、多方向探索、形状专门化／路由</td><td>有限数值反例、部分源码事实和计时；未接入自主 profiling 或路由阶段</td></tr>
+<tr><td>候选与最终检查</td><td>正确性、benchmark、候选谱系与性能证据</td><td>SHA 绑定、门槛优先选择、提交后最终否决；具体下游实现，不声称 KDA 没有类似能力</td></tr>
+<tr><td>预算与恢复</td><td>按公开阶段规则推进；完整中间账本未发布</td><td>持久化预算、未知调用不重放、阶段恢复、三服务调度、上下文与策略隔离</td></tr>
+<tr><td>结果能否横比</td><td>B200、FlashInfer 实际工作负载、任务指定基线</td><td>RTX 4090、自定义开发任务、torch.compile；现有成绩不支持胜过完整 KDA</td></tr>
+</tbody></table></div>
+<p><b>这次不新增完整流程实验。</b>已有证据支持“agent harness 研究工程原型”的求职定位。4090 上改写任务和多阶段提示只能算移植版，不能冒充 B200 比赛复现。独立规划、工具探索与 profiler 对照是另一个研究问题，此时继续搭建会扩大项目。</p>
+<details><summary>展开：早期基线、实验边界与固定来源</summary><p>通用 KDA 仓库提供合约→调查→草案→计划→实现→验证→证据迭代的参考，并没有统一可执行评测系统。早期 <code>kda_prompt</code> 是单次适配提示，反馈模式最多三轮；它不等于完整 KDA 的等预算基线。后续对照仅证明本 harness 内策略在指定开发样本上的表现。</p><p>若将来比较移植版工作流，应对齐模型、任务、资料和最终验收，报告全部规划／审查 tokens、工具与 GPU 时间、候选数；三路服务按配对块平衡。只对齐外层轮数不足以公平比较。官方最终解不能作为生成输入。</p><p class="sources"><a href="https://github.com/NVlabs/kda/blob/ef6ce617693ef0782b3ecb9f37e39bbf10226a90/docs/agent-flow.md">通用工作流</a> · <a href="https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/prompts/README.md">比赛阶段与 Humanize 命令</a> · <a href="https://github.com/mit-han-lab/mlsys2026-flashinfer-contest/blob/d61573ffb2008b6e68fb32fe8e17703e4b2448c9/docs/HAN_Lab_Kernel_Mafia_Technical_Report.pdf">技术报告 §3 / Algorithm 1</a> · <a href="../docs/workflow-comparison.zh.md">完整流程比较与一分钟面试表述</a> · <a href="../results/workflow-audit.json" download>来源与平台审计</a></p><pre id="workflow-audit-details"></pre></details>
+<p class="small" id="workflow-audit-note"></p>
+</section>
 
 <section id="grounded-budget-study" hidden>
 <div class="section-top"><h2>先修复上下文与策略隔离</h2><span class="tag" id="gb-status"></span></div>
@@ -250,7 +270,7 @@
 <div class="two"><div class="card"><h3>已经验证的工程能力</h3><p id="upgrade-checks"></p><p>单写者锁、原子检查点、计划漂移拒绝、结果 SHA 绑定、失败分母及预算不重置。A/C 执行真实 Humanize 流程，但模型回复与 GPU 裁决使用测试驱动。</p></div><div class="card"><h3>此前未完成的多种子计划</h3><p id="multiseed-note"></p><p>六类任务已用于开发，不能当作未见任务。三种随机种子、两组各三次提案，温度 0.2；固定同一运行环境，按任务分组报告。资源预检通过后才会开始。</p></div></div>
 <p class="small">恢复粒度是任务边界；没有恢复任务内会话，也不保证外部调用恰好一次。预算预留是调度额度，无法代替完整的服务端 token 使用记录。GPU 预检不能排除其他用户在运行中占用设备。</p>
 <details><summary>冻结计划、资源预检与恢复断言</summary><pre id="recovery-detail"></pre></details></section>
-<section><h2>07 · 求职展示怎么讲</h2><p>可陈述的贡献是：基于 KDA 与 Humanize 实现本地 kernel 生成 agent，把候选选择交给独立评测器；加入反馈、预算、去重、回退和最终检查，并保留完整实验轨迹。对照结果以本报告真实计数为准。</p><p>项目主线是 kernel agent 的复现、改进与验证。从原始同预算对照定位选择缺陷，再补可恢复的实验调度，用真实中断验证结果复用与未知状态处理。各轮 GPU 实验、CPU 故障测试和未完成计划保留各自的分母。最新同初稿三组修复对照见上方；已知失败修复有改善，新生成任务未获净收益，更广任务泛化仍需验证。</p></section>
+<section><h2>07 · 求职展示怎么讲</h2><p>可陈述的贡献是：参考 KDA，早期接入 Humanize/OpenCode，近期直连本地 Qwen，自己实现生成／修复控制器、独立评测、预算、选择与恢复。没有完整复现 KDA 比赛研究流程或改造 Humanize 核心。对照结果以本报告真实计数为准。</p><p>项目主线是 kernel agent 的复现、改进与验证。从原始同预算对照定位选择缺陷，再补可恢复的实验调度，用真实中断验证结果复用与未知状态处理。各轮 GPU 实验、CPU 故障测试和未完成计划保留各自的分母。最新同初稿三组修复对照见上方；已知失败修复有改善，新生成任务未获净收益，更广任务泛化仍需验证。</p></section>
 
 <section id="evidence"><h2>08 · 证据、复现与表达来源</h2><p>报告是单个 HTML 文件，内嵌图表与轨迹数据，断网仍可交互查看。本轮结果JSON另附于results/grounded-summary.json与results/grounded-budget-summary.json；下载入口需要这份配套文件，原始实验仅在远端。</p>
 <details><summary>固定版本与源文件 SHA</summary><pre id="provenance"></pre></details>
@@ -289,6 +309,7 @@ const groupKey=r=>isStrategy?r.study_policy:(r.transport_policy||r.mode), runLab
 const groups=[...new Set(runs.map(groupKey))], groupNames=Object.fromEntries(runs.map(r=>[groupKey(r),runLabel(r)]));
 const $=id=>document.getElementById(id), node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e};
 const fixed=(x,n=2)=>Number.isFinite(x)?x.toFixed(n):'—';
+if(DATA.workflow_audit){const a=DATA.workflow_audit;$('workflow-audit-note').textContent=`本次为只读来源／平台审计：固定版本原件 ${a.sources.length} 份；新模型调用 ${a.model_calls}，GPU 评测 ${a.gpu_evaluations}。原件与 PDF 文本留远端，未新增策略成绩。`;$('workflow-audit-details').textContent=JSON.stringify({kda_commit:a.kda_commit,contest_commit:a.contest_commit,source_archive:a.source_archive,gpu_runtime_packages:a.gpu_runtime_packages,ncu_path:a.ncu_path,scope:a.scope},null,2);}
 for(const key of groups)$('legend').append(node('span',groupNames[key]));
 function download(value,filename){downloadRaw(JSON.stringify(value,null,2),filename)}
 function downloadRaw(raw,filename){const url=URL.createObjectURL(new Blob([raw],{type:'application/json'}));const a=node('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
