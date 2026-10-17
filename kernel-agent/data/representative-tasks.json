@@ -1,0 +1,24 @@
+{
+  "gemm": {
+    "name": "Dense matrix multiplication",
+    "contract": "run(a,b): contiguous CUDA matrices a(M,K), b(K,N), same float32/bfloat16 dtype. Return a newly allocated contiguous (M,N) matrix equal to FP32 matmul cast once to input dtype. Inputs immutable. M,N:1..512; K:1..256; odd, rectangular and unaligned sizes included. Use Triton for compute; torch only allocation/metadata. FP32 atol=1e-4 rtol=1e-3; BF16 atol=rtol=.015. FP32 tl.dot must use input_precision='ieee' (default tf32 is insufficient); handle K tails and all output masks. No assumption that dimensions are multiples of tile size.",
+    "correctness_shapes": [[1,1,1],[3,5,7],[17,33,29],[31,65,47]],
+    "timing_shapes": [[32,64,48],[128,128,128],[256,192,256]],
+    "final_correctness_shapes": [[2,3,5],[9,31,17],[35,63,49],[67,129,81]],
+    "final_timing_shapes": [[33,65,51],[127,129,131],[251,191,253]],
+    "shape_order": "M,K,N",
+    "performance_reference": "torch.matmul in the input dtype, torch.compile wrapper; TF32 disabled",
+    "api_notes": "Triton3.2 tl.dot(a,b, input_precision='ieee') accepts 2D tiles; accumulate FP32. tl.arange lengths are powers of two. On the host use triton.cdiv; pass tensors as pointers, not data_ptr()."
+  },
+  "attention": {
+    "name": "Scaled dot-product self attention",
+    "contract": "run(q,k,v,causal=False): contiguous CUDA tensors of shape (B,H,S,D), same float32/bfloat16 dtype. Return a fresh contiguous tensor of the same shape/device/dtype: softmax(q.float()@k.float().transpose(-1,-2)/sqrt(D) + causal_mask)@v.float(), cast once to input dtype. Test BOTH causal=False and causal=True; causal masks key index>query index. B:1..2,H:1..4,S:1..256,D:16..64, including non-power-of-two S/D. Numerically stable softmax with FP32 intermediates; inputs immutable. FP32 atol=1e-4 rtol=1e-3; BF16 atol=rtol=.015. Use Triton for compute, torch allocation/metadata only. This bounded self-attention task does not include backward, dropout, variable-length batches or KV caching.",
+    "correctness_shapes": [[1,1,1,16],[1,2,7,24],[2,1,17,32],[1,2,33,48]],
+    "timing_shapes": [[1,2,32,32],[1,2,64,64],[1,2,128,64]],
+    "final_correctness_shapes": [[1,1,3,24],[2,1,11,32],[1,3,35,48],[1,2,65,64]],
+    "final_timing_shapes": [[1,2,31,32],[1,2,63,64],[1,2,127,64]],
+    "shape_order": "B,H,S,D; both causal values",
+    "performance_reference": "torch.nn.functional.scaled_dot_product_attention in the input dtype, torch.compile wrapper; timing uses causal=True",
+    "api_notes": "tl.exp uses natural exponent, tl.exp2 needs log2(e) conversion. Stable softmax subtracts row maximum; masked logits use -inf. A simple bounded row-wise implementation is permitted; fused tiled implementations are optional. Avoid materializing torch-computed scores. Triton reductions use explicit axis and power-of-two padded tl.arange with masks."
+  }
+}
